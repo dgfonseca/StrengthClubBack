@@ -3,14 +3,14 @@ var bcrypt = require("bcrypt");
 const Pool = require("pg").Pool
 
 const pool = new Pool({
-  user: process.env.PG_USER,
-  host: process.env.PG_HOST,
-  database: process.env.PG_DATABASE,
-  password: process.env.PG_PASSWORD,
-  port: process.env.PG_PORT,
-  ssl: {
-    rejectUnauthorized: false,
-  }
+  user: "postgres",
+  host: "localhost",
+  database: "strength_club",
+  password: "santafe",
+  port: 5432,
+  // ssl: {
+  //   rejectUnauthorized: false,
+  // }
   });
 
 const desagendarSesion = (request, response)=>{
@@ -64,6 +64,47 @@ const registrarAsistencia = (request, response)=>{
       response.status(400).json({message:"Campos Faltantes"});
     }
 
+}
+const crearSesionDeIcs =  async (request, response)=>{
+  let entrenador= request.body.entrenador;
+  let cliente = request.body.cliente;
+  let fecha = request.body.fecha;
+  let asistio = request.body.asistio;
+  try{
+    if(entrenador && cliente && fecha){
+      const clienteRes = await pool.query("SELECT cedula FROM clientes WHERE nombre LIKE $1",[cliente]);
+      const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
+      if(clienteRes.rowCount<1 || entrenadorRes.rowCount<1){
+        response.status(400)
+          .send({
+            message: "Verifique el cliente o el entrenador ingresado"
+          });
+          return;
+      }else{
+        cliente = clienteRes.rows[0].cedula
+        entrenador = entrenadorRes.rows[0].cedula
+        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 OR cliente=$2) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha, fecha]);
+        if(countRes.rows[0].count>0){
+            response.status(400).send({
+              message: "Ya hay sesiones agendadas en dicho horario"
+          })
+          return;
+        }else{
+          await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio) VALUES($1,$2,$3,$4)",[entrenador,cliente,fecha,asistio])
+          response.status(200).send({message:"Sesion Agendada Exitosamente"});
+          return;
+        }
+      }
+      
+    }
+  }catch (e){
+      response.status(400).send({
+        message: e
+    });
+    return;
+  }
+
+  
 }
 
 const crearSesion = (request, response) =>{
@@ -122,4 +163,4 @@ const getSesiones = (request,response) =>{
 }
 
 
-module.exports = {crearSesion,desagendarSesion, registrarAsistencia, getSesiones}
+module.exports = {crearSesion,desagendarSesion, registrarAsistencia, getSesiones, crearSesionDeIcs}
