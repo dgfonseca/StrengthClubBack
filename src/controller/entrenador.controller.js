@@ -14,7 +14,7 @@ const pool = new Pool({
   });
 
 const getEntrenadores = (request,response) =>{
-  pool.query("SELECT nombre,cedula FROM entrenadores",(error,results)=>{
+  pool.query("SELECT * FROM entrenadores",(error,results)=>{
     if (error) {
       response.status(500)
           .send({
