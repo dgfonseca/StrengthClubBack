@@ -43,7 +43,7 @@ const getUsuarios = (request,response) =>{
             message: error
           });
       }else{
-        response.status(200).send({clientes:results.rows});
+        response.status(200).send({usuarios:results.rows});
       }
   })
 }
