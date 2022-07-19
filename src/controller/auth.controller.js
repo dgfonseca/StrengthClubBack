@@ -35,6 +35,19 @@ const signup = (request, response) =>{
     }
 };
 
+const getUsuarios = (request,response) =>{
+  pool.query("SELECT usuario, email, rol FROM usuarios",(error,results)=>{
+    if (error) {
+      response.status(500)
+          .send({
+            message: error
+          });
+      }else{
+        response.status(200).send({clientes:results.rows});
+      }
+  })
+}
+
 
 
 const signin = (req,res)=>{
@@ -86,4 +99,4 @@ const signin = (req,res)=>{
     }
 }
 
-module.exports = {signup,signin}
+module.exports = {signup,signin,getUsuarios}
