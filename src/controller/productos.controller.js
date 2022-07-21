@@ -86,6 +86,22 @@ const getProductosHabilitados = (request,response) =>{
   })
 }
 
+const deleteProductos = (request,response) =>{
+  let codigo = request.body.codigo;
+  if(codigo){
+    pool.query("DELETE FROM productos WHERE codigo=$1",[codigo],(error,results)=>{
+      if (error) {
+        response.status(500)
+            .send({
+              message: error
+            });
+        }else{
+          response.status(200).send({message:"Eliminado exitosamente"});
+        }
+    })
+  }else{
+    response.status(400).json({message:"Campos Faltantes"});
+  }
+}
 
-
-module.exports = {crearProducto,getProductos, updateProducto,getProductosHabilitados}
+module.exports = {crearProducto,getProductos, updateProducto,getProductosHabilitados,deleteProductos}
