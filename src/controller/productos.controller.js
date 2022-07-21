@@ -45,7 +45,7 @@ const updateProducto = (request, response) =>{
   let precio = request.body.precio;
   let habilitado = request.body.habilitado
   if(nombre && codigo && descripcion && inventario && precio){
-      pool.query("UPDATE productos SET nombre=$1,descripcion=$3,inventario=$4,precio=$5,habilitado=$6 WHERE codigo=$7", [nombre, codigo, descripcion,inventario,precio,habilitado,codigo], (error, results)=>{
+      pool.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=$3,precio=$4,habilitado=$5 WHERE codigo=$6", [nombre, descripcion,inventario,precio,habilitado,codigo], (error, results)=>{
           if (error) {
             response.status(500)
                 .send({
