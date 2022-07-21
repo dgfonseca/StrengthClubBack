@@ -19,6 +19,7 @@ const crearProducto = (request, response) =>{
     let descripcion = request.body.descripcion;
     let inventario = request.body.inventario;
     let precio = request.body.precio;
+    let habilitado = request.body.habilitado;
     if(nombre && codigo && descripcion && inventario && precio){
         pool.query("INSERT INTO productos(nombre,codigo,descripcion,inventario,precio,habilitado) VALUES($1,$2,$3,$4,$5,$6)", [nombre, codigo, descripcion,inventario,precio,habilitado], (error, results)=>{
             if (error) {
