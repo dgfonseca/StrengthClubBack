@@ -73,6 +73,19 @@ const getProductos = (request,response) =>{
   })
 }
 
+const getProductosHabilitados = (request,response) =>{
+  pool.query("SELECT * FROM productos WHERE habilitado=true",(error,results)=>{
+    if (error) {
+      response.status(500)
+          .send({
+            message: error
+          });
+      }else{
+        response.status(200).send({productos:results.rows});
+      }
+  })
+}
 
 
-module.exports = {crearProducto,getProductos, updateProducto}
+
+module.exports = {crearProducto,getProductos, updateProducto,getProductosHabilitados}
