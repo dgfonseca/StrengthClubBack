@@ -20,7 +20,7 @@ const crearProducto = (request, response) =>{
     let inventario = request.body.inventario;
     let precio = request.body.precio;
     if(nombre && codigo && descripcion && inventario && precio){
-        pool.query("INSERT INTO productos(nombre,codigo,descripcion,inventario,precio) VALUES($1,$2,$3,$4,$5)", [nombre, codigo, descripcion,inventario,precio], (error, results)=>{
+        pool.query("INSERT INTO productos(nombre,codigo,descripcion,inventario,precio,habilitado) VALUES($1,$2,$3,$4,$5,$6)", [nombre, codigo, descripcion,inventario,precio,habilitado], (error, results)=>{
             if (error) {
               response.status(500)
                   .send({
@@ -42,8 +42,9 @@ const updateProducto = (request, response) =>{
   let descripcion = request.body.descripcion;
   let inventario = request.body.inventario;
   let precio = request.body.precio;
+  let habilitado = request.body.habilitado
   if(nombre && codigo && descripcion && inventario && precio){
-      pool.query("UPDATE productos SET nombre=$1,descripcion=$3,inventario=$4,precio=$5 WHERE codigo=$2", [nombre, codigo, descripcion,inventario,precio], (error, results)=>{
+      pool.query("UPDATE productos SET nombre=$1,descripcion=$3,inventario=$4,precio=$5,habilitado=$6 WHERE codigo=$2", [nombre, codigo, descripcion,inventario,precio,habilitado], (error, results)=>{
           if (error) {
             response.status(500)
                 .send({
