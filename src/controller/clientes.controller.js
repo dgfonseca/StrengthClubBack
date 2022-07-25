@@ -77,7 +77,7 @@ const updateCliente = (request, response) =>{
 const deleteClientes = (request,response) =>{
   let cedula = request.body.cedula;
   if(cedula){
-    pool.query("DELETE FROM clientes WHERE codigo=$1",[cedula],(error,results)=>{
+    pool.query("DELETE FROM clientes WHERE cedula=$1",[cedula],(error,results)=>{
       if (error) {
         response.status(500)
             .send({

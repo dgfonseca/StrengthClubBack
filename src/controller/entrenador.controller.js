@@ -77,7 +77,7 @@ if(nombre && email && direccion && telefono && cedula && color){
 const deleteEntrenadores = (request,response) =>{
   let cedula = request.body.cedula;
   if(cedula){
-    pool.query("DELETE FROM entrenadores WHERE codigo=$1",[cedula],(error,results)=>{
+    pool.query("DELETE FROM entrenadores WHERE cedula=$1",[cedula],(error,results)=>{
       if (error) {
         response.status(500)
             .send({
