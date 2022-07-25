@@ -50,6 +50,24 @@ const crearCliente = (request, response) =>{
     }
 };
 
+const deleteClientes = (request,response) =>{
+  let cedula = request.body.cedula;
+  if(cedula){
+    pool.query("DELETE FROM clientes WHERE codigo=$1",[cedula],(error,results)=>{
+      if (error) {
+        response.status(500)
+            .send({
+              message: error
+            });
+        }else{
+          response.status(200).send({message:"Eliminado exitosamente"});
+        }
+    })
+  }else{
+    response.status(400).json({message:"Campos Faltantes"});
+  }
+}
 
 
-module.exports = {crearCliente,getClientes}
+
+module.exports = {crearCliente,getClientes,deleteClientes}

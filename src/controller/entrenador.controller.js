@@ -50,6 +50,24 @@ const crearEntrenador = (request, response) =>{
     }
 };
 
+const deleteEntrenadores = (request,response) =>{
+  let cedula = request.body.cedula;
+  if(cedula){
+    pool.query("DELETE FROM entrenadores WHERE codigo=$1",[cedula],(error,results)=>{
+      if (error) {
+        response.status(500)
+            .send({
+              message: error
+            });
+        }else{
+          response.status(200).send({message:"Eliminado exitosamente"});
+        }
+    })
+  }else{
+    response.status(400).json({message:"Campos Faltantes"});
+  }
+}
 
 
-module.exports = {crearEntrenador,getEntrenadores}
+
+module.exports = {crearEntrenador,getEntrenadores,deleteEntrenadores}
