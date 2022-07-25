@@ -50,6 +50,30 @@ const crearEntrenador = (request, response) =>{
     }
 };
 
+const updateEntrenador = (request, response) =>{
+  let nombre = request.body.nombre;
+  let email = request.body.email;
+  let direccion = request.body.direccion;
+  let telefono = request.body.telefono;
+  let cedula = request.body.cedula;
+  let color = request.body.color
+if(nombre && email && direccion && telefono && cedula && color){
+    pool.query("UPDATE entrenadores SET nombre=$1,email=$2,direccion=$3,telefono=$4,color=$5 WHERE cedula=$6", [nombre, email,direccion,telefono,color,cedula], (error, results)=>{
+        if (error) {
+          response.status(500)
+              .send({
+                message: error
+              });
+          }
+        else {
+          response.status(200).send({message:"Entrenador Actualizado Exitosamente"});
+        }
+    });
+}else{
+  response.status(400).json({message:"Campos Faltantes"});
+}
+};
+
 const deleteEntrenadores = (request,response) =>{
   let cedula = request.body.cedula;
   if(cedula){
@@ -70,4 +94,4 @@ const deleteEntrenadores = (request,response) =>{
 
 
 
-module.exports = {crearEntrenador,getEntrenadores,deleteEntrenadores}
+module.exports = {crearEntrenador,getEntrenadores,deleteEntrenadores,updateEntrenador}

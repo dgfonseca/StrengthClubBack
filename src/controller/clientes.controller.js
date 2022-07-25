@@ -50,6 +50,30 @@ const crearCliente = (request, response) =>{
     }
 };
 
+const updateCliente = (request, response) =>{
+    let nombre = request.body.nombre;
+    let email = request.body.email;
+    let direccion = request.body.direccion;
+    let telefono = request.body.telefono;
+    let cedula = request.body.cedula;
+    let nacimiento = request.body.fechaNacimiento;
+  if(nombre && email && direccion && telefono && cedula && nacimiento){
+      pool.query("UPDATE cliente SET nombre=$1,email=$2,direccion=$3,telefono=$4,fecha_nacimiento=$5 WHERE cedula=$6", [nombre, email,direccion,telefono,nacimiento,cedula], (error, results)=>{
+          if (error) {
+            response.status(500)
+                .send({
+                  message: error
+                });
+            }
+          else {
+            response.status(200).send({message:"Cliente Actualizado Exitosamente"});
+          }
+      });
+  }else{
+    response.status(400).json({message:"Campos Faltantes"});
+  }
+};
+
 const deleteClientes = (request,response) =>{
   let cedula = request.body.cedula;
   if(cedula){
@@ -70,4 +94,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {crearCliente,getClientes,deleteClientes}
+module.exports = {crearCliente,getClientes,deleteClientes,updateCliente}
