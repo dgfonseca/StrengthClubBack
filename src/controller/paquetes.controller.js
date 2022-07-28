@@ -112,6 +112,20 @@
 		})
 	  }
 
+	  const getProductosPaquete = (request,response) =>{
+		let codigo = request.body.codigo;
+		pool.query("SELECT pr.nombre,pr.codigo, pr.precio, pp.cantidad FROM paquetes pa INNER JOIN productos_paquete pp on pa.codigo=pp.codigo_paquete INNER JOIN productos pr on pr.codigo=pp.codigo_producto WHERE pa.codigo=$1",[codigo],(error,results)=>{
+		  if (error) {
+			response.status(500)
+				.send({
+				  message: error
+				});
+			}else{
+			  response.status(200).send({productos:results.rows});
+			}
+		})
+	  }
 
 
-	module.exports = {crearPaquete, getPaquetes}
+
+	module.exports = {crearPaquete, getPaquetes, getProductosPaquete}
