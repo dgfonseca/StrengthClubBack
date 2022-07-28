@@ -1,6 +1,5 @@
 	var jwt = require("jsonwebtoken");
 	var bcrypt = require("bcrypt");
-const { ClientBase } = require("pg");
 	const Pool = require("pg").Pool
 
 	const pool = new Pool({
@@ -24,11 +23,11 @@ const { ClientBase } = require("pg");
 			await client.query('BEGIN');
 			await client.query('DELETE FROM paquetes WHERE codigo=$1',[codigoPaquete]);
 			await client.query("INSERT INTO paquetes(codigo,precio,nombre) VALUES($1,$2,$3)",[codigoPaquete,precio,nombre]);
-			productos.forEach(producto => {
+			for (producto in productos) {
 				let codigo = producto.codigo;
 				let cantidad = producto.cantidad;
 				await client.query("INSERT INTO productos_paquete(codigo_producto,codigo_paquete,cantidad) VALUES($1,$2,$3)",[codigo,codigoPaquete,cantidad]);
-			});
+			}
 			await client.query('COMMIT');
 			response.status(200).send({
 				message:"Paquete actualizado exitosamente"
