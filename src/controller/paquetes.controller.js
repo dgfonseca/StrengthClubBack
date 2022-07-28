@@ -121,7 +121,15 @@
 				  message: error
 				});
 			}else{
-			  response.status(200).send({productos:results.rows});
+				pool.query("SELECT  sum(pp.cantidad*pr.precio)  FROM paquetes pa INNER JOIN productos_paquete pp on pa.codigo=pp.codigo_paquete INNER JOIN productos pr on pr.codigo=pp.codigo_producto WHERE pa.codigo=$1",[codigo],(error,results2)=>{
+					if (error) {
+						response.status(500)
+							.send({
+							  message: error
+							});}else{
+								response.status(200).send({productos:results.rows,precio:results2.rows});
+							}	
+				});
 			}
 		})
 	  }
