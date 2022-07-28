@@ -23,7 +23,7 @@
 			await client.query('BEGIN');
 			await client.query('DELETE FROM paquetes WHERE codigo=$1',[codigoPaquete]);
 			await client.query("INSERT INTO paquetes(codigo,precio,nombre) VALUES($1,$2,$3)",[codigoPaquete,precio,nombre]);
-			for (producto in productos) {
+			for (let producto of productos) {
 				let codigo = producto.codigo;
 				let cantidad = producto.cantidad;
 				await client.query("INSERT INTO productos_paquete(codigo_producto,codigo_paquete,cantidad) VALUES($1,$2,$3)",[codigo,codigoPaquete,cantidad]);
@@ -52,7 +52,7 @@
 			if(nombre && productos && precio && codigoPaquete){
 				await client.query('BEGIN');
 				await client.query("INSERT INTO paquetes(codigo,precio,nombre) VALUES($1,$2,$3)",[codigoPaquete,precio,nombre]);
-				for (let producto in productos) {
+				for (let producto of productos) {
 					let codigo = producto.codigo;
 					let cantidad = producto.cantidad;
 					await client.query("INSERT INTO productos_paquete(codigo_producto,codigo_paquete,cantidad) VALUES($1,$2,$3)",[codigo,codigoPaquete,cantidad]);
