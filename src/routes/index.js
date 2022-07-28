@@ -40,4 +40,5 @@ router.put("/paquetes",paquetes.actualizarPaquete)
 router.delete("/productos",productos.deleteProductos)
 router.delete("/clientes", cliente.deleteClientes)
 router.delete("/entrenadores",entrenador.deleteEntrenadores)
+router.delete("/paquete",paquetes.deletePaquete)
 module.exports = router;

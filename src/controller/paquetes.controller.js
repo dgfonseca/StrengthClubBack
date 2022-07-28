@@ -160,6 +160,20 @@
 	// 	});   
 	// };
 
+	const deletePaquete = (request,response) =>{
+		let codigo = request.body.codigo;
+		pool.query("DELETE FROM paquetes WHERE codigo=$1",[codigo],(error,results)=>{
+		  if (error) {
+			response.status(500)
+				.send({
+				  message: error
+				});
+			}else{
+			  response.status(200).send({message:"Borrado exitosamente"});
+			}
+		})
+	  }
+
 	const getPaquetes = (request,response) =>{
 		pool.query("SELECT * FROM paquetes",(error,results)=>{
 		  if (error) {
@@ -197,4 +211,4 @@
 
 
 
-	module.exports = {crearPaquete, getPaquetes, getProductosPaquete, actualizarPaquete}
+	module.exports = {crearPaquete, getPaquetes, getProductosPaquete, actualizarPaquete, deletePaquete}
