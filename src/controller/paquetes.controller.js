@@ -46,12 +46,11 @@ const { ClientBase } = require("pg");
 	const crearPaquete = async (request, response) => {
 		const client = await pool.connect()
 		try {
-			if(nombre && productos && precio && codigoPaquete){
-
 				let codigoPaquete = request.body.codigo;
 				let nombre = request.body.nombre;
 				let productos = request.body.productos;
 				let precio = request.body.precio;
+			if(nombre && productos && precio && codigoPaquete){
 				await client.query('BEGIN');
 				await client.query("INSERT INTO paquetes(codigo,precio,nombre) VALUES($1,$2,$3)",[codigoPaquete,precio,nombre]);
 				productos.forEach(producto => {
