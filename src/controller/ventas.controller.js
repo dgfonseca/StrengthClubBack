@@ -90,7 +90,7 @@ const pool = new Pool({
                 let codigo = contenido.codigo
                 let cantidad = contenido.cantidad
                 await client.query("UPDATE productos SET inventario=inventario+$1 WHERE codigo=$2",[cantidad,codigo]);
-                const rowCount = client.query("SELECT count(*) from paquetes WHERE codigo=$1", [codigo]);
+                const rowCount = await client.query("SELECT count(*) from paquetes WHERE codigo=$1", [codigo]);
                 if(rowCount.rows[0].count>0){
                     const resPP=await client.query("SELECT pr.codigo FROM paquetes pa INNER JOIN productos_paquete pp on pp.codigo_producto INNER JOIN productos pr on pr.codigo=pp.codigo_producto WHERE pa.codigo=$1",[codigo])
                     for(producto of resPP.rows){
