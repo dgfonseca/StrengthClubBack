@@ -85,7 +85,7 @@ const pool = new Pool({
                     inner join productos p on p.codigo=vp2.producto \
                     inner join clientes c on c.cedula=ve2.cliente \
                     where ve2.id=$2 \
-                    group by p.codigo, p.nombre, vp2.cantidad) as foo group by foo.codigo, foo.nombre, foo.cantidad")
+                    group by p.codigo, p.nombre, vp2.cantidad) as foo group by foo.codigo, foo.nombre, foo.cantidad",[id,id])
             for(contenido of prods.rows){
                 let codigo = contenido.codigo
                 let cantidad = contenido.cantidad
