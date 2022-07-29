@@ -105,7 +105,7 @@ const pool = new Pool({
 
         } catch (error) {
             await client.query("ROLLBACK");
-            response.status(400).send({message:"Mo se puede borrar la venta"});
+            response.status(400).send({message:"Mo se puede borrar la venta "+error});
             return;
         }
       }
