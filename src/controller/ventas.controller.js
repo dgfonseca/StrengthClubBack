@@ -66,6 +66,49 @@ const pool = new Pool({
         })
       }
 
+
+      const eliminarVenta = async (request, response)=>{
+        const client = await pool.connect();
+        let id = request.body.id
+        try {
+            await client.query("BEGIN");
+            const prods = await client.query("select foo.codigo, foo.nombre, foo.cantidad from \
+                    (select pa.codigo, pa.nombre, vp.cantidad  from ventas ve \
+                    inner join ventas_paquetes vp on vp.venta = ve.id \
+                    inner join paquetes pa on pa.codigo=vp.paquete \
+                    inner join clientes cl on cl.cedula=ve.cliente \
+                    where ve.id=$1 \
+                    group by pa.codigo, pa.nombre, vp.cantidad \
+                    union \
+                    select p.codigo, p.nombre, vp2.cantidad  from ventas ve2 \
+                    inner join ventas_productos vp2 on ve2.id=vp2.venta \
+                    inner join productos p on p.codigo=vp2.producto \
+                    inner join clientes c on c.cedula=ve2.cliente \
+                    where ve2.id=$2 \
+                    group by p.codigo, p.nombre, vp2.cantidad) as foo group by foo.codigo, foo.nombre, foo.cantidad")
+            for(contenido of prods.rows){
+                let codigo = contenido.codigo
+                let cantidad = contenido.cantidad
+                await client.query("UPDATE productos SET inventario=inventario+$1 WHERE codigo=$2",[cantidad,codigo]);
+                const rowCount = client.query("SELECT count(*) from paquetes WHERE codigo=$1", [codigo]);
+                if(rowCount.rows[0].count>0){
+                    const resPP=await client.query("SELECT pr.codigo FROM paquetes pa INNER JOIN productos_paquete pp on pp.codigo_producto INNER JOIN productos pr on pr.codigo=pp.codigo_producto WHERE pa.codigo=$1",[codigo])
+                    for(producto of resPP.rows){
+                        await client.query("UPDATE productos SET inventario=inventario+($1*$2) WHERE codigo=$3",[cantidad,producto.cantidad,producto.codigo])
+                    }
+                }
+            }
+            await client.query("DELETE FROM ventas WHERE id=$1",[id]);
+            await client.query("COMMIT");
+            response.status(200).send({message:"Venta borrada exitosamente"});
+            return;
+
+        } catch (error) {
+            await client.query("ROLLBACK");
+            response.status(400).send({message:"Mo se puede borrar la venta"});
+            return;
+        }
+      }
 const registrarVentaProductos = async (request, response) => {
     const client = await pool.connect();
     let cliente = request.body.cliente;
@@ -73,7 +116,7 @@ const registrarVentaProductos = async (request, response) => {
     let paquetes = request.body.paquetes;
     try{
         await client.query('BEGIN')
-        let res= await  client.query("INSERT INTO ventas(cliente,fecha) VALUES ($1,to_char(current_timestamp,'YYYY-MM-DD HH24:MI')) RETURNING id",[cliente]);
+        let res= await client.query("INSERT INTO ventas(cliente,fecha) VALUES ($1,to_char(current_timestamp,'YYYY-MM-DD HH24:MI')) RETURNING id",[cliente]);
         let venta = res.rows[0].id
         let errors = []
         if(productos){
@@ -139,4 +182,4 @@ const registrarVentaProductos = async (request, response) => {
     }
 };
 
-module.exports = {registrarVentaProductos, getContenidoVentas, getVentas}
+module.exports = {registrarVentaProductos, getContenidoVentas, getVentas, eliminarVenta}
