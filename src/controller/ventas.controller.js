@@ -15,6 +15,57 @@ const pool = new Pool({
     }
     });
 
+    const getVentas = (request,response) =>{
+        pool.query("select foo.id,foo.cliente,foo.nombre,foo.fecha,sum(foo.precio) as precio from \
+        (select ve.id, ve.fecha, ve.cliente, cl.nombre, sum((vp.cantidad*pa.precio)) as precio  from ventas ve \
+        inner join ventas_paquetes vp on vp.venta = ve.id \
+        inner join paquetes pa on pa.codigo=vp.paquete \
+        inner join clientes cl on cl.cedula=ve.cliente \
+        group by ve.id, ve.fecha, ve.cliente, cl.nombre \
+        union \
+        select ve2.id, ve2.fecha, ve2.cliente, c.nombre, sum(vp2.cantidad*p.precio) as precio from ventas ve2 \
+        inner join ventas_productos vp2 on ve2.id=vp2.venta \
+        inner join productos p on p.codigo=vp2.producto \
+        inner join clientes c on c.cedula=ve2.cliente \
+        group by ve2.id, ve2.fecha, ve2.cliente, c.nombre) as foo group by foo.id,foo.fecha,foo.cliente,foo.nombre",(error,results)=>{
+          if (error) {
+            response.status(500)
+                .send({
+                  message: error
+                });
+            }else{
+              response.status(200).send({ventas:results.rows});
+            }
+        })
+      }
+
+      const getContenidoVentas = (request,response) =>{
+        let id = request.body.id
+        pool.query("select foo.codigo, foo.nombre, foo.cantidad from \
+        (select pa.codigo, pa.nombre, vp.cantidad  from ventas ve \
+        inner join ventas_paquetes vp on vp.venta = ve.id \
+        inner join paquetes pa on pa.codigo=vp.paquete \
+        inner join clientes cl on cl.cedula=ve.cliente \
+        where ve.id=$1 \
+        group by pa.codigo, pa.nombre, vp.cantidad \
+        union \
+        select p.codigo, p.nombre, vp2.cantidad  from ventas ve2 \
+        inner join ventas_productos vp2 on ve2.id=vp2.venta \
+        inner join productos p on p.codigo=vp2.producto \
+        inner join clientes c on c.cedula=ve2.cliente \
+        where ve2.id=$2 \
+        group by p.codigo, p.nombre, vp2.cantidad) as foo group by foo.codigo, foo.nombre, foo.cantidad",[id,id],(error,results)=>{
+          if (error) {
+            response.status(500)
+                .send({
+                  message: error
+                });
+            }else{
+              response.status(200).send({contenido:results.rows});
+            }
+        })
+      }
+
 const registrarVentaProductos = async (request, response) => {
     const client = await pool.connect();
     let cliente = request.body.cliente;
@@ -88,4 +139,4 @@ const registrarVentaProductos = async (request, response) => {
     }
 };
 
-module.exports = {registrarVentaProductos}
+module.exports = {registrarVentaProductos, getContenidoVentas, getVentas}
