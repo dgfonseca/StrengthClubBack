@@ -15,7 +15,7 @@ const pool = new Pool({
 
 
 const getClientes = (request,response) =>{
-  let query = "SELECT *, age(current_date, TO_CHAR(age(current_date, '2017-04-17 00:00:00.0'), "+'YY "Años" mm "Meses" DD "Dias"'+") as edad FROM clientes"
+  let query = "SELECT *, age(current_date, TO_CHAR(age(current_date, TO_DATE(fecha_nacimiento,'yyyy-mm-dd')), 'YY " + '"Años"' + " mm" +'" Meses"' +" DD" +' "Dias"'+"') as edad FROM clientes"
   pool.query(query,(error,results)=>{
     if (error) {
       response.status(500)
