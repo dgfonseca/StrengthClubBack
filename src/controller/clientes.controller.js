@@ -15,7 +15,7 @@ const pool = new Pool({
 
 
 const getClientes = (request,response) =>{
-  pool.query("SELECT * FROM clientes",(error,results)=>{
+  pool.query("SELECT *, age(current_date, TO_DATE(fecha_nacimiento,'yyyy-mm-dd')) as edad FROM clientes",(error,results)=>{
     if (error) {
       response.status(500)
           .send({
