@@ -20,8 +20,9 @@ const crearProducto = (request, response) =>{
     let inventario = request.body.inventario;
     let precio = request.body.precio;
     let habilitado = request.body.habilitado;
-    if(nombre && codigo && descripcion && inventario && precio){
-        pool.query("INSERT INTO productos(nombre,codigo,descripcion,inventario,precio,habilitado) VALUES($1,$2,$3,$4,$5,$6)", [nombre, codigo, descripcion,inventario,precio,habilitado], (error, results)=>{
+    let precioCompra = request.body.precioCompra;
+    if(nombre && codigo && descripcion && inventario && precio && precioCompra){
+        pool.query("INSERT INTO productos(nombre,codigo,descripcion,inventario,precio,habilitado,precioCompra) VALUES($1,$2,$3,$4,$5,$6,$7)", [nombre, codigo, descripcion,inventario,precio,habilitado,precioCompra], (error, results)=>{
             if (error) {
               response.status(500)
                   .send({
@@ -29,7 +30,16 @@ const crearProducto = (request, response) =>{
                   });
               }
             else {
-              response.status(200).send({message:"Producto Creado Exitosamente"});
+              pool.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW() :: DATE, 'yyyy/mm/dd'),null)", [codigo, inventario,precioCompra,precio], (error, results)=>{
+                if (error) {
+                  response.status(500)
+                      .send({
+                        message: error
+                      });
+                  }else{
+                    response.status(200).send({message:"Producto Creado Exitosamente"});
+                  }
+              })
             }
         });
     }else{
