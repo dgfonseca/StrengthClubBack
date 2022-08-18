@@ -72,8 +72,10 @@ try {
         await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS'),null)", [codigo, inventario,precioCompra,precio])
         await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS') WHERE codigo=$1 and fechaFin=null",[codigo]);
       }
+      await client.query("COMMIT");
       response.status(200).send({message:"Producto Actualizado Exitosamente"});
   }else{
+
     await client.query("ROLLBACK");
   }
   return;
