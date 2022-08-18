@@ -30,7 +30,7 @@ const crearProducto = (request, response) =>{
                   });
               }
             else {
-              pool.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW() :: DATE, 'yyyy/mm/dd'),null)", [codigo, inventario,precioCompra,precio], (error, results)=>{
+              pool.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS'),null)", [codigo, inventario,precioCompra,precio], (error, results)=>{
                 if (error) {
                   response.status(500)
                       .send({
@@ -47,28 +47,39 @@ const crearProducto = (request, response) =>{
     }
 };
 
-const updateProducto = (request, response) =>{
+const updateProducto = async (request, response) =>{
   let nombre = request.body.nombre;
   let codigo = request.body.codigo;
   let descripcion = request.body.descripcion;
   let inventario = request.body.inventario;
   let precio = request.body.precio;
-  let habilitado = request.body.habilitado
-  if(nombre && codigo && descripcion && inventario && precio){
-      pool.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=$3,precio=$4,habilitado=$5 WHERE codigo=$6", [nombre, descripcion,inventario,precio,habilitado,codigo], (error, results)=>{
-          if (error) {
-            response.status(500)
-                .send({
-                  message: error
-                });
-            }
-          else {
-            response.status(200).send({message:"Producto Actualizado Exitosamente"});
-          }
-      });
+  let habilitado = request.body.habilitado;
+  let precioCompra = request.body.precioCompra;
+  let inventarioAdicional = request.body.inventarioAdicional;
+  const client = await pool.connect();
+try {
+  await client.query("BEGIN");
+  if(nombre && codigo && descripcion && inventario && precio && precioCompra){
+      if(inventarioAdicional && inventarioAdicional!==0){
+        await client.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=inventario+$3,precio=$4,habilitado=$5 WHERE codigo=$6", [nombre, descripcion,inventarioAdicional,precio,habilitado,codigo]);
+        await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS'),null)", [codigo, inventarioAdicional,precioCompra,precio])
+        await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS') WHERE codigo=$1 && fechaFin=null",[codigo]);
+      }else{
+        await client.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=$3,precio=$4,habilitado=$5 WHERE codigo=$6", [nombre, descripcion,inventario,precio,habilitado,codigo]);
+        await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS'),null)", [codigo, inventario,precioCompra,precio])
+        await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS') WHERE codigo=$1 && fechaFin=null",[codigo]);
+      }
+      response.status(200).send({message:"Producto Actualizado Exitosamente"});
   }else{
-    response.status(400).json({message:"Campos Faltantes"});
+    await client.query("ROLLBACK");
   }
+  return;
+} catch (error) {
+  await client.query("ROLLBACK");
+  response.status(500).json({message:error});
+  return;
+}
+  
 };
 
 const getProductos = (request,response) =>{
