@@ -59,11 +59,14 @@ const updateProducto = async (request, response) =>{
   const client = await pool.connect();
 try {
   await client.query("BEGIN");
-  if(nombre && codigo && descripcion && inventario && precio && precioCompra){
+  if(nombre && codigo && descripcion && inventario && precio){
       if(inventarioAdicional && inventarioAdicional!==0){
         await client.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=inventario+$3,precio=$4,habilitado=$5 WHERE codigo=$6", [nombre, descripcion,inventarioAdicional,precio,habilitado,codigo]);
+        console.log("1")
         await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS'),null)", [codigo, inventarioAdicional,precioCompra,precio])
+        console.log("2")
         await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS') WHERE codigo=$1 && fechaFin=null",[codigo]);
+        console.log("3")
       }else{
         await client.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=$3,precio=$4,habilitado=$5 WHERE codigo=$6", [nombre, descripcion,inventario,precio,habilitado,codigo]);
         await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS'),null)", [codigo, inventario,precioCompra,precio])
@@ -79,7 +82,6 @@ try {
   response.status(500).json({message:error});
   return;
 }
-  
 };
 
 const getProductos = (request,response) =>{
