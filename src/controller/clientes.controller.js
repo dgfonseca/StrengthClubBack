@@ -27,6 +27,23 @@ const getClientes = (request,response) =>{
       }
   })
 }
+
+const getContabilidadClientes = (request,response) =>{
+  let query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, sum(a.valor) as abonos from clientes c \
+  left join ventas v on v.cliente = c.cedula \
+  left join abonos a on a.cliente=c.cedula group by c.cedula, c.nombre,c.email"
+  pool.query(query,(error,results)=>{
+    if (error) {
+      response.status(500)
+          .send({
+            message: error
+          });
+      }else{
+        response.status(200).send({clientes:results.rows});
+      }
+  })
+}
+
 const crearCliente = (request, response) =>{
     let nombre = request.body.nombre;
     let email = request.body.email;
@@ -95,4 +112,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {crearCliente,getClientes,deleteClientes,updateCliente}
+module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes}

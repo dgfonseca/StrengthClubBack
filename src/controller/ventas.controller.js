@@ -140,9 +140,10 @@ const registrarVentaProductos = async (request, response) => {
     let cliente = request.body.cliente;
     let productos = request.body.productos;
     let paquetes = request.body.paquetes;
+    let valor = request.body.valor;
     try{
         await client.query('BEGIN')
-        let res= await client.query("INSERT INTO ventas(cliente,fecha) VALUES ($1,to_char(current_timestamp,'YYYY-MM-DD HH24:MI')) RETURNING id",[cliente]);
+        let res= await client.query("INSERT INTO ventas(cliente,fecha,valor) VALUES ($1,to_char(current_timestamp,'YYYY-MM-DD HH24:MI:SS'),$2) RETURNING id",[cliente,valor]);
         let venta = res.rows[0].id
         let errors = []
         if(productos){
