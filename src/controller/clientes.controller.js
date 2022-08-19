@@ -29,7 +29,7 @@ const getClientes = (request,response) =>{
 }
 
 const getContabilidadClientes = (request,response) =>{
-  let query = "select c.cedula, c.nombre, c.email, round(sum(v.valor),2) as debito, round(sum(a.valor)) as abonos, round(sum(a.valor)-sum(v.valor),2) as saldo from clientes c \
+  let query = "select c.cedula, c.nombre, c.email, coalesce(round(sum(v.valor),2),0) as debito, coalesce(round(sum(a.valor)),0) as abonos, round(sum(a.valor)-sum(v.valor),2) as saldo from clientes c \
   left join ventas v on v.cliente = c.cedula \
   left join abonos a on a.cliente=c.cedula group by c.cedula, c.nombre,c.email"
   pool.query(query,(error,results)=>{
