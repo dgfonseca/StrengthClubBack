@@ -41,18 +41,7 @@ const pool = new Pool({
       }
 
     const getVentas = (request,response) =>{
-        pool.query("select foo.id,foo.cliente,foo.nombre,foo.fecha,sum(foo.precio) as precio from \
-        (select ve.id, ve.fecha, ve.cliente, cl.nombre, sum((vp.cantidad*pa.precio)) as precio  from ventas ve \
-        inner join ventas_paquetes vp on vp.venta = ve.id \
-        inner join paquetes pa on pa.codigo=vp.paquete \
-        inner join clientes cl on cl.cedula=ve.cliente \
-        group by ve.id, ve.fecha, ve.cliente, cl.nombre \
-        union \
-        select ve2.id, ve2.fecha, ve2.cliente, c.nombre, sum(vp2.cantidad*p.precio) as precio from ventas ve2 \
-        inner join ventas_productos vp2 on ve2.id=vp2.venta \
-        inner join productos p on p.codigo=vp2.producto \
-        inner join clientes c on c.cedula=ve2.cliente \
-        group by ve2.id, ve2.fecha, ve2.cliente, c.nombre) as foo group by foo.id,foo.fecha,foo.cliente,foo.nombre ORDER BY foo.fecha desc",(error,results)=>{
+        pool.query("select c.cedula,c.nombre,v.fecha,v.valor from ventas v inner join clientes c on c.cedula =v.cliente order by v.fecha desc",(error,results)=>{
           if (error) {
             response.status(500)
                 .send({
