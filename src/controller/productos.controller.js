@@ -98,7 +98,7 @@ const getProductos = (request,response) =>{
 }
 
 const getContabilidadProductos = (request,response) =>{
-  pool.query("select q2.nombre,q2.codigo,q2.inventario,q2.precio,q2.preciocompra,coalesce(q3.unidadesvendidas,0),coalesce(round(sum(q1.ingresos),2),0) as ingresos, coalesce(round(q2.egresos,2),0), coalesce(sum(q1.ingresos)-sum(q2.egresos),0) as utilidad \
+  pool.query("select q2.nombre,q2.codigo,q2.inventario,q2.precio,q2.preciocompra,coalesce(q3.unidadesvendidas,0),coalesce(round(sum(q1.ingresos),2),0) as ingresos, coalesce(round(q2.egresos,2),0), coalesce(sum(q1.ingresos)-q2.egresos,0) as utilidad \
   from( \
     select codigo, ingresos \
     from \
@@ -150,7 +150,7 @@ const getContabilidadProductos = (request,response) =>{
      group by pp.codigo_producto \
     ) as PP1 group by pp1.producto \
   ) q3 on q3.producto=q2.codigo \
-  group by q2.nombre,q2.inventario,q2.precio,q2.preciocompra,q2.codigo, q3.unidadesvendidas",(error,results)=>{
+  group by q2.nombre,q2.inventario,q2.precio,q2.preciocompra,q2.codigo,q2.egresos, q3.unidadesvendidas",(error,results)=>{
     if (error) {
       response.status(500)
           .send({
