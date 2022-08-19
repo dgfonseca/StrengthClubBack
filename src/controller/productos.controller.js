@@ -98,7 +98,7 @@ const getProductos = (request,response) =>{
 }
 
 const getContabilidadProductos = (request,response) =>{
-  pool.query("select q2.nombre,q2.codigo,q2.inventario,q2.precio,q2.preciocompra,q3.unidadesvendidas,sum(q1.ingresos) as ingresos, q2.egresos, sum(q1.ingresos)-q2.egresos as utilidad \
+  pool.query("select q2.nombre,q2.codigo,q2.inventario,q2.precio,q2.preciocompra,q3.unidadesvendidas,round(sum(q1.ingresos),2) as ingresos, round(q2.egresos,2), sum(q1.ingresos)-q2.egresos as utilidad \
   from( \
     select codigo, ingresos \
     from \
