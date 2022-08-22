@@ -31,7 +31,7 @@ const getClientes = (request,response) =>{
 const postAbono = (request, response)=>{
   let cliente = request.body.cliente;
   let abono = request.body.abono;
-  pool.query("INSERT INTO abonos(cliente,abono,fecha) VALUES ($1,$2,to_char(current_timestamp,'YYYY-MM-DD HH24:MI:SS'))",[cliente,abono],(error,results)=>{
+  pool.query("INSERT INTO abonos(cliente,valor,fecha) VALUES ($1,$2,to_char(current_timestamp,'YYYY-MM-DD HH24:MI:SS'))",[cliente,abono],(error,results)=>{
     if (error) {
       response.status(500)
           .send({
