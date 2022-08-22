@@ -44,7 +44,7 @@ const postAbono = (request, response)=>{
 }
 
 const getContabilidadClientes = (request,response) =>{
-  let query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos from clientes c \
+  let query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-(sumv.valor) as saldo from clientes c \
   left join ventas v on v.cliente = c.cedula \
   left join \
   (	select c2.cedula, sum(a.valor) as valor \
