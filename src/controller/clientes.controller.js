@@ -28,6 +28,21 @@ const getClientes = (request,response) =>{
   })
 }
 
+const postAbono = (request, response)=>{
+  let cliente = request.body.cliente;
+  let abono = request.body.abono;
+  pool.query("INSERT INTO abonos(cliente,abono,fecha) VALUES ($1,$2,to_char(current_timestamp,'YYYY-MM-DD HH24:MI:SS'))",[cliente,abono],(error,results)=>{
+    if (error) {
+      response.status(500)
+          .send({
+            message: error
+          });
+      }else{
+        response.status(200).send({abono:"Abono creado exitosamente"});
+      }
+  })
+}
+
 const getContabilidadClientes = (request,response) =>{
   let query = "select c.cedula, c.nombre, c.email, coalesce(round(sum(v.valor),2),0) as debito, coalesce(round(sum(a.valor)),0) as abonos, coalesce(round(sum(a.valor)-sum(v.valor),2),0) as saldo from clientes c \
   left join ventas v on v.cliente = c.cedula \
@@ -112,4 +127,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes}
+module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono}
