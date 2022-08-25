@@ -39,13 +39,11 @@ const pool = new Pool({
     try {
       let cuenta = await pool.query(query,[cedula]);
       let cliente = cuenta.rows[0];
-      console.log(cedula)
-      console.log(cuenta)
       let mailData = {
-        from: "",
+        from: "strengthclub@zohomail.com",
         to: cliente.email,
         subject: "Prueba",
-        text : "",
+        text : "Prueba",
         html: ""
       }
       transporter.sendMail(mailData, (error,info)=>{
@@ -55,10 +53,12 @@ const pool = new Pool({
           .send({
             message: error
           }); 
+          return;
         }
         response.status(200).send({
           message:"Correo enviado exitosamente"
         })
+        return;
       })
     } catch (error) {
       console.log(error)
@@ -66,6 +66,7 @@ const pool = new Pool({
       .send({
         message: error
       });
+      return;
     }
   }
 
