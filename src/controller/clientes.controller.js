@@ -39,7 +39,7 @@ const pool = new Pool({
     try {
       let cuenta = await pool.query(query,[cedula]);
       let cliente = cuenta.rows[0];
-      console.log(cliente)
+      console.log(cuenta)
       let mailData = {
         from: "",
         to: cliente.email,
