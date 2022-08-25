@@ -1,6 +1,18 @@
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcrypt");
 const Pool = require("pg").Pool
+const nodemailer = require('nodemailer');
+
+
+const transporter = nodemailer.createTransport({
+  port: 465,               // true for 465, false for other ports
+  host: "smtp.zoho.com",
+     auth: {
+          user: 'strengthclub@zohomail.com',
+          pass: 'Dark.orbit99',
+       },
+  secure: true,
+  });
 
 const pool = new Pool({
   user: process.env.PG_USER,
@@ -13,6 +25,48 @@ const pool = new Pool({
   }
   });
 
+  const sendEmail = async (request,response)=>{
+    let cedula = request.body.cedula;
+    let query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
+    left join ventas v on v.cliente = c.cedula \
+    left join \
+    (	select c2.cedula, sum(a.valor) as valor \
+      from clientes c2 \
+      inner join abonos a on c2.cedula=a.cliente \
+      group by c2.cedula) as q2 on q2.cedula=c.cedula \
+      where c.cedula=$1 \
+    group by c.cedula, c.nombre,c.email, q2.valor"
+    try {
+      let cuenta = await pool.query(query,[cedula]);
+      let cliente = cuenta.rows[0];
+      console.log(cliente)
+      let mailData = {
+        from: "",
+        to: cliente.email,
+        subject: "Prueba",
+        text : "",
+        html: ""
+      }
+      transporter.sendMail(mailData, (error,info)=>{
+        if(error){
+          console.log(error)
+          response.status(500)
+          .send({
+            message: error
+          }); 
+        }
+        response.status(200).send({
+          message:"Correo enviado exitosamente"
+        })
+      })
+    } catch (error) {
+      console.log(error)
+      response.status(500)
+      .send({
+        message: error
+      });
+    }
+  }
 
 const getClientes = (request,response) =>{
   let query = "SELECT *, TO_CHAR(age(current_date, TO_DATE(fecha_nacimiento,'yyyy-mm-dd')), 'YY') as edad FROM clientes"
@@ -132,4 +186,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono}
+module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail}
