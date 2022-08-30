@@ -55,7 +55,8 @@ const pool = new Pool({
           to: cliente.email,
           subject: "Notificacion de Deudas",
           text : "Prueba",
-          html: ""
+          html: `<p><b>Hello</b> to myself <img src="cid:note@example.com"/></p>
+          <p>Here's a nyan cat for you as an embedded attachment:<br/><img src="cid:nyan@example.com"/></p>`
         }
         console.log("Enviando")
         errores = await sendEmailPromise(mailData,errores,cliente);
