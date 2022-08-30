@@ -80,14 +80,19 @@ const pool = new Pool({
                 <th style="border:1px solid black">Precio</th> \
               </tr>'+htmlRow+' \
               <tr> \
-                <td style="border:1px solid black"></td>\
-                <td style="border:1px solid black">Total Deuda:</td>\
-                <td style="border:1px solid black">'+cliente.debito+'</td>\
+                <th style="border:1px solid black"></th>\
+                <th style="border:1px solid black">Total Deuda:</th>\
+                <th style="border:1px solid black">'+cliente.debito+'</th>\
               </tr> \
               <tr> \
-                <td style="border:1px solid black"></td>\
-                <td style="border:1px solid black">Total Abonos:</td>\
-                <td style="border:1px solid black">'+cliente.abonos+'</td>\
+                <th style="border:1px solid black"></th>\
+                <th style="border:1px solid black">Total Abonos:</th>\
+                <th style="border:1px solid black">'+cliente.abonos+'</th>\
+              </tr> \
+              <tr> \
+                <th style="border:1px solid black"></th>\
+                <th style="border:1px solid black">Total Saldo:</th>\
+                <th style="border:1px solid black">'+cliente.saldo+'</th>\
               </tr> \
             </table> \
             </body> \
