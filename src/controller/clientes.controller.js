@@ -252,6 +252,16 @@ const getContabilidadClientes = (request,response) =>{
       group by c2.cedula) as q2 on q2.cedula=c.cedula \
       where to_timestamp( v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')\
     group by c.cedula, c.nombre,c.email, q2.valor"
+    pool.query(query,[fechaInicio,fechaFin],(error,results)=>{
+      if (error) {
+        response.status(500)
+            .send({
+              message: error
+            });
+        }else{
+          response.status(200).send({clientes:results.rows});
+        }
+    })
   }else{
     query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
     left join ventas v on v.cliente = c.cedula \
@@ -261,17 +271,17 @@ const getContabilidadClientes = (request,response) =>{
       inner join abonos a on c2.cedula=a.cliente \
       group by c2.cedula) as q2 on q2.cedula=c.cedula \
     group by c.cedula, c.nombre,c.email, q2.valor"
+    pool.query(query,(error,results)=>{
+      if (error) {
+        response.status(500)
+            .send({
+              message: error
+            });
+        }else{
+          response.status(200).send({clientes:results.rows});
+        }
+    })
   }
-  pool.query(query,[fechaInicio,fechaFin],(error,results)=>{
-    if (error) {
-      response.status(500)
-          .send({
-            message: error
-          });
-      }else{
-        response.status(200).send({clientes:results.rows});
-      }
-  })
 }
 
 const crearCliente = (request, response) =>{
