@@ -39,7 +39,7 @@ const pool = new Pool({
 
   const sendAllEmail = async (request, response) =>{
     try{
-      let query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.valor as money) as abonos, cast(q2.valor-sum(v.valor) as money) as saldo from clientes c \
+      let query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
       left join ventas v on v.cliente = c.cedula \
       left join \
       (	select c2.cedula, sum(a.valor) as valor \
@@ -243,7 +243,7 @@ const getContabilidadClientes = (request,response) =>{
   let fechaFin = request.body.fechaFin
   let query=""
   if(fechaInicio&&fechaFin){
-    query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
+    query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.valor as money) as abonos, cast(q2.valor-sum(v.valor) as money) as saldo from clientes c \
     left join ventas v on v.cliente = c.cedula \
     left join \
     (	select c2.cedula, sum(a.valor) as valor \
@@ -263,7 +263,7 @@ const getContabilidadClientes = (request,response) =>{
         }
     })
   }else{
-    query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
+    query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.valor as money) as abonos, cast(q2.valor-sum(v.valor) as money) as saldo from clientes c \
     left join ventas v on v.cliente = c.cedula \
     left join \
     (	select c2.cedula, sum(a.valor) as valor \
