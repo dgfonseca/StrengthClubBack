@@ -55,7 +55,7 @@ const pool = new Pool({
         ventas.rows.forEach(venta =>{
           htmlRow+='<tr><td style="border:1px solid black">'+cliente.nombre+'</td>'
           htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
-          htmlRow+='<td style="border:1px solid black">'+venta.valor+'</td></tr>'
+          htmlRow+='<td style="border:1px solid black">$'+venta.valor+'</td></tr>'
         })
 
         let mailData = {
@@ -72,7 +72,7 @@ const pool = new Pool({
               <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
             </head> \
             <body> \
-            <h2>TH elements define table headers</h2> \
+            <h2>Estado de Cuenta Strength Club</h2> \
             <table style="width:100%; border:1px solid black"> \
               <tr> \
                 <th style="border:1px solid black">Nombre</th> \
@@ -82,27 +82,25 @@ const pool = new Pool({
               <tr> \
                 <th style="border:1px solid black"></th>\
                 <th style="border:1px solid black">Total Deuda:</th>\
-                <th style="border:1px solid black">'+cliente.debito+'</th>\
+                <th style="border:1px solid black">$'+cliente.debito+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black"></th>\
                 <th style="border:1px solid black">Total Abonos:</th>\
-                <th style="border:1px solid black">'+cliente.abonos+'</th>\
+                <th style="border:1px solid black">$'+cliente.abonos+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black"></th>\
                 <th style="border:1px solid black">Total Saldo:</th>\
-                <th style="border:1px solid black">'+cliente.saldo+'</th>\
+                <th style="border:1px solid black">$'+cliente.saldo+'</th>\
               </tr> \
             </table> \
             </body> \
           </html>'
           
         }
-        console.log("Enviando")
         errores = await sendEmailPromise(mailData,errores,cliente);
       });
-      console.log("Finaliza for")
       if(errores.length>0){
         response.status(200)
         .send({
@@ -139,12 +137,54 @@ const pool = new Pool({
     try {
       let cuenta = await pool.query(query,[cedula]);
       let cliente = cuenta.rows[0];
+      let htmlRow = ""
+      let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
+      ventas.rows.forEach(venta =>{
+        htmlRow+='<tr><td style="border:1px solid black">'+cliente.nombre+'</td>'
+        htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
+        htmlRow+='<td style="border:1px solid black">$'+venta.valor+'</td></tr>'
+      })
+
       let mailData = {
         from: "strengthclub@zohomail.com",
         to: cliente.email,
-        subject: "Prueba",
+        subject: "Notificacion de Deudas",
         text : "Prueba",
-        html: ""
+        html: '<!doctype html> \
+        <html ⚡4email> \
+          <head> \
+            <meta charset="utf-8"> \
+            <style amp4email-boilerplate>body{visibility:hidden}</style> \
+            <script async src="https://cdn.ampproject.org/v0.js"></script> \
+            <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
+          </head> \
+          <body> \
+          <h2>Estado de Cuenta Strength Club</h2> \
+          <table style="width:100%; border:1px solid black"> \
+            <tr> \
+              <th style="border:1px solid black">Nombre</th> \
+              <th style="border:1px solid black">Fecha</th> \
+              <th style="border:1px solid black">Precio</th> \
+            </tr>'+htmlRow+' \
+            <tr> \
+              <th style="border:1px solid black"></th>\
+              <th style="border:1px solid black">Total Deuda:</th>\
+              <th style="border:1px solid black">$'+cliente.debito+'</th>\
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black"></th>\
+              <th style="border:1px solid black">Total Abonos:</th>\
+              <th style="border:1px solid black">$'+cliente.abonos+'</th>\
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black"></th>\
+              <th style="border:1px solid black">Total Saldo:</th>\
+              <th style="border:1px solid black">$'+cliente.saldo+'</th>\
+            </tr> \
+          </table> \
+          </body> \
+        </html>'
+        
       }
       transporter.sendMail(mailData, (error,info)=>{
         if(error){
