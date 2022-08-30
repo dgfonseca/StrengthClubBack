@@ -65,10 +65,31 @@ const pool = new Pool({
             <script async src="https://cdn.ampproject.org/v0.js"></script>
             <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script>
           </head>
+          <style>
+          table, th, td {
+            border:1px solid black;
+          }
+          </style>
           <body>
-            <p><b>Hello</b> to myself <amp-img src="https://cldup.com/P0b1bUmEet.png" width="16" height="16"/></p>
-            <p>No embedded image attachments in AMP, so here's a linked nyan cat instead:<br/>
-              <amp-anim src="https://cldup.com/D72zpdwI-i.gif" width="500" height="350"/></p>
+          <h2>TH elements define table headers</h2>
+
+          <table style="width:100%">
+            <tr>
+              <th>Person 1</th>
+              <th>Person 2</th>
+              <th>Person 3</th>
+            </tr>
+            <tr>
+              <td>Emil</td>
+              <td>Tobias</td>
+              <td>Linus</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>14</td>
+              <td>10</td>
+            </tr>
+          </table>
           </body>
         </html>`
         }
