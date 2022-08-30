@@ -49,16 +49,19 @@ const pool = new Pool({
       group by c.cedula, c.nombre,c.email, q2.valor"
       let cuentas = await pool.query(query);
       let errores = []
-      let htmlNombre = ""
-      let htmlFecha = ""
-      let htmlValor = ""
       cuentas.rows.forEach(async cliente => {
+        let htmlNombre = ""
+        let htmlFecha = ""
+        let htmlValor = ""
         let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
         ventas.rows.forEach(venta =>{
-          htmlNombre.concat('<td style="border:1px solid black">'+cliente.nombre+'</td>')
-          htmlFecha.concat('<td style="border:1px solid black">'+venta.fecha+'</td>')
-          htmlValor.concat('<td style="border:1px solid black">'+venta.valor+'</td>')
+          htmlNombre+='<td style="border:1px solid black">'+cliente.nombre+'</td>'
+          htmlFecha+='<td style="border:1px solid black">'+venta.fecha+'</td>'
+          htmlValor+='<td style="border:1px solid black">'+venta.valor+'</td>'
         })
+        console.log(htmlNombre)
+        console.log(htmlFecha)
+        console.log(htmlValor)
         let mailData = {
           from: "strengthclub@zohomail.com",
           to: cliente.email,
