@@ -49,11 +49,11 @@ const pool = new Pool({
       group by c.cedula, c.nombre,c.email, q2.valor"
       let cuentas = await pool.query(query);
       let errores = []
+      let htmlNombre = ""
+      let htmlFecha = ""
+      let htmlValor = ""
       cuentas.rows.forEach(async cliente => {
         let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
-        let htmlNombre = ""
-        let htmlFecha = ""
-        let htmlValor = ""
         ventas.rows.forEach(venta =>{
           htmlNombre.concat('<td style="border:1px solid black">'+cliente.nombre+'</td>')
           htmlFecha.concat('<td style="border:1px solid black">'+venta.fecha+'</td>')
