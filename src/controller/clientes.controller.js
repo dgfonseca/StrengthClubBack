@@ -50,41 +50,42 @@ const pool = new Pool({
       let cuentas = await pool.query(query);
       let errores = []
       cuentas.rows.forEach(async cliente => {
+        let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
+        let htmlNombre = ""
+        let htmlFecha = ""
+        let htmlValor = ""
+        ventas.rows.forEach(venta =>{
+          htmlNombre.concat('<td style="border:1px solid black">'+cliente.nombre+'</td>')
+          htmlFecha.concat('<td style="border:1px solid black">'+venta.fecha+'</td>')
+          htmlValor.concat('<td style="border:1px solid black">'+venta.valor+'</td>')
+        })
         let mailData = {
           from: "strengthclub@zohomail.com",
           to: cliente.email,
           subject: "Notificacion de Deudas",
           text : "Prueba",
-          html: `<!doctype html>
-          <html ⚡4email>
-            <head>
-              <meta charset="utf-8">
-              <style amp4email-boilerplate>body{visibility:hidden}</style>
-              <script async src="https://cdn.ampproject.org/v0.js"></script>
-              <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script>
-            </head>
-            <body>
-            <h2>TH elements define table headers</h2>
-  
-            <table style="width:100%, border:1px solid black">
-              <tr>
-                <th style="border:1px solid black">Person 1</th>
-                <th style="border:1px solid black">Person 2</th>
-                <th style="border:1px solid black">Person 3</th>
-              </tr>
-              <tr>
-                <td style="border:1px solid black">Emil</td>
-                <td style="border:1px solid black">Tobias</td>
-                <td style="border:1px solid black">Linus</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid black">16</td>
-                <td style="border:1px solid black">14</td>
-                <td style="border:1px solid black">10</td>
-              </tr>
-            </table>
-            </body>
-          </html>`
+          html: '<!doctype html> \
+          <html ⚡4email> \
+            <head> \
+              <meta charset="utf-8"> \
+              <style amp4email-boilerplate>body{visibility:hidden}</style> \
+              <script async src="https://cdn.ampproject.org/v0.js"></script> \
+              <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
+            </head> \
+            <body> \
+            <h2>TH elements define table headers</h2> \
+            <table style="width:100%; border:1px solid black"> \
+              <tr> \
+                <th style="border:1px solid black">Nombre</th> \
+                <th style="border:1px solid black">Fecha</th> \
+                <th style="border:1px solid black">Precio</th> \
+              </tr> \
+              <tr>'+ htmlNombre+'</tr>\
+              <tr>'+htmlFecha+'</tr> \
+              <tr>'+htmlValor+'</tr> \
+            </table> \
+            </body> \
+          </html>'
           
         }
         console.log("Enviando")
