@@ -58,9 +58,7 @@ const pool = new Pool({
           htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
           htmlRow+='<td style="border:1px solid black">'+venta.valor+'</td></tr>'
         })
-        console.log("nombre: "+htmlNombre)
-        console.log("fecha: "+htmlFecha)
-        console.log("valor: "+htmlValor)
+
         let mailData = {
           from: "strengthclub@zohomail.com",
           to: cliente.email,
