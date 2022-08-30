@@ -58,8 +58,15 @@ const pool = new Pool({
           text : "Prueba",
           html: ""
         }
-         errores = await sendEmailPromise(mailData,errores,cliente);
+        console.log("Enviando")
+        transporter.sendMail(mailData,(err,data)=>{
+          console.log("Enviado")
+          if(err){
+            errores.push({cliente:cliente.nombre,error:err});
+          }
+        });
       });
+      console.log("Finaliza for")
       if(errores.length>0){
         response.status(200)
         .send({
