@@ -55,13 +55,14 @@ const pool = new Pool({
         let htmlValor = ""
         let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
         ventas.rows.forEach(venta =>{
+          console.log(venta)
           htmlNombre+='<td style="border:1px solid black">'+cliente.nombre+'</td>'
           htmlFecha+='<td style="border:1px solid black">'+venta.fecha+'</td>'
           htmlValor+='<td style="border:1px solid black">'+venta.valor+'</td>'
         })
-        console.log(htmlNombre)
-        console.log(htmlFecha)
-        console.log(htmlValor)
+        console.log("nombre: "+htmlNombre)
+        console.log("fecha: "+htmlFecha)
+        console.log("valor: "+htmlValor)
         let mailData = {
           from: "strengthclub@zohomail.com",
           to: cliente.email,
