@@ -26,13 +26,12 @@ const pool = new Pool({
   }
   });
 
-  const sendEmailPromise = (mailData,errors,cliente)=>{
+  function sendEmailPromise(mailData,errors,cliente){
     return new Promise((resolve)=>{
       transporter.sendMail(mailData,(err)=>{
         if(err){
           errors.push({cliente:cliente.nombre,error:err});
         }
-        
         return resolve(errors)
       })
     })
