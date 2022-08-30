@@ -2,10 +2,11 @@ var jwt = require("jsonwebtoken");
 var bcrypt = require("bcrypt");
 const Pool = require("pg").Pool
 const nodemailer = require('nodemailer');
+const util = require('util');
 
 
 const transporter = nodemailer.createTransport({
-  port: 465,               // true for 465, false for other ports
+  port: 465,
   host: "smtp.zoho.com",
      auth: {
           user: 'strengthclub@zohomail.com',
@@ -24,6 +25,57 @@ const pool = new Pool({
     rejectUnauthorized: false,
   }
   });
+
+
+
+  const sendAllEmail = async (request, response) =>{
+    try{
+      let query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
+      left join ventas v on v.cliente = c.cedula \
+      left join \
+      (	select c2.cedula, sum(a.valor) as valor \
+        from clientes c2 \
+        inner join abonos a on c2.cedula=a.cliente \
+        group by c2.cedula) as q2 on q2.cedula=c.cedula \
+      group by c.cedula, c.nombre,c.email, q2.valor"
+      let cuentas = await pool.query(query);
+      let errores = []
+      cuentas.rows.forEach(cliente => {
+        let mailData = {
+          from: "strengthclub@zohomail.com",
+          to: cliente.email,
+          subject: "Notificacion de Deudas",
+          text : "Prueba",
+          html: ""
+        }
+          transporter.sendMail(mailData, (error,info)=>{
+          if(error){
+            console.log(error)
+            errores.push({cliente:cliente.nombre,error:error})
+          }
+        })
+      });
+      if(errores.length>0){
+        response.status(200)
+        .send({
+          message: "Existen clientes que no se notificaron correctamente",
+          errores:errores
+        });
+        return;
+      }
+      else{
+        response.status(200)
+        .send({
+          message: "Clientes notificados exitosamente"
+        });
+      }
+    }catch (error){
+      response.status(500)
+      .send({
+        message: error
+      });
+    }
+  }
 
   const sendEmail = async (request,response)=>{
     let cedula = request.body.cedula;
@@ -61,7 +113,6 @@ const pool = new Pool({
         return;
       })
     } catch (error) {
-      console.log(error)
       response.status(500)
       .send({
         message: error
@@ -188,4 +239,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail}
+module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,sendAllEmail}
