@@ -26,7 +26,17 @@ const pool = new Pool({
   }
   });
 
-
+  const sendEmailPromise = (mailData,errors,cliente)=>{
+    return new Promise((reject,resolve)=>{
+      transporter.sendMail(mailData,(err,data)=>{
+        if(err){
+          errors.push({cliente:cliente.nombre,error:err});
+          return resolve(errors)
+        }
+        resolve(errors)
+      })
+    })
+  }
 
   const sendAllEmail = async (request, response) =>{
     try{
@@ -48,12 +58,7 @@ const pool = new Pool({
           text : "Prueba",
           html: ""
         }
-          transporter.sendMail(mailData, (error,info)=>{
-          if(error){
-            console.log(error)
-            errores.push({cliente:cliente.nombre,error:error})
-          }
-        })
+         errores = await sendEmailPromise(mailData,errores,cliente);
       });
       if(errores.length>0){
         response.status(200)
