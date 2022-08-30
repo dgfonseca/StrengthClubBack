@@ -49,7 +49,7 @@ const pool = new Pool({
       group by c.cedula, c.nombre,c.email, q2.valor"
       let cuentas = await pool.query(query);
       let errores = []
-      cuentas.rows.forEach(cliente => {
+      cuentas.rows.forEach(async cliente => {
         let mailData = {
           from: "strengthclub@zohomail.com",
           to: cliente.email,
