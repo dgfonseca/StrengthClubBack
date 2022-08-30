@@ -63,29 +63,24 @@ const pool = new Pool({
               <script async src="https://cdn.ampproject.org/v0.js"></script>
               <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script>
             </head>
-            <style>
-            table, th, td {
-              border:1px solid black;
-            }
-            </style>
             <body>
             <h2>TH elements define table headers</h2>
   
-            <table style="width:100%">
+            <table style="width:100%, border:1px solid black">
               <tr>
-                <th>Person 1</th>
-                <th>Person 2</th>
-                <th>Person 3</th>
+                <th style="border:1px solid black">Person 1</th>
+                <th style="border:1px solid black">Person 2</th>
+                <th style="border:1px solid black">Person 3</th>
               </tr>
               <tr>
-                <td>Emil</td>
-                <td>Tobias</td>
-                <td>Linus</td>
+                <td style="border:1px solid black">Emil</td>
+                <td style="border:1px solid black">Tobias</td>
+                <td style="border:1px solid black">Linus</td>
               </tr>
               <tr>
-                <td>16</td>
-                <td>14</td>
-                <td>10</td>
+                <td style="border:1px solid black">16</td>
+                <td style="border:1px solid black">14</td>
+                <td style="border:1px solid black">10</td>
               </tr>
             </table>
             </body>
