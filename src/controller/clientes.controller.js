@@ -27,13 +27,13 @@ const pool = new Pool({
   });
 
   const sendEmailPromise = (mailData,errors,cliente)=>{
-    return new Promise((reject,resolve)=>{
-      transporter.sendMail(mailData,(err,data)=>{
+    return new Promise((resolve)=>{
+      transporter.sendMail(mailData,(err)=>{
         if(err){
           errors.push({cliente:cliente.nombre,error:err});
-          return resolve(errors)
         }
-        resolve(errors)
+        
+        return resolve(errors)
       })
     })
   }
@@ -59,12 +59,7 @@ const pool = new Pool({
           html: ""
         }
         console.log("Enviando")
-        transporter.sendMail(mailData,(err,data)=>{
-          console.log("Enviado")
-          if(err){
-            errores.push({cliente:cliente.nombre,error:err});
-          }
-        });
+        errores = await sendEmailPromise(mailData,errores,cliente);
       });
       console.log("Finaliza for")
       if(errores.length>0){
