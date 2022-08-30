@@ -55,43 +55,42 @@ const pool = new Pool({
           to: cliente.email,
           subject: "Notificacion de Deudas",
           text : "Prueba",
-          html: `<p><b>Hello</b> to myself <img src="cid:note@example.com"/></p>
-          <p>Here's a nyan cat for you as an embedded attachment:<br/><img src="cid:nyan@example.com"/></p>`,
-          amp: `<!doctype html>
-        <html ⚡4email>
-          <head>
-            <meta charset="utf-8">
-            <style amp4email-boilerplate>body{visibility:hidden}</style>
-            <script async src="https://cdn.ampproject.org/v0.js"></script>
-            <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script>
-          </head>
-          <style>
-          table, th, td {
-            border:1px solid black;
-          }
-          </style>
-          <body>
-          <h2>TH elements define table headers</h2>
-
-          <table style="width:100%">
-            <tr>
-              <th>Person 1</th>
-              <th>Person 2</th>
-              <th>Person 3</th>
-            </tr>
-            <tr>
-              <td>Emil</td>
-              <td>Tobias</td>
-              <td>Linus</td>
-            </tr>
-            <tr>
-              <td>16</td>
-              <td>14</td>
-              <td>10</td>
-            </tr>
-          </table>
-          </body>
-        </html>`
+          html: `<!doctype html>
+          <html ⚡4email>
+            <head>
+              <meta charset="utf-8">
+              <style amp4email-boilerplate>body{visibility:hidden}</style>
+              <script async src="https://cdn.ampproject.org/v0.js"></script>
+              <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script>
+            </head>
+            <style>
+            table, th, td {
+              border:1px solid black;
+            }
+            </style>
+            <body>
+            <h2>TH elements define table headers</h2>
+  
+            <table style="width:100%">
+              <tr>
+                <th>Person 1</th>
+                <th>Person 2</th>
+                <th>Person 3</th>
+              </tr>
+              <tr>
+                <td>Emil</td>
+                <td>Tobias</td>
+                <td>Linus</td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td>14</td>
+                <td>10</td>
+              </tr>
+            </table>
+            </body>
+          </html>`
+          
         }
         console.log("Enviando")
         errores = await sendEmailPromise(mailData,errores,cliente);
