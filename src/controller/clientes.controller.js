@@ -50,15 +50,13 @@ const pool = new Pool({
       let cuentas = await pool.query(query);
       let errores = []
       cuentas.rows.forEach(async cliente => {
-        let htmlNombre = ""
-        let htmlFecha = ""
-        let htmlValor = ""
+        let htmlRow = ""
         let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
         ventas.rows.forEach(venta =>{
           console.log(venta)
-          htmlNombre+='<td style="border:1px solid black">'+cliente.nombre+'</td>'
-          htmlFecha+='<td style="border:1px solid black">'+venta.fecha+'</td>'
-          htmlValor+='<td style="border:1px solid black">'+venta.valor+'</td>'
+          htmlRow+='<tr><td style="border:1px solid black">'+cliente.nombre+'</td>'
+          htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
+          htmlRow+='<td style="border:1px solid black">'+venta.valor+'</td></tr>'
         })
         console.log("nombre: "+htmlNombre)
         console.log("fecha: "+htmlFecha)
@@ -83,10 +81,7 @@ const pool = new Pool({
                 <th style="border:1px solid black">Nombre</th> \
                 <th style="border:1px solid black">Fecha</th> \
                 <th style="border:1px solid black">Precio</th> \
-              </tr> \
-              <tr>'+ htmlNombre+'</tr>\
-              <tr>'+htmlFecha+'</tr> \
-              <tr>'+htmlValor+'</tr> \
+              </tr>'+htmlRow+' \
             </table> \
             </body> \
           </html>'
