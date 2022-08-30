@@ -53,7 +53,6 @@ const pool = new Pool({
         let htmlRow = ""
         let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
         ventas.rows.forEach(venta =>{
-          console.log(venta)
           htmlRow+='<tr><td style="border:1px solid black">'+cliente.nombre+'</td>'
           htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
           htmlRow+='<td style="border:1px solid black">'+venta.valor+'</td></tr>'
@@ -80,6 +79,16 @@ const pool = new Pool({
                 <th style="border:1px solid black">Fecha</th> \
                 <th style="border:1px solid black">Precio</th> \
               </tr>'+htmlRow+' \
+              <tr> \
+                <td style="border:1px solid black"></td>\
+                <td style="border:1px solid black">Total Deuda:</td>\
+                <td style="border:1px solid black">'+cliente.debito+'</td>\
+              </tr> \
+              <tr> \
+                <td style="border:1px solid black"></td>\
+                <td style="border:1px solid black">Total Abonos:</td>\
+                <td style="border:1px solid black">'+cliente.abonos+'</td>\
+              </tr> \
             </table> \
             </body> \
           </html>'
