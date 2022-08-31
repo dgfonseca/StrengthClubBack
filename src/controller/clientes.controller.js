@@ -249,6 +249,7 @@ const getContabilidadClientes = (request,response) =>{
     (	select c2.cedula, sum(a.valor) as valor \
       from clientes c2 \
       inner join abonos a on c2.cedula=a.cliente \
+      where to_timestamp( a.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')\
       group by c2.cedula) as q2 on q2.cedula=c.cedula \
       where to_timestamp( v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')\
     group by c.cedula, c.nombre,c.email, q2.valor"
