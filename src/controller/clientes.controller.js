@@ -169,7 +169,7 @@ const pool = new Pool({
           <h2>Estado de Cuenta Strength Club</h2> \
           <table style="width:100%; border:1px solid black"> \
             <tr> \
-              <th style="border:1px solid black">Compras</th>\
+              Compras\
             </tr>\
             <tr> \
               <th style="border:1px solid black">Nombre</th> \
@@ -177,7 +177,7 @@ const pool = new Pool({
               <th style="border:1px solid black">Valor</th> \
             </tr>'+htmlRow+' \
             <tr> \
-              <th style="border:1px solid black">Abonos</th>\
+              Abonos\
             </tr>'+htmlRow2+'\
             <tr> \
               <th style="border:1px solid black"></th>\
