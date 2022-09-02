@@ -292,8 +292,9 @@ const crearCliente = (request, response) =>{
     let telefono = request.body.telefono;
     let cedula = request.body.cedula;
     let nacimiento = request.body.fechaNacimiento;
+    let anticipado = request.body.anticipado
     if(nombre && email && direccion && telefono && cedula && nacimiento){
-        pool.query("INSERT INTO clientes(cedula,nombre,email,telefono,direccion,fecha_nacimiento) VALUES($1,$2,$3,$4,$5,$6)", [cedula, nombre, email,telefono,direccion,nacimiento], (error, results)=>{
+        pool.query("INSERT INTO clientes(cedula,nombre,email,telefono,direccion,fecha_nacimiento,anticipado) VALUES($1,$2,$3,$4,$5,$6,$7)", [cedula, nombre, email,telefono,direccion,nacimiento,anticipado], (error, results)=>{
             if (error) {
               response.status(500)
                   .send({
@@ -316,8 +317,9 @@ const updateCliente = (request, response) =>{
     let telefono = request.body.telefono;
     let cedula = request.body.cedula;
     let nacimiento = request.body.fechaNacimiento;
+    let anticipado = request.body.anticipado
   if(nombre && email && direccion && telefono && cedula && nacimiento){
-      pool.query("UPDATE clientes SET nombre=$1,email=$2,direccion=$3,telefono=$4,fecha_nacimiento=$5 WHERE cedula=$6", [nombre, email,direccion,telefono,nacimiento,cedula], (error, results)=>{
+      pool.query("UPDATE clientes SET nombre=$1,email=$2,direccion=$3,telefono=$4,fecha_nacimiento=$5,anticipado=$7 WHERE cedula=$6", [nombre, email,direccion,telefono,nacimiento,cedula,anticipado], (error, results)=>{
           if (error) {
             response.status(500)
                 .send({
