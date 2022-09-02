@@ -138,11 +138,18 @@ const pool = new Pool({
       let cuenta = await pool.query(query,[cedula]);
       let cliente = cuenta.rows[0];
       let htmlRow = ""
+      let htmlRow2= ""
       let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
+      let abonos = await pool.query("SELECT fecha, valor from abonos where cliente=$1",[cliente.cedula])
       ventas.rows.forEach(venta =>{
         htmlRow+='<tr><td style="border:1px solid black">'+cliente.nombre+'</td>'
         htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
         htmlRow+='<td style="border:1px solid black">$'+venta.valor+'</td></tr>'
+      })
+      abonos.rows.forEach(abono =>{
+        htmlRow2+='<tr><td style="border:1px solid black">'+cliente.nombre+'</td>'
+        htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
+        htmlRow2+='<td style="border:1px solid black">$'+abono.valor+'</td></tr>'
       })
 
       let mailData = {
@@ -162,10 +169,16 @@ const pool = new Pool({
           <h2>Estado de Cuenta Strength Club</h2> \
           <table style="width:100%; border:1px solid black"> \
             <tr> \
+              <th style="border:1px solid black">Compras</th>\
+            </tr>\
+            <tr> \
               <th style="border:1px solid black">Nombre</th> \
               <th style="border:1px solid black">Fecha</th> \
-              <th style="border:1px solid black">Precio</th> \
+              <th style="border:1px solid black">Valor</th> \
             </tr>'+htmlRow+' \
+            <tr> \
+              <th style="border:1px solid black">Abonos</th>\
+            </tr>'+htmlRow2+'\
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Deuda:</th>\
