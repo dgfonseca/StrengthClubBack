@@ -195,7 +195,7 @@ const pool = new Pool({
 
       let mailData = {
         from: "strengthclub@zohomail.com",
-        to: cliente.email,
+        to: cuenta.rows[0].email,
         subject: "Notificacion de Deudas",
         text : "Prueba",
         html: '<!doctype html> \
