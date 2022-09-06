@@ -223,17 +223,17 @@ const pool = new Pool({
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Deuda:</th>\
-              <th style="border:1px solid black">$'+cliente.debito+'</th>\
+              <th style="border:1px solid black">$'+cuenta.rows[0]+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Abonos:</th>\
-              <th style="border:1px solid black">$'+cliente.abonos+'</th>\
+              <th style="border:1px solid black">$'+cuenta.rows[0]+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Saldo:</th>\
-              <th style="border:1px solid black">$'+cliente.saldo+'</th>\
+              <th style="border:1px solid black">$'+cuenta.rows[0]+'</th>\
             </tr> \
              <tr> \
                 Sesiones \
