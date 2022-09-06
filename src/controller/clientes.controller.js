@@ -139,7 +139,7 @@ const pool = new Pool({
         inner join abonos a on c2.cedula=a.cliente \
         where to_timestamp( a.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp($2 ,'yyyy-mm-dd') \
         group by c2.cedula) as q2 on q2.cedula=c.cedula \
-        where c.cedula=$1 and (to_timestamp(v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($3 ,'yyyy-mm-dd') and to_timestamp($4 ,'yyyy-mm-dd') \
+        where c.cedula=$1 and (to_timestamp(v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($3 ,'yyyy-mm-dd') and to_timestamp($4 ,'yyyy-mm-dd')) \
       group by c.cedula, c.nombre,c.email, q2.valor"
       cuenta = await pool.query(query,[cedula,fechaInicio,fechaFin,fechaInicio,fechaFin]);
       ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1 and (to_timestamp(fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd'))",[cedula,fechaInicio,fechaFin])
