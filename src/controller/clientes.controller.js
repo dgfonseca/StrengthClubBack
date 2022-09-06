@@ -8,12 +8,15 @@ const util = require('util');
 const transporter = nodemailer.createTransport({
   port: 587,
   host: "smtp-mail.outlook.com",
-     auth: {
-          user: 'davidguillermo99@hotmail.com',
-          pass: 'dg.fonseca201729497',
-       },
-  secure: true,
-  });
+  secureConnection: false,
+  tls: {
+     ciphers:'SSLv3'
+  },
+  auth: {
+    user: 'davidguillermo99@hotmail.com',
+    pass: 'dg.fonseca201729497',
+  }
+});
 
 const pool = new Pool({
   user: process.env.PG_USER,
