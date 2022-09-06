@@ -5,13 +5,11 @@ const nodemailer = require('nodemailer');
 const util = require('util');
 
 
-const transporter = nodemailer.createTransport({
-  port: 465,
-  host: "smtp.zoho.com",
-  secure:true,
+const transporter = nodemailer.createTransport("SMTP",{
+  service:"hotmail",
   auth: {
-    user: 'davidprueba@zohomail.com',
-    pass: 'Dark.orbit99',
+    user: 'davidguillermo99@hotmail.com',
+    pass: 'dg.fonseca201729497'
   }
 });
 
