@@ -273,6 +273,7 @@ const pool = new Pool({
         return;
       })
     } catch (error) {
+      console.log(error)
       response.status(500)
       .send({
         message: error
