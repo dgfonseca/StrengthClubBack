@@ -226,17 +226,17 @@ const pool = new Pool({
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Deuda:</th>\
-              <th style="border:1px solid black">$'+cuenta.rows[0]+'</th>\
+              <th style="border:1px solid black">$'+cuenta.rows[0].debito+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Abonos:</th>\
-              <th style="border:1px solid black">$'+cuenta.rows[0]+'</th>\
+              <th style="border:1px solid black">$'+cuenta.rows[0].abonos+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Saldo:</th>\
-              <th style="border:1px solid black">$'+cuenta.rows[0]+'</th>\
+              <th style="border:1px solid black">$'+cuenta.rows[0].saldo+'</th>\
             </tr> \
              <tr> \
                 Sesiones \
@@ -244,17 +244,17 @@ const pool = new Pool({
              <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Sesiones Tomadas:</th>\
-              <th style="border:1px solid black">$'+sesiones.rows[0].tomadas+'</th>\
+              <th style="border:1px solid black">'+sesiones.rows[0].tomadas+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Sesiones Pagadas:</th>\
-              <th style="border:1px solid black">$'+sesiones.rows[0].adquiridas+'</th>\
+              <th style="border:1px solid black">'+sesiones.rows[0].adquiridas+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Sesiones Restantes:</th>\
-              <th style="border:1px solid black">$'+sesiones.rows[0].total+'</th>\
+              <th style="border:1px solid black">'+sesiones.rows[0].total+'</th>\
             </tr> \
           </table> \
           </body> \
