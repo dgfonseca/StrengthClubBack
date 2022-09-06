@@ -62,7 +62,7 @@ const pool = new Pool({
         })
 
         let mailData = {
-          from: "strengthclub@zohomail.com",
+          from: "davidguiller99@outlook.com",
           to: cliente.email,
           subject: "Notificacion de Deudas",
           text : "Prueba",
