@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const util = require('util');
 
 
-const transporter = nodemailer.createTransport("SMTP",{
+const transporter = nodemailer.createTransport("SMTP", {  
   service:"hotmail",
   auth: {
     user: 'davidguillermo99@hotmail.com',
