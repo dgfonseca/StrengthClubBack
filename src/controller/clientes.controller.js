@@ -5,11 +5,16 @@ const nodemailer = require('nodemailer');
 const util = require('util');
 
 
-const transporter = nodemailer.createTransport("SMTP", {  
-  service:"hotmail",
+const transporter = nodemailer.createTransport({
+  port: 587,
+  host: "smtp-mail.outlook.com",
+  secureConnection: false,
+  tls: {
+     ciphers:'SSLv3'
+  },
   auth: {
-    user: 'davidguillermo99@hotmail.com',
-    pass: 'dg.fonseca201729497'
+    user: 'david.fonsecar@techrea.com',
+    pass: 'Dark.orbit99',
   }
 });
 
