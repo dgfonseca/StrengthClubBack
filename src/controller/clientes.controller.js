@@ -6,11 +6,11 @@ const util = require('util');
 
 
 const transporter = nodemailer.createTransport({
-  port: 465,
-  host: "smtp.zoho.com",
+  port: 587,
+  host: "smtp-mail.outlook.com",
      auth: {
-          user: 'strengthclub@zohomail.com',
-          pass: 'Dark.orbit99',
+          user: 'davidguillermo99@hotmail.com',
+          pass: 'dg.fonseca201729497',
        },
   secure: true,
   });
