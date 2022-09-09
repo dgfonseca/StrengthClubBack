@@ -137,7 +137,7 @@ const pool = new Pool({
     let cuenta;let ventas;let abonos;
     try {
     if(fechaInicio&&fechaFin){
-      query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.abonos as abonos, q2.valor-sum(v.valor) as saldomes, q3.valor as saldototal from clientes c \
+      query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.abonos as abonos, q2.abonos-sum(v.valor) as saldomes, q3.valor as saldototal from clientes c \
       left join ventas v on v.cliente = c.cedula \
       left join \
       (	select c2.cedula, sum(a.valor) as abonos \
@@ -146,7 +146,7 @@ const pool = new Pool({
         where to_timestamp( a.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp($3 ,'yyyy-mm-dd') \
         group by c2.cedula) as q2 on q2.cedula=c.cedula \
         where c.cedula=$1 and (to_timestamp(v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($4 ,'yyyy-mm-dd') and to_timestamp($5 ,'yyyy-mm-dd')) \
-      group by c.cedula, c.nombre,c.email, q2.valor"
+      group by c.cedula, c.nombre,c.email, q2.abonos"
       cuenta = await pool.query(query,[cedula,fechaInicio,fechaFin,fechaInicio,fechaFin]);
       ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1 and (to_timestamp(fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd'))",[cedula,fechaInicio,fechaFin])
       abonos = await pool.query("SELECT fecha, valor from abonos where cliente=$1 and (to_timestamp(fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd'))",[cedula,fechaInicio,fechaFin])
