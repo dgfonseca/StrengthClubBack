@@ -1,5 +1,3 @@
-var jwt = require("jsonwebtoken");
-var bcrypt = require("bcrypt");
 const Pool = require("pg").Pool
 
 const pool = new Pool({
@@ -12,6 +10,13 @@ const pool = new Pool({
     rejectUnauthorized: false,
   }
   });
+
+// const pool = new Pool({
+//   connectionString:"postgres://emhkofcqvywsys:a8dd8f3cc858551e8bf86b5cceca98361f02972980bf0080a5650855b82fcdff@ec2-54-159-22-90.compute-1.amazonaws.com:5432/d6v6d92eqe67do",
+//   ssl: {
+//     rejectUnauthorized: false,
+//   }
+//   });
 
 const crearProducto = (request, response) =>{
     let nombre = request.body.nombre;
@@ -67,7 +72,7 @@ try {
         await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH24:MI:SS'),null)", [codigo, inventarioAdicional,precioCompra,precio])
       }else{
         await client.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=$3,precio=$4,habilitado=$5 WHERE codigo=$6", [nombre, descripcion,inventario,precio,habilitado,codigo]);
-        await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS') WHERE codigo=$1 and fechaFin is null",[codigo]);
+        await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS') WHERE producto=$1 and fechaFin is null",[codigo]);
         await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH24:MI:SS'),null)", [codigo, inventario,precioCompra,precio])
       }
       await client.query("COMMIT");

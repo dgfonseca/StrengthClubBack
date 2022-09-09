@@ -13,6 +13,13 @@ const pool = new Pool({
   }
   });
 
+// const pool = new Pool({
+//     connectionString:"postgres://emhkofcqvywsys:a8dd8f3cc858551e8bf86b5cceca98361f02972980bf0080a5650855b82fcdff@ec2-54-159-22-90.compute-1.amazonaws.com:5432/d6v6d92eqe67do",
+//     ssl: {
+//       rejectUnauthorized: false,
+//     }
+//     });
+
 const signup = (request, response) =>{
     let usuario = request.body.usuario;
     let email = request.body.email;
@@ -21,6 +28,7 @@ const signup = (request, response) =>{
     if(usuario && email && password){
         pool.query("INSERT INTO usuarios(usuario,password,email,rol) VALUES($1,$2,$3,$4)", [usuario, bcrypt.hashSync(password, 8), email,rol], (error, results)=>{
             if (error) {
+              console.log(error)
               response.status(500)
                   .send({
                     message: error
@@ -69,12 +77,12 @@ const signin = (req,res)=>{
                 );
                 if(passwordIsValid){
                 var token = jwt.sign({
-                    id: results.rows[0].id
+                    usuario: results.rows[0].usuario
                 }, process.env.API_SECRET,{
-                    expiresIn: 3600
+                    expiresIn: 86400
                 });
 
-                res.status(200).send({usuario:{usuario:results.rows[0].rol}, 
+                res.status(200).send({usuario:results.rows[0].usuario, 
                     message: "Login Successfull", 
                     accessToken: token}
                     );

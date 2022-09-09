@@ -2,54 +2,58 @@ var express = require("express")
 const db = require("../controller/auth.controller")
 const entrenador = require("../controller/entrenador.controller")
 const cliente = require("../controller/clientes.controller")
-const validateToken = require("../controller/middlewareAuth");
+const middlewareAuth = require("../controller/middlewareAuth");
 const productos = require("../controller/productos.controller")
 const paquetes = require("../controller/paquetes.controller")
 const sesiones = require("../controller/sesiones.controller")
 const ventas = require("../controller/ventas.controller")
 router = express.Router();
-
-
+router.use(function(req, res, next) {
+    res.header(
+      "Access-Control-Allow-Headers",
+      "x-access-token, Origin, Content-Type, Accept"
+    );
+    next();
+  });
 
 router.post("/register", db.signup);
-
 router.post("/login", db.signin);
-// router.post("/entrenador",validateToken.validateToken,entrenador.crearEntrenador)
-router.post("/entrenador",entrenador.crearEntrenador)
-// router.post("/cliente",validateToken.validateToken,cliente.crearCliente)
-router.post("/cliente",cliente.crearCliente)
-router.post("/productos",productos.crearProducto)
-router.post("/paquetes",paquetes.crearPaquete)
-router.post("/sesiones",sesiones.crearSesion)
-router.post("/sesionesics",sesiones.crearSesionDeIcs)
-router.post("/ventas",ventas.registrarVentaProductos)
-router.post("/contenidoVentas",ventas.getContenidoVentas)
-router.post("/productosPaquete", paquetes.getProductosPaquete)
-router.post("/ventasCliente", ventas.getVentasCliente)
-router.post("/registrarAbono", cliente.postAbono)
-router.post("/sendEmail",cliente.sendEmail)
-router.get("/sendAllEmail",cliente.sendAllEmail)
-router.put("/sesiones", sesiones.registrarAsistencia)
-router.get("/clientes",cliente.getClientes)
-router.post("/contabilidadClientes",cliente.getContabilidadClientes)
-router.get("/ventas",ventas.getVentas)
-router.get("/entrenadores",entrenador.getEntrenadores)
-router.get("/sesiones",sesiones.getSesiones)
-router.get("/productos",productos.getProductos)
-router.get("/productosHabilitados",productos.getProductosHabilitados)
-router.get("/paquetes",paquetes.getPaquetes)
-router.get("/usuarios", db.getUsuarios)
-router.get("/contabilidadProductos", productos.getContabilidadProductos)
-router.put("/productos",productos.updateProducto)
-router.put("/clientes",cliente.updateCliente)
-router.put("/contabilidadClientes",cliente.updateCliente)
-router.put("/entrenadores",entrenador.updateEntrenador)
-router.put("/paquetes",paquetes.actualizarPaquete)
-router.delete("/productos",productos.deleteProductos)
-router.delete("/clientes", cliente.deleteClientes)
-router.delete("/entrenadores",entrenador.deleteEntrenadores)
-router.delete("/paquete",paquetes.deletePaquete)
-router.delete("/sesiones",sesiones.desagendarSesion)
-router.delete("/venta",ventas.eliminarVenta)
+/////CAJEROS DONE/////
+router.get("/clientes",[middlewareAuth.validateToken,middlewareAuth.isCajero],cliente.getClientes)
+router.get("/productosHabilitados",[middlewareAuth.validateToken,middlewareAuth.isCajero],productos.getProductosHabilitados)
+router.get("/paquetes",[middlewareAuth.validateToken,middlewareAuth.isCajero],paquetes.getPaquetes)
+router.get("/productos",[middlewareAuth.validateToken,middlewareAuth.isCajero],productos.getProductos)
+router.post("/productosPaquete",[middlewareAuth.validateToken,middlewareAuth.isCajero], paquetes.getProductosPaquete)
+router.post("/ventas",[middlewareAuth.validateToken,middlewareAuth.isCajero],ventas.registrarVentaProductos)
+/////ADMIN DONE/////
+router.get("/usuarios",[middlewareAuth.validateToken,middlewareAuth.isAdmin], db.getUsuarios)
+router.get("/ventas",[middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getVentas)
+router.get("/entrenadores",[middlewareAuth.validateToken,middlewareAuth.isAdmin],entrenador.getEntrenadores)
+router.get("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.getSesiones)
+router.get("/contabilidadProductos",[middlewareAuth.validateToken,middlewareAuth.isAdmin], productos.getContabilidadProductos)
+router.post("/entrenador",[middlewareAuth.validateToken,middlewareAuth.isAdmin],entrenador.crearEntrenador)
+router.post("/cliente",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.crearCliente)
+router.post("/productos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],productos.crearProducto)
+router.post("/paquetes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],paquetes.crearPaquete)
+router.post("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.crearSesion)
+router.post("/contenidoVentas",[middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getContenidoVentas)
+router.post("/ventasCliente", [middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getVentasCliente)
+router.post("/registrarAbono",[middlewareAuth.validateToken,middlewareAuth.isAdmin], cliente.postAbono)
+router.put("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin], sesiones.registrarAsistencia)
+router.post("/contabilidadClientes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.getContabilidadClientes)
+router.put("/productos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],productos.updateProducto)
+router.put("/clientes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.updateCliente)
+router.put("/entrenadores",[middlewareAuth.validateToken,middlewareAuth.isAdmin],entrenador.updateEntrenador)
+router.put("/paquetes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],paquetes.actualizarPaquete)
+router.delete("/productos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],productos.deleteProductos)
+router.delete("/clientes",[middlewareAuth.validateToken,middlewareAuth.isAdmin], cliente.deleteClientes)
+router.delete("/entrenadores",[middlewareAuth.validateToken,middlewareAuth.isAdmin],entrenador.deleteEntrenadores)
+router.delete("/paquete",[middlewareAuth.validateToken,middlewareAuth.isAdmin],paquetes.deletePaquete)
+router.delete("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.desagendarSesion)
+router.delete("/venta",[middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.eliminarVenta)
+////ADMIN TODO/////
+router.get("/sendAllEmail",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.sendAllEmail)
+router.post("/sendEmail",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.sendEmail)
+router.post("/sesionesics",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.crearSesionDeIcs)
 
 module.exports = router;

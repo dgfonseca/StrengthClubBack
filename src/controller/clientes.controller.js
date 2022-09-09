@@ -1,8 +1,5 @@
-var jwt = require("jsonwebtoken");
-var bcrypt = require("bcrypt");
 const Pool = require("pg").Pool
 const nodemailer = require('nodemailer');
-const util = require('util');
 
 
 const transporter = nodemailer.createTransport({
@@ -28,6 +25,12 @@ const pool = new Pool({
     rejectUnauthorized: false,
   }
   });
+// const pool = new Pool({
+//   connectionString:"postgres://emhkofcqvywsys:a8dd8f3cc858551e8bf86b5cceca98361f02972980bf0080a5650855b82fcdff@ec2-54-159-22-90.compute-1.amazonaws.com:5432/d6v6d92eqe67do",
+//   ssl: {
+//     rejectUnauthorized: false,
+//   }
+//   });
 
   function sendEmailPromise(mailData,errors,cliente){
     return new Promise((resolve)=>{
@@ -134,10 +137,10 @@ const pool = new Pool({
     let cuenta;let ventas;let abonos;
     try {
     if(fechaInicio&&fechaFin){
-      query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
+      query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.abonos as abonos, q2.valor-sum(v.valor) as saldomes, q3.valor as saldototal from clientes c \
       left join ventas v on v.cliente = c.cedula \
       left join \
-      (	select c2.cedula, sum(a.valor) as valor \
+      (	select c2.cedula, sum(a.valor) as abonos \
         from clientes c2 \
         inner join abonos a on c2.cedula=a.cliente \
         where to_timestamp( a.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp($3 ,'yyyy-mm-dd') \
@@ -210,7 +213,7 @@ const pool = new Pool({
             <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
           </head> \
           <body> \
-          <h2>Estado de Cuenta Strength Club'+fechaInicio+'-'+fechaFin+'</h2> \
+          <h2>Estado de Cuenta Strength Club '+fechaInicio+' - '+fechaFin+'</h2> \
           <table style="width:100%; border:1px solid black"> \
             <tr> \
               Compras\
