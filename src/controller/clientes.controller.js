@@ -223,9 +223,21 @@ const pool = new Pool({
             <tr> \
               Compras\
             </tr>'+htmlRow+' \
+          </table> \
+          <table style="width:100%; border:1px solid black"> \
+            <tr> \
+              <th style="border:1px solid black">Nombre</th> \
+              <th style="border:1px solid black">Fecha</th> \
+              <th style="border:1px solid black">Valor</th> \
+            </tr> \
             <tr> \
               Abonos\
             </tr>'+htmlRow2+'\
+          </table> \
+          <table style="width:100%; border:1px solid black"> \
+            <tr> \
+              Estados\
+            </tr>\
             <tr> \
               <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Deuda:</th>\
