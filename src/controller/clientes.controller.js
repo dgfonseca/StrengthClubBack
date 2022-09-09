@@ -213,15 +213,15 @@ const pool = new Pool({
             <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
           </head> \
           <body> \
-          <h2>Estado de Cuenta Strength Club '+fechaInicio+' - '+fechaFin+'</h2> \
+          <h2>Estado de Cuenta Strength Club:  '+fechaInicio+'   ---   '+fechaFin+'</h2> \
           <table style="width:100%; border:1px solid black"> \
-            <tr> \
-              Compras\
-            </tr>\
             <tr> \
               <th style="border:1px solid black">Nombre</th> \
               <th style="border:1px solid black">Fecha</th> \
               <th style="border:1px solid black">Valor</th> \
+            </tr> \
+            <tr> \
+              Compras\
             </tr>'+htmlRow+' \
             <tr> \
               Abonos\
