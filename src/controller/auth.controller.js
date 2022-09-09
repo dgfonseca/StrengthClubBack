@@ -83,7 +83,8 @@ const signin = (req,res)=>{
                     expiresIn: 86400
                 });
 
-                res.status(200).send({usuario:results.rows[0].usuario, 
+                res.status(200).send({usuario:results.rows[0].usuario,             
+                    rol: results.rows[0].rol,
                     message: "Login Successfull", 
                     accessToken: token}
                     );
