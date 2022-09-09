@@ -137,7 +137,7 @@ const pool = new Pool({
     let cuenta;let ventas;let abonos;
     try {
     if(fechaInicio&&fechaFin){
-      query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.abonos as abonos, q2.abonos-sum(v.valor) as saldomes, q3.valor as saldototal from clientes c \
+      query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.abonos as abonos, q2.abonos-sum(v.valor) as saldo from clientes c \
       left join ventas v on v.cliente = c.cedula \
       left join \
       (	select c2.cedula, sum(a.valor) as abonos \
@@ -274,7 +274,6 @@ const pool = new Pool({
           </table> \
           </body> \
         </html>'
-        
       }
       transporter.sendMail(mailData, (error,info)=>{
         if(error){
