@@ -77,7 +77,8 @@ const signin = (req,res)=>{
                 );
                 if(passwordIsValid){
                 var token = jwt.sign({
-                    usuario: results.rows[0].usuario
+                    usuario: results.rows[0].usuario,
+                    rol: results.rows[0].rol
                 }, process.env.API_SECRET,{
                     expiresIn: 86400
                 });
