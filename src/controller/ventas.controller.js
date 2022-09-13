@@ -46,7 +46,7 @@ const pool = new Pool({
       }
 
     const getVentas = (request,response) =>{
-        pool.query("select c.cedula,c.nombre,v.fecha,v.valor from ventas v inner join clientes c on c.cedula =v.cliente order by v.fecha desc",(error,results)=>{
+        pool.query("select c.cedula,c.nombre,v.fecha,cast(v.valor as money) as valor from ventas v inner join clientes c on c.cedula =v.cliente order by v.fecha desc",(error,results)=>{
           if (error) {
             response.status(500)
                 .send({

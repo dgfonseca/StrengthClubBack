@@ -98,7 +98,7 @@
 	  }
 
 	const getPaquetes = (request,response) =>{
-		pool.query("SELECT * FROM paquetes",(error,results)=>{
+		pool.query("SELECT codigo,nombre,cast(precio as money) as precio FROM paquetes",(error,results)=>{
 		  if (error) {
 			response.status(500)
 				.send({
@@ -112,7 +112,7 @@
 
 	  const getProductosPaquete = (request,response) =>{
 		let codigo = request.body.codigo;
-		pool.query("SELECT pr.nombre,pr.codigo, pr.precio, pp.cantidad FROM paquetes pa INNER JOIN productos_paquete pp on pa.codigo=pp.codigo_paquete INNER JOIN productos pr on pr.codigo=pp.codigo_producto WHERE pa.codigo=$1",[codigo],(error,results)=>{
+		pool.query("SELECT pr.nombre,pr.codigo, cast(pr.precio as money) as precio, pp.cantidad FROM paquetes pa INNER JOIN productos_paquete pp on pa.codigo=pp.codigo_paquete INNER JOIN productos pr on pr.codigo=pp.codigo_producto WHERE pa.codigo=$1",[codigo],(error,results)=>{
 		  if (error) {
 			response.status(500)
 				.send({

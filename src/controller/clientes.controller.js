@@ -50,7 +50,7 @@ const pool = new Pool({
     let cuentas;
     try{
       if(fechaInicio&&fechaFin){
-        query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.abonos as abonos, q2.abonos-sum(v.valor) as saldo from clientes c \
+        query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.abonos as money) as abonos, cast(q2.abonos-sum(v.valor) as money) as saldo from clientes c \
         left join ventas v on v.cliente = c.cedula \
         left join \
         (	select c2.cedula, sum(a.valor) as abonos \
@@ -63,7 +63,7 @@ const pool = new Pool({
         cuentas = await pool.query(query,[fechaInicio,fechaFin,fechaInicio,fechaFin]);
       }
       else{
-        query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
+        query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor)as money) as debito, cast(q2.valor as money) as abonos, cast(q2.valor-sum(v.valor) as money) as saldo from clientes c \
         left join ventas v on v.cliente = c.cedula \
         left join \
         (	select c2.cedula, sum(a.valor) as valor \
@@ -218,7 +218,7 @@ const pool = new Pool({
     let cuenta;let ventas;let abonos;
     try {
     if(fechaInicio&&fechaFin){
-      query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.abonos as abonos, q2.abonos-sum(v.valor) as saldo from clientes c \
+      query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.abonos as money) as abonos, cast(q2.abonos-sum(v.valor)as money) as saldo from clientes c \
       left join ventas v on v.cliente = c.cedula \
       left join \
       (	select c2.cedula, sum(a.valor) as abonos \
@@ -233,7 +233,7 @@ const pool = new Pool({
       abonos = await pool.query("SELECT fecha, valor from abonos where cliente=$1 and (to_timestamp(fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd'))",[cedula,fechaInicio,fechaFin])
     }
     else{
-      query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
+      query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.valor as money) as abonos, cast(q2.valor-sum(v.valor) as money) as saldo from clientes c \
       left join ventas v on v.cliente = c.cedula \
       left join \
       (	select c2.cedula, sum(a.valor) as valor \
@@ -322,17 +322,14 @@ const pool = new Pool({
               Estados\
             </tr>\
             <tr> \
-              <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Deuda:</th>\
               <th style="border:1px solid black">$'+cuenta.rows[0].debito+'</th>\
             </tr> \
             <tr> \
-              <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Abonos:</th>\
               <th style="border:1px solid black">$'+cuenta.rows[0].abonos+'</th>\
             </tr> \
             <tr> \
-              <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Total Saldo:</th>\
               <th style="border:1px solid black">$'+cuenta.rows[0].saldo+'</th>\
             </tr> \
