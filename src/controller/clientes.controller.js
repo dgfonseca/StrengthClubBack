@@ -3,15 +3,15 @@ const nodemailer = require('nodemailer');
 
 
 const transporter = nodemailer.createTransport({
-  port: 587,
-  host: "smtp-mail.outlook.com",
+  port: process.env.MAIL_PORT,
+  host: process.env.MAIL_HOST,
   secureConnection: false,
   tls: {
      ciphers:'SSLv3'
   },
   auth: {
-    user: 'davidguiller99@outlook.com',
-    pass: 'Dark.orbit99',
+    user: MAIL_ACCOUNT,
+    pass: MAIL_PASSWORD,
   }
 });
 
@@ -44,28 +44,74 @@ const pool = new Pool({
   }
 
   const sendAllEmail = async (request, response) =>{
+    let fechaInicio = request.body.fechaInicio;
+    let fechaFin = request.body.fechaFin;
+    let query=""
+    let cuentas;
     try{
-      let query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
-      left join ventas v on v.cliente = c.cedula \
-      left join \
-      (	select c2.cedula, sum(a.valor) as valor \
-        from clientes c2 \
-        inner join abonos a on c2.cedula=a.cliente \
-        group by c2.cedula) as q2 on q2.cedula=c.cedula \
-      group by c.cedula, c.nombre,c.email, q2.valor"
-      let cuentas = await pool.query(query);
+      if(fechaInicio&&fechaFin){
+        query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.abonos as abonos, q2.abonos-sum(v.valor) as saldo from clientes c \
+        left join ventas v on v.cliente = c.cedula \
+        left join \
+        (	select c2.cedula, sum(a.valor) as abonos \
+          from clientes c2 \
+          inner join abonos a on c2.cedula=a.cliente \
+          where to_timestamp( a.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp($2 ,'yyyy-mm-dd') \
+          group by c2.cedula) as q2 on q2.cedula=c.cedula \
+          where (to_timestamp(v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($3 ,'yyyy-mm-dd') and to_timestamp($4 ,'yyyy-mm-dd')) \
+        group by c.cedula, c.nombre,c.email, q2.abonos"
+        cuentas = await pool.query(query,[fechaInicio,fechaFin,fechaInicio,fechaFin]);
+      }
+      else{
+        query = "select c.cedula, c.nombre, c.email, sum(v.valor) as debito, q2.valor as abonos, q2.valor-sum(v.valor) as saldo from clientes c \
+        left join ventas v on v.cliente = c.cedula \
+        left join \
+        (	select c2.cedula, sum(a.valor) as valor \
+          from clientes c2 \
+          inner join abonos a on c2.cedula=a.cliente \
+          group by c2.cedula) as q2 on q2.cedula=c.cedula \
+        group by c.cedula, c.nombre,c.email, q2.valor"
+        cuentas = await pool.query(query);
+        
+      }
+      query = "select c.nombre, q1.adquiridas, count(s.cliente) as tomadas,q1.adquiridas-count(s.cliente) as total from clientes c \
+    left join sesiones s on c.cedula = s.cliente \
+    left join ( \
+    select cedula, sum(cantidad) as adquiridas from \
+    (select cedula, cantidad \
+    from (select c.cedula, count(*) as cantidad from clientes c \
+      left join ventas v on v.cliente =c.cedula \
+      inner join ventas_productos vp on vp.venta =v.id and vp.producto='SES01' group by c.cedula) q1 \
+    union \
+    (select q1.cedula, sum(q1.cantidad) as cantidad from \
+      (select c.cedula, pp.cantidad from clientes c \
+      left join ventas v on c.cedula = v.cliente \
+      inner join ventas_paquetes vp on vp.venta =v.id \
+      inner join productos_paquete pp on pp.codigo_paquete =vp.paquete and pp.codigo_producto = 'SES01' \
+      group by c.cedula,pp.cantidad) q1 group by q1.cedula))q3 group by cedula \
+    ) q1 on q1.cedula=c.cedula \
+    where c.cedula=$1 \
+    group by c.nombre,q1.adquiridas"
       let errores = []
       cuentas.rows.forEach(async cliente => {
         let htmlRow = ""
+        let htmlRow2 = ""
         let ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cliente.cedula])
+        let abonos = await pool.query("SELECT fecha, valor from abonos where cliente=$1",[cliente.cedula]);
+        let sesiones = await pool.query(query,[cliente.cedula])
         ventas.rows.forEach(venta =>{
           htmlRow+='<tr><td style="border:1px solid black">'+cliente.nombre+'</td>'
           htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
           htmlRow+='<td style="border:1px solid black">$'+venta.valor+'</td></tr>'
         })
-
+        abonos.rows.forEach(abono =>{
+          htmlRow2+='<tr><td style="border:1px solid black">'+cliente.nombre+'</td>'
+          htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
+          htmlRow2+='<td style="border:1px solid black">$'+abono.valor
+          +'</td></tr>'
+        })
         let mailData = {
-          from:  "davidguiller99@outlook.com",
+          from:  MAIL_ACCOUNT,
           to: cliente.email,
           subject: "Notificacion de Deudas",
           text : "Prueba",
@@ -78,13 +124,33 @@ const pool = new Pool({
               <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
             </head> \
             <body> \
-            <h2>Estado de Cuenta Strength Club</h2> \
+            <h2>Estado de Cuenta Strength Club:  '+fechaInicio+'   ---   '+fechaFin+'</h2> \
             <table style="width:100%; border:1px solid black"> \
+            <tr style="font-weight:bold"> \
+            Compras\
+            </tr> \
               <tr> \
                 <th style="border:1px solid black">Nombre</th> \
                 <th style="border:1px solid black">Fecha</th> \
-                <th style="border:1px solid black">Precio</th> \
-              </tr>'+htmlRow+' \
+                <th style="border:1px solid black">Valor</th> \
+              </tr> \
+             '+htmlRow+' \
+            </table><br><br> \
+            <table style="width:100%; border:1px solid black"> \
+              <tr style="font-weight:bold"> \
+                Abonos\
+              </tr>\
+              <tr> \
+                <th style="border:1px solid black">Nombre</th> \
+                <th style="border:1px solid black">Fecha</th> \
+                <th style="border:1px solid black">Valor</th> \
+              </tr> \
+              '+htmlRow2+'\
+            </table><br><br> \
+            <table style="width:100%; border:1px solid black"> \
+              <tr style="font-weight:bold"> \
+                Estados\
+              </tr>\
               <tr> \
                 <th style="border:1px solid black"></th>\
                 <th style="border:1px solid black">Total Deuda:</th>\
@@ -99,6 +165,21 @@ const pool = new Pool({
                 <th style="border:1px solid black"></th>\
                 <th style="border:1px solid black">Total Saldo:</th>\
                 <th style="border:1px solid black">$'+cliente.saldo+'</th>\
+              </tr> \
+               <tr style="font-weight:bold"> \
+                  Sesiones \
+               </tr> \
+               <tr> \
+                <th style="border:1px solid black">Sesiones Tomadas:</th>\
+                <th style="border:1px solid black">'+sesiones.rows[0].tomadas+'</th>\
+              </tr> \
+              <tr> \
+                <th style="border:1px solid black">Sesiones Pagadas:</th>\
+                <th style="border:1px solid black">'+sesiones.rows[0].adquiridas+'</th>\
+              </tr> \
+              <tr> \
+                <th style="border:1px solid black">Sesiones Restantes:</th>\
+                <th style="border:1px solid black">'+sesiones.rows[0].total+'</th>\
               </tr> \
             </table> \
             </body> \
@@ -200,7 +281,7 @@ const pool = new Pool({
       })
 
       let mailData = {
-        from: "davidguiller99@outlook.com",
+        from: MAIL_ACCOUNT,
         to: cuenta.rows[0].email,
         subject: "Notificacion de Deudas",
         text : "Prueba",
@@ -215,27 +296,29 @@ const pool = new Pool({
           <body> \
           <h2>Estado de Cuenta Strength Club:  '+fechaInicio+'   ---   '+fechaFin+'</h2> \
           <table style="width:100%; border:1px solid black"> \
+          <tr style="font-weight:bold"> \
+          Compras\
+          </tr> \
             <tr> \
               <th style="border:1px solid black">Nombre</th> \
               <th style="border:1px solid black">Fecha</th> \
               <th style="border:1px solid black">Valor</th> \
             </tr> \
-            <tr> \
-              Compras\
-            </tr>'+htmlRow+' \
-          </table> \
+           '+htmlRow+' \
+          </table><br><br> \
           <table style="width:100%; border:1px solid black"> \
-            <tr> \
-              <th style="border:1px solid black">Nombre</th> \
-              <th style="border:1px solid black">Fecha</th> \
-              <th style="border:1px solid black">Valor</th> \
-            </tr> \
-            <tr> \
+            <tr style="font-weight:bold"> \
               Abonos\
-            </tr>'+htmlRow2+'\
-          </table> \
-          <table style="width:100%; border:1px solid black"> \
+            </tr>\
             <tr> \
+              <th style="border:1px solid black">Nombre</th> \
+              <th style="border:1px solid black">Fecha</th> \
+              <th style="border:1px solid black">Valor</th> \
+            </tr> \
+            '+htmlRow2+'\
+          </table><br><br> \
+          <table style="width:100%; border:1px solid black"> \
+            <tr style="font-weight:bold"> \
               Estados\
             </tr>\
             <tr> \
@@ -253,21 +336,18 @@ const pool = new Pool({
               <th style="border:1px solid black">Total Saldo:</th>\
               <th style="border:1px solid black">$'+cuenta.rows[0].saldo+'</th>\
             </tr> \
-             <tr> \
+             <tr style="font-weight:bold"> \
                 Sesiones \
              </tr> \
              <tr> \
-              <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Sesiones Tomadas:</th>\
               <th style="border:1px solid black">'+sesiones.rows[0].tomadas+'</th>\
             </tr> \
             <tr> \
-              <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Sesiones Pagadas:</th>\
               <th style="border:1px solid black">'+sesiones.rows[0].adquiridas+'</th>\
             </tr> \
             <tr> \
-              <th style="border:1px solid black"></th>\
               <th style="border:1px solid black">Sesiones Restantes:</th>\
               <th style="border:1px solid black">'+sesiones.rows[0].total+'</th>\
             </tr> \
