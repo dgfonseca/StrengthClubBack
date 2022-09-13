@@ -10,8 +10,8 @@ const transporter = nodemailer.createTransport({
      ciphers:'SSLv3'
   },
   auth: {
-    user: MAIL_ACCOUNT,
-    pass: MAIL_PASSWORD,
+    user: process.env.MAIL_ACCOUNT,
+    pass: process.env.MAIL_PASSWORD,
   }
 });
 
@@ -111,7 +111,7 @@ const pool = new Pool({
           +'</td></tr>'
         })
         let mailData = {
-          from:  MAIL_ACCOUNT,
+          from:  process.env.MAIL_ACCOUNT,
           to: cliente.email,
           subject: "Notificacion de Deudas",
           text : "Prueba",
@@ -281,7 +281,7 @@ const pool = new Pool({
       })
 
       let mailData = {
-        from: MAIL_ACCOUNT,
+        from: process.env.MAIL_ACCOUNT,
         to: cuenta.rows[0].email,
         subject: "Notificacion de Deudas",
         text : "Prueba",
