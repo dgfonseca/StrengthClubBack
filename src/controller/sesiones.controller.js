@@ -82,6 +82,7 @@ const crearSesionDeIcs =  async (request, response)=>{
       virtual=false;
     }else{
       cliente=cliente.replace("*","")
+      console.log(cliente)
       virtual=true;
     }
     if(entrenador && cliente && fecha){
