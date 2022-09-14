@@ -82,13 +82,15 @@ const crearSesionDeIcs =  async (request, response)=>{
       virtual=false;
     }else{
       cliente=cliente.replace("*","")
-      console.log(cliente)
       virtual=true;
     }
     if(entrenador && cliente && fecha){
+      console.log(cliente)
       const clienteRes = await pool.query("SELECT cedula FROM clientes WHERE nombre LIKE $1",[cliente]);
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
       if(clienteRes.rowCount<1 || entrenadorRes.rowCount<1){
+        console.log("Clientes"+clienteRes.rowCount)
+        console.log("Entrenadores"+entrenadorRes.rowCount)
         response.status(400)
           .send({
             message: "Verifique el cliente o el entrenador ingresado"
