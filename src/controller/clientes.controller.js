@@ -354,7 +354,6 @@ const pool = new Pool({
       }
       transporter.sendMail(mailData, (error,info)=>{
         if(error){
-          console.log(error)
           response.status(500)
           .send({
             message: error
@@ -367,7 +366,6 @@ const pool = new Pool({
         return;
       })
     } catch (error) {
-      console.log(error)
       response.status(500)
       .send({
         message: error

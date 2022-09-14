@@ -28,7 +28,6 @@ const signup = (request, response) =>{
     if(usuario && email && password){
         pool.query("INSERT INTO usuarios(usuario,password,email,rol) VALUES($1,$2,$3,$4)", [usuario, bcrypt.hashSync(password, 8), email,rol], (error, results)=>{
             if (error) {
-              console.log(error)
               response.status(500)
                   .send({
                     message: error

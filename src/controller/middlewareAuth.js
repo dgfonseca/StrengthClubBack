@@ -49,7 +49,6 @@ function isAdmin(req,res,next){
 
 function isCajero(req,res,next){
   let usuario = req.tokenData
-  console.log(usuario)
   pool.query("SELECT rol FROM usuarios WHERE usuario=$1",[usuario],(error,results)=>{
     if(error){
       res.status(500).send({message:error})

@@ -182,7 +182,6 @@ const registrarVentaProductos = async (request, response) => {
             await client.query('ROLLBACK')
             let codigos="";
             errors.forEach(element => {
-                console.log(element.codigo)
                 codigos = codigos.concat(element.codigo+",")
             });
             response.status(400).send({
