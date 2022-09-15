@@ -72,8 +72,8 @@ const registrarAsistencia = (request, response)=>{
 
 }
 const crearSesionDeIcs =  async (request, response)=>{
-  let entrenador= request.body.entrenador;
-  let cliente = request.body.cliente;
+  let entrenador= "%"+request.body.entrenador+"%";
+  let cliente = "%"+request.body.cliente+"%";
   let fecha = request.body.fecha;
   let asistio = request.body.asistio;
   let virtual;
