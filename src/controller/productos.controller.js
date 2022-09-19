@@ -90,7 +90,7 @@ try {
 };
 
 const getProductos = (request,response) =>{
-  pool.query("SELECT nombre,codigo,descripcion,inventario,cast(precio as money)as precio, cast(preciocompra as money)as preciocompra FROM productos",(error,results)=>{
+  pool.query("SELECT * FROM productos",(error,results)=>{
     if (error) {
       response.status(500)
           .send({
@@ -169,7 +169,7 @@ const getContabilidadProductos = (request,response) =>{
 
 
 const getProductosHabilitados = (request,response) =>{
-  pool.query("SELECT nombre,codigo,descripcion,inventario,cast(precio as money)as precio, cast(preciocompra as money)as preciocompra FROM productos WHERE habilitado=true",(error,results)=>{
+  pool.query("SELECT * FROM productos WHERE habilitado=true",(error,results)=>{
     if (error) {
       response.status(500)
           .send({
