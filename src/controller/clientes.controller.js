@@ -392,7 +392,7 @@ const postAbono = (request, response)=>{
   let cliente = request.body.cliente;
   let abono = request.body.abono;
   let fecha = request.body.fecha;
-  if(fecha!==null){
+  if(fecha){
     pool.query("INSERT INTO abonos(cliente,valor,fecha) VALUES ($1,$2,$3)",[cliente,abono,fecha],(error,results)=>{
       if (error) {
         response.status(500)
