@@ -81,13 +81,13 @@ const pool = new Pool({
     (select cedula, cantidad \
     from (select c.cedula, count(*) as cantidad from clientes c \
       left join ventas v on v.cliente =c.cedula \
-      inner join ventas_productos vp on vp.venta =v.id and vp.producto='SES01' group by c.cedula) q1 \
+      inner join ventas_productos vp on vp.venta =v.id and vp.producto='SES' group by c.cedula) q1 \
     union \
     (select q1.cedula, sum(q1.cantidad) as cantidad from \
       (select c.cedula, pp.cantidad from clientes c \
       left join ventas v on c.cedula = v.cliente \
       inner join ventas_paquetes vp on vp.venta =v.id \
-      inner join productos_paquete pp on pp.codigo_paquete =vp.paquete and pp.codigo_producto = 'SES01' \
+      inner join productos_paquete pp on pp.codigo_paquete =vp.paquete and pp.codigo_producto = 'SES' \
       group by c.cedula,pp.cantidad) q1 group by q1.cedula))q3 group by cedula \
     ) q1 on q1.cedula=c.cedula \
     where c.cedula=$1 \
@@ -253,13 +253,13 @@ const pool = new Pool({
     (select cedula, cantidad \
     from (select c.cedula, count(*) as cantidad from clientes c \
       left join ventas v on v.cliente =c.cedula \
-      inner join ventas_productos vp on vp.venta =v.id and vp.producto='SES01' group by c.cedula) q1 \
+      inner join ventas_productos vp on vp.venta =v.id and vp.producto='SES' group by c.cedula) q1 \
     union \
     (select q1.cedula, sum(q1.cantidad) as cantidad from \
       (select c.cedula, pp.cantidad from clientes c \
       left join ventas v on c.cedula = v.cliente \
       inner join ventas_paquetes vp on vp.venta =v.id \
-      inner join productos_paquete pp on pp.codigo_paquete =vp.paquete and pp.codigo_producto = 'SES01' \
+      inner join productos_paquete pp on pp.codigo_paquete =vp.paquete and pp.codigo_producto = 'SES' \
       group by c.cedula,pp.cantidad) q1 group by q1.cedula))q3 group by cedula \
     ) q1 on q1.cedula=c.cedula \
     where c.cedula=$1 \
