@@ -98,7 +98,7 @@
 	  }
 
 	const getPaquetes = (request,response) =>{
-		pool.query("SELECT * as precio FROM paquetes",(error,results)=>{
+		pool.query("SELECT * FROM paquetes",(error,results)=>{
 		  if (error) {
 			response.status(500)
 				.send({
