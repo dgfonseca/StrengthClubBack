@@ -392,16 +392,30 @@ const postAbono = (request, response)=>{
   let cliente = request.body.cliente;
   let abono = request.body.abono;
   let fecha = request.body.fecha;
-  pool.query("INSERT INTO abonos(cliente,valor,fecha) VALUES ($1,$2,$3)",[cliente,abono,fecha],(error,results)=>{
-    if (error) {
-      response.status(500)
-          .send({
-            message: error
-          });
-      }else{
-        response.status(200).send({abono:"Abono creado exitosamente"});
-      }
-  })
+  if(fecha){
+    pool.query("INSERT INTO abonos(cliente,valor,fecha) VALUES ($1,$2,$3)",[cliente,abono,fecha],(error,results)=>{
+      if (error) {
+        response.status(500)
+            .send({
+              message: error
+            });
+        }else{
+          response.status(200).send({abono:"Abono creado exitosamente"});
+        }
+    })
+    return;
+  }else{
+    pool.query("INSERT INTO abonos(cliente,valor,fecha) VALUES ($1,$2,to_char(current_timestamp,'YYYY-MM-DD HH24:MI))",[cliente,abono],(error,results)=>{
+      if (error) {
+        response.status(500)
+            .send({
+              message: error
+            });
+        }else{
+          response.status(200).send({abono:"Abono creado exitosamente"});
+        }
+    })
+  }
 }
 
 const getContabilidadClientes = (request,response) =>{
