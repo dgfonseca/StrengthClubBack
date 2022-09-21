@@ -392,7 +392,7 @@ const postAbono = (request, response)=>{
   let cliente = request.body.cliente;
   let abono = request.body.abono;
   let fecha = request.body.fecha;
-  if(fecha){
+  if(fecha!==null){
     pool.query("INSERT INTO abonos(cliente,valor,fecha) VALUES ($1,$2,$3)",[cliente,abono,fecha],(error,results)=>{
       if (error) {
         response.status(500)
@@ -405,7 +405,7 @@ const postAbono = (request, response)=>{
     })
     return;
   }else{
-    pool.query("INSERT INTO abonos(cliente,valor,fecha) VALUES ($1,$2,to_char(current_timestamp,'YYYY-MM-DD HH24:MI))",[cliente,abono],(error,results)=>{
+    pool.query("INSERT INTO abonos(cliente,valor,fecha) VALUES ($1,$2,to_char(current_timestamp,'YYYY-MM-DD HH24:MI'))",[cliente,abono],(error,results)=>{
       if (error) {
         response.status(500)
             .send({
