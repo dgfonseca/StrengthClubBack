@@ -76,13 +76,15 @@ const crearSesionDeIcs =  async (request, response)=>{
   let cliente = "%"+request.body.cliente+"%";
   let fecha = request.body.fecha;
   let asistio = request.body.asistio;
-  let virtual;
+  let virtual=false;
   try{
-    if(cliente.indexOf("*")===-1){
-      virtual=false;
-    }else{
+    if(cliente.includes("*")){
+      asistio=false
       cliente=cliente.replace("*",'')
+    }
+    if(cliente.includes("+++")){
       virtual=true;
+      cliente.replace("+++",'');
     }
     if(entrenador && cliente && fecha){
       const clienteRes = await pool.query("SELECT cedula FROM clientes WHERE nombre LIKE $1",[cliente]);
