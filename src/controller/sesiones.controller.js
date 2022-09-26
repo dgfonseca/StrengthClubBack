@@ -84,7 +84,7 @@ const crearSesionDeIcs =  async (request, response)=>{
     }
     if(cliente.includes("+++")){
       virtual=true;
-      cliente.replace("+++",'');
+      cliente=cliente.replace("+++",'');
     }
     if(entrenador && cliente && fecha){
       const clienteRes = await pool.query("SELECT cedula FROM clientes WHERE nombre LIKE $1",[cliente]);

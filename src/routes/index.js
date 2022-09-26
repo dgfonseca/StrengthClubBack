@@ -38,7 +38,7 @@ router.post("/paquetes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],pa
 router.post("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.crearSesion)
 router.post("/contenidoVentas",[middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getContenidoVentas)
 router.post("/ventasCliente", [middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getVentasCliente)
-router.post("/registrarAbono",[middlewareAuth.validateToken,middlewareAuth.isAdmin], cliente.postAbono)
+router.post("/registrarAbono",[middlewareAuth.validateToken,middlewareAuth.isCajero], cliente.postAbono)
 router.put("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin], sesiones.registrarAsistencia)
 router.post("/contabilidadClientes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.getContabilidadClientes)
 router.put("/productos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],productos.updateProducto)
