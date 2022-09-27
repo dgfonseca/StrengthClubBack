@@ -388,6 +388,22 @@ const getClientes = (request,response) =>{
   })
 }
 
+const getAbonos = (request,response) =>{
+  let query = "SELECT * FROM abonos"
+  pool.query(query,(error,results)=>{
+    if (error) {
+      response.status(500)
+          .send({
+            message: error
+          });
+      }else{
+        response.status(200).send({abonos:results.rows});
+      }
+  })
+}
+
+
+
 const postAbono = (request, response)=>{
   let cliente = request.body.cliente;
   let abono = request.body.abono;
@@ -537,4 +553,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,sendAllEmail}
+module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,sendAllEmail,getAbonos}

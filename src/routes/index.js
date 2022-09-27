@@ -29,6 +29,7 @@ router.post("/registrarAbono",[middlewareAuth.validateToken,middlewareAuth.isCaj
 /////ADMIN DONE/////
 router.get("/usuarios",[middlewareAuth.validateToken,middlewareAuth.isAdmin], db.getUsuarios)
 router.get("/ventas",[middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getVentas)
+router.get("/abonos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.getAbonos)
 router.get("/entrenadores",[middlewareAuth.validateToken,middlewareAuth.isAdmin],entrenador.getEntrenadores)
 router.get("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.getSesiones)
 router.get("/contabilidadProductos",[middlewareAuth.validateToken,middlewareAuth.isAdmin], productos.getContabilidadProductos)
