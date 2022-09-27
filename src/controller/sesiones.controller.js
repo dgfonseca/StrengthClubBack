@@ -92,14 +92,14 @@ const crearSesionDeIcs =  async (request, response)=>{
       if(entrenadorRes.rowCount<1){
         response.status(400)
           .send({
-            message: "El entrenador "+ entrenador +" no existe",
+            message: "El entrenador "+ entrenador.replace("%",'') +" no existe",
             code:1
           });
           return;
       }if(clienteRes.rowCount<1 ){
         response.status(400)
         .send({
-          message: "El cliente "+ cliente +" no existe",
+          message: "El cliente "+ cliente.replace("%",'') +" no existe",
           code:2
         });
         return;
@@ -111,14 +111,14 @@ const crearSesionDeIcs =  async (request, response)=>{
         const countRes2 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (cliente=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [cliente, fecha, fecha]);
         if(countRes.rows[0].count>0){
             response.status(400).send({
-              message: "Ya hay sesiones agendadas para el entrenador "+entrenador+" en el horario: "+fecha,
+              message: "Ya hay sesiones agendadas para el entrenador "+entrenador.replace("%",'')+" en el horario: "+fecha,
               code: 3
           })
           return;
         }
         if(countRes2.rows[0].count>0){
             response.status(400).send({
-              message: "Ya hay sesiones agendadas para el cliente"+cliente+" en el horario: "+fecha,
+              message: "Ya hay sesiones agendadas para el cliente"+cliente.replace("%",'')+" en el horario: "+fecha,
               code: 4
           })
           return;
