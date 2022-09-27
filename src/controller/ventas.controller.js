@@ -105,24 +105,23 @@ const pool = new Pool({
                     inner join clientes c on c.cedula=ve2.cliente \
                     where ve2.id=$2 \
                     group by p.codigo, p.nombre, vp2.cantidad) as foo group by foo.codigo, foo.nombre, foo.cantidad",[id,id])
-            for(contenido of prods.rows){
-                let codigo = contenido.codigo
-                let cantidad = contenido.cantidad
-                await client.query("UPDATE productos SET inventario=inventario+$1 WHERE codigo=$2",[cantidad,codigo]);
-                const rowCount = await client.query("SELECT count(*) from paquetes WHERE codigo=$1", [codigo]);
-                if(rowCount.rows[0].count>0){
-                    const resPP=await client.query("SELECT pr.codigo,pp.cantidad FROM paquetes pa INNER JOIN productos_paquete pp on pp.codigo_paquete=pa.codigo INNER JOIN productos pr on pr.codigo=pp.codigo_producto WHERE pa.codigo=$1",[codigo])
-                    for(producto of resPP.rows){
-                        let inv = producto.cantidad*cantidad
-                        await client.query("UPDATE productos SET inventario=inventario+$1 WHERE codigo=$2",[inv,producto.codigo])
-                    }
-                }
-            }
+                    prods.rows.forEach(async contenido => {
+                        let codigo = contenido.codigo
+                        let cantidad = contenido.cantidad
+                        await client.query("UPDATE productos SET inventario=inventario+$1 WHERE codigo=$2",[cantidad,codigo]);
+                        const rowCount = await client.query("SELECT count(*) from paquetes WHERE codigo=$1", [codigo]);
+                        if(rowCount.rows[0].count>0){
+                            const resPP=await client.query("SELECT pr.codigo,pp.cantidad FROM paquetes pa INNER JOIN productos_paquete pp on pp.codigo_paquete=pa.codigo INNER JOIN productos pr on pr.codigo=pp.codigo_producto WHERE pa.codigo=$1",[codigo])
+                            for(producto of resPP.rows){
+                                let inv = producto.cantidad*cantidad
+                                await client.query("UPDATE productos SET inventario=inventario+$1 WHERE codigo=$2",[inv,producto.codigo])
+                            }
+                        }
+                    });
             await client.query("DELETE FROM ventas WHERE id=$1",[id]);
             await client.query("COMMIT");
             response.status(200).send({message:"Venta borrada exitosamente"});
             return;
-
         } catch (error) {
             await client.query("ROLLBACK");
             response.status(400).send({message:"Mo se puede borrar la venta "+error});
