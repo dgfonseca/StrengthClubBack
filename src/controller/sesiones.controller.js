@@ -107,8 +107,8 @@ const crearSesionDeIcs =  async (request, response)=>{
       else{
         cliente = clienteRes.rows[0].cedula
         entrenador = entrenadorRes.rows[0].cedula
-        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha, fecha]);
-        const countRes2 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (cliente=$2) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha, fecha]);
+        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, fecha, fecha]);
+        const countRes2 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (cliente=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [cliente, fecha, fecha]);
         if(countRes.rows[0].count>0){
             response.status(400).send({
               message: "Ya hay sesiones agendadas para el entrenador "+entrenador+" en el horario: "+fecha,
