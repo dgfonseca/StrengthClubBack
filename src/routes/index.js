@@ -25,6 +25,7 @@ router.get("/paquetes",[middlewareAuth.validateToken,middlewareAuth.isCajero],pa
 router.get("/productos",[middlewareAuth.validateToken,middlewareAuth.isCajero],productos.getProductos)
 router.post("/productosPaquete",[middlewareAuth.validateToken,middlewareAuth.isCajero], paquetes.getProductosPaquete)
 router.post("/ventas",[middlewareAuth.validateToken,middlewareAuth.isCajero],ventas.registrarVentaProductos)
+router.post("/registrarAbono",[middlewareAuth.validateToken,middlewareAuth.isCajero], cliente.postAbono)
 /////ADMIN DONE/////
 router.get("/usuarios",[middlewareAuth.validateToken,middlewareAuth.isAdmin], db.getUsuarios)
 router.get("/ventas",[middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getVentas)
@@ -38,7 +39,6 @@ router.post("/paquetes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],pa
 router.post("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.crearSesion)
 router.post("/contenidoVentas",[middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getContenidoVentas)
 router.post("/ventasCliente", [middlewareAuth.validateToken,middlewareAuth.isAdmin],ventas.getVentasCliente)
-router.post("/registrarAbono",[middlewareAuth.validateToken,middlewareAuth.isCajero], cliente.postAbono)
 router.put("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin], sesiones.registrarAsistencia)
 router.post("/contabilidadClientes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.getContabilidadClientes)
 router.put("/productos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],productos.updateProducto)
