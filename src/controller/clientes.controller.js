@@ -393,8 +393,9 @@ const postAbono = (request, response)=>{
   let abono = request.body.abono;
   let fecha = request.body.fecha;
   let usuario = request.tokenData;
+  let tipo = request.body.tipo;
   if(fecha!==null && fecha!==undefined && fecha !==""){
-    pool.query("INSERT INTO abonos(cliente,valor,fecha,usuario) VALUES ($1,$2,$3,$4)",[cliente,abono,fecha,usuario],(error,results)=>{
+    pool.query("INSERT INTO abonos(cliente,valor,fecha,usuario,tipo) VALUES ($1,$2,$3,$4,$5)",[cliente,abono,fecha,usuario,tipo],(error,results)=>{
       if (error) {
         response.status(500)
             .send({
@@ -406,7 +407,7 @@ const postAbono = (request, response)=>{
     })
     return;
   }else{
-    pool.query("INSERT INTO abonos(cliente,valor,fecha,usuario) VALUES ($1,$2,to_char(current_timestamp,'YYYY-MM-DD HH24:MI'),$3)",[cliente,abono,usuario],(error,results)=>{
+    pool.query("INSERT INTO abonos(cliente,valor,fecha,usuario,tipo) VALUES ($1,$2,to_char(current_timestamp,'YYYY-MM-DD HH24:MI'),$3,$4)",[cliente,abono,usuario,tipo],(error,results)=>{
       if (error) {
         response.status(500)
             .send({
