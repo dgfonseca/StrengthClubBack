@@ -11,6 +11,7 @@ router = express.Router();
 router.use(function(req, res, next) {
     res.header(
       "Access-Control-Allow-Headers",
+      "Access-Control-Allow-Origin",
       "x-access-token, Origin, Content-Type, Accept"
     );
     next();
