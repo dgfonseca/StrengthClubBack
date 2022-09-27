@@ -135,7 +135,6 @@ const registrarVentaProductos = async (request, response) => {
     let paquetes = request.body.paquetes;
     let valor = request.body.valor;
     let usuario = request.tokenData;
-    console.log(usuario)
     try{
         await client.query('BEGIN')
         let res= await client.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,to_char(current_timestamp,'YYYY-MM-DD HH24:MI:SS'),$2,$3) RETURNING id",[cliente,valor,usuario]);

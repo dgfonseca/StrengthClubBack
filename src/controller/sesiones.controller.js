@@ -89,22 +89,41 @@ const crearSesionDeIcs =  async (request, response)=>{
     if(entrenador && cliente && fecha){
       const clienteRes = await pool.query("SELECT cedula FROM clientes WHERE nombre LIKE $1",[cliente]);
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
-      if(clienteRes.rowCount<1 || entrenadorRes.rowCount<1){
+      if(entrenadorRes.rowCount<1){
         response.status(400)
           .send({
-            message: "Verifique el cliente o el entrenador ingresado"
+            message: "El entrenador "+ entrenador +" no existe",
+            code:1
           });
           return;
-      }else{
+      }if(clienteRes.rowCount<1 ){
+        response.status(400)
+        .send({
+          message: "El cliente "+ cliente +" no existe",
+          code:2
+        });
+        return;
+      }
+      else{
         cliente = clienteRes.rows[0].cedula
         entrenador = entrenadorRes.rows[0].cedula
-        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 OR cliente=$2) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha, fecha]);
+        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha, fecha]);
+        const countRes2 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (cliente=$2) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha, fecha]);
         if(countRes.rows[0].count>0){
             response.status(400).send({
-              message: "Ya hay sesiones agendadas en dicho horario"
+              message: "Ya hay sesiones agendadas para el entrenador "+entrenador+" en el horario: "+fecha,
+              code: 3
           })
           return;
-        }else{
+        }
+        if(countRes2.rows[0].count>0){
+            response.status(400).send({
+              message: "Ya hay sesiones agendadas para el cliente"+cliente+" en el horario: "+fecha,
+              code: 4
+          })
+          return;
+        }
+        else{
           await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5)",[entrenador,cliente,fecha,asistio,virtual])
           response.status(200).send({message:"Sesion Agendada Exitosamente"});
           return;
