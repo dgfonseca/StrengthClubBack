@@ -402,6 +402,21 @@ const getAbonos = (request,response) =>{
   })
 }
 
+const deleteAbono = (request,response) =>{
+  let id = request.body.id
+  let query = "DELETE FROM abonos where id=$1"
+  pool.query(query,[id],(error,results)=>{
+    if (error) {
+      response.status(500)
+          .send({
+            message: error
+          });
+      }else{
+        response.status(200).send({message:"Abono eliminado correctamente"});
+      }
+  })
+}
+
 
 
 const postAbono = (request, response)=>{
@@ -553,4 +568,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,sendAllEmail,getAbonos}
+module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,sendAllEmail,getAbonos,deleteAbono}
