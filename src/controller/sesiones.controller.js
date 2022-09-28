@@ -107,10 +107,10 @@ const crearSesionDeIcs =  async (request, response)=>{
       else{
         let cliente2 = clienteRes.rows[0].cedula
         let entrenador2 = entrenadorRes.rows[0].cedula
-        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 and cliente!=$2 and virtual=false) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador2, cliente,fecha, fecha]);
+        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 and cliente!=$2 and virtual=false) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador2, cliente2,fecha, fecha]);
         if(countRes.rows[0].count>0){
             response.status(400).send({
-              message: "Ya hay sesiones agendadas para el entrenador "+entrenador.replaceAll("%",'')+" en el horario: "+fecha+ " con un cliente distinto",
+              message: "Ya hay sesiones agendadas para el entrenador "+entrenador.replaceAll("%",'')+" en el horario: "+fecha+ " con un cliente distinto a: "+cliente,
               code: 3
           })
           return;
