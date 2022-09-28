@@ -135,9 +135,15 @@ const registrarVentaProductos = async (request, response) => {
     let paquetes = request.body.paquetes;
     let valor = request.body.valor;
     let usuario = request.tokenData;
+    let fecha = request.body.fecha;
     try{
         await client.query('BEGIN')
-        let res= await client.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,to_char(current_timestamp,'YYYY-MM-DD HH24:MI:SS'),$2,$3) RETURNING id",[cliente,valor,usuario]);
+        let res;
+        if(fecha){
+            res= await client.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente,fecha,valor,usuario]);
+        }else{
+            res= await client.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,to_char(current_timestamp,'YYYY-MM-DD HH24:MI:SS'),$2,$3) RETURNING id",[cliente,valor,usuario]);
+        }
         let venta = res.rows[0].id
         let errors = []
         if(productos){
