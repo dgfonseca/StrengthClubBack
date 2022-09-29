@@ -243,7 +243,7 @@ const pool = new Pool({
         left join ventas v on v.cliente = c.cedula \
         where c.cedula=$1 group by c.cedula",[cedula])
       console.log("Error 7")
-      abonos = await pool.query("select fecha, valor,ntipo from abonos where cliente=$1",[cliente])
+      abonos = await pool.query("select fecha, valor, tipo from abonos where cliente=$1",[cliente])
       console.log("Error 8")
       ventas = await pool.query("select fecha, valor from ventas where cliente=$1",[cliente])
       console.log("Error 9")
