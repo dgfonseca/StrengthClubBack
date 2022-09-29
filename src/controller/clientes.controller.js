@@ -215,57 +215,92 @@ const pool = new Pool({
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
     let query=""
-    let cuenta;let ventas;let abonos;
+    let cuenta;let ventas;
+    let abonos;
+    let abonosValue;
+    let sesionesTomadas;
+    let sesionesVentasProductos;
+    let sesionesVentasPaquetes;
+    let deuda;
+    let sesion;
     try {
-    if(fechaInicio&&fechaFin){
-      query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.abonos as money) as abonos, cast(q2.abonos-sum(v.valor)as money) as saldo from clientes c \
-      left join ventas v on v.cliente = c.cedula \
-      left join \
-      (	select c2.cedula, sum(a.valor) as abonos \
-        from clientes c2 \
-        inner join abonos a on c2.cedula=a.cliente \
-        where to_timestamp( a.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp($3 ,'yyyy-mm-dd') \
-        group by c2.cedula) as q2 on q2.cedula=c.cedula \
-        where c.cedula=$1 and (to_timestamp(v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($4 ,'yyyy-mm-dd') and to_timestamp($5 ,'yyyy-mm-dd')) \
-      group by c.cedula, c.nombre,c.email, q2.abonos"
-      cuenta = await pool.query(query,[cedula,fechaInicio,fechaFin,fechaInicio,fechaFin]);
-      ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1 and (to_timestamp(fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd'))",[cedula,fechaInicio,fechaFin])
-      abonos = await pool.query("SELECT fecha, valor from abonos where cliente=$1 and (to_timestamp(fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd'))",[cedula,fechaInicio,fechaFin])
-    }
-    else{
-      query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.valor as money) as abonos, cast(q2.valor-sum(v.valor) as money) as saldo from clientes c \
-      left join ventas v on v.cliente = c.cedula \
-      left join \
-      (	select c2.cedula, sum(a.valor) as valor \
-        from clientes c2 \
-        inner join abonos a on c2.cedula=a.cliente \
-        group by c2.cedula) as q2 on q2.cedula=c.cedula \
-        where c.cedula=$1 \
-      group by c.cedula, c.nombre,c.email, q2.valor"
-      cuenta = await pool.query(query,[cedula]);
-      ventas = await pool.query("SELECT fecha, valor from ventas where cliente=$1",[cedula])
-      abonos = await pool.query("SELECT fecha, valor from abonos where cliente=$1",[cedula])
-    }
-    query = "select c.nombre, q1.adquiridas, count(s.cliente) as tomadas,q1.adquiridas-count(s.cliente) as total from clientes c \
-    left join sesiones s on c.cedula = s.cliente \
-    left join ( \
-    select cedula, sum(cantidad) as adquiridas from \
-    (select cedula, cantidad \
-    from (select c.cedula, count(*) as cantidad from clientes c \
-      left join ventas v on v.cliente =c.cedula \
-      inner join ventas_productos vp on vp.venta =v.id and vp.producto='SES' group by c.cedula) q1 \
-    union \
-    (select q1.cedula, sum(q1.cantidad) as cantidad from \
-      (select c.cedula, pp.cantidad from clientes c \
-      left join ventas v on c.cedula = v.cliente \
-      inner join ventas_paquetes vp on vp.venta =v.id \
-      inner join productos_paquete pp on pp.codigo_paquete =vp.paquete and pp.codigo_producto = 'SES' \
-      group by c.cedula,pp.cantidad) q1 group by q1.cedula))q3 group by cedula \
-    ) q1 on q1.cedula=c.cedula \
-    where c.cedula=$1 \
-    group by c.nombre,q1.adquiridas"
-    sesiones = await pool.query(query,[cedula])
+      sesion = await pool.query("select precio from productos where codigo='SES");
+      cuenta = await pool.query("select nombre,email ,anticipado, precio_sesion from clientes where cedula=$1",[cedula]);
+      sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1",[cedula])
+      sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_productos vp on vp.venta = v.id \
+      where vp.producto='SES' and v.cliente=$1",[cedula])
+      sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_paquetes vp on vp.venta = v.id \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula])
+      abonosValue = await pool.query("select sum(valor) as abonos from abonos a where a.cliente=$1",[cedula])
+      deuda = await pool.query("select c.cedula, sum(v.valor) as debito from clientes c \
+        left join ventas v on v.cliente = c.cedula \
+        where c.cedula=$1 group by c.cedula",[cedula])
+      abonos = await pool.query("select fecha,valor,tipo from abonos where cliente=$1",[cliente])
+      ventas = await pool.query("select fecha,valor from ventas where cliente=$1",[cliente])
 
+      let sesionesHtml;
+      if(cuenta.rows[0].anticipado){
+        let sesionesPagadas = sesionesVentasProductos.rows[0].sesiones+sesionesVentasPaquetes.rows[0].sesiones
+        let sesionesRestantes = sesionesPagadas-sesionesTomadas.rows[0].sesiones
+        sesionesHtml='<tr style="font-weight:bold"> \
+              Sesiones \
+          </tr> \
+          <tr> \
+            <th style="border:1px solid black">Sesiones Tomadas:</th>\
+            <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
+          </tr> \
+          <tr> \
+            <th style="border:1px solid black">Sesiones Registradas como Venta:</th>\
+            <th style="border:1px solid black">'+sesionesPagadas+'</th>\
+          </tr> \
+          <tr> \
+            <th style="border:1px solid black">Sesiones Restantes:</th>\
+            <th style="border:1px solid black">'+sesionesRestantes+'</th>\
+          </tr> <tr style="font-weight:bold"> \
+          Estados\
+        </tr>\
+        <tr> \
+          <th style="border:1px solid black">Total Deuda:</th>\
+          <th style="border:1px solid black">$'+deuda.rows[0].debito+'</th>\
+        </tr> \
+        <tr> \
+          <th style="border:1px solid black">Abonos:</th>\
+          <th style="border:1px solid black">$'+abonosValue.rows[0].abonos+'</th>\
+        </tr> \
+        <tr> \
+          <th style="border:1px solid black">Total Saldo:</th>\
+          <th style="border:1px solid black">$'+abonosValue.rows[0].abonos-deuda.rows[0].debito+'</th>\
+        </tr>';
+      }else{
+        let saldoSesiones = sesionesVentasProductos.rows[0].sesiones+sesionesVentasPaquetes.rows[0].sesiones - sesionesTomadas.rows[0].sesiones
+        let deudaSesiones = saldoSesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
+        sesionesHtml='<tr style="font-weight:bold"> \
+        Sesiones \
+        </tr> \
+        <tr> \
+          <th style="border:1px solid black">Saldo de Sesiones:</th>\
+          <th style="border:1px solid black">'+saldoSesiones+'</th>\
+          <th style="border:1px solid black">Precio de Sesiones:</th>\
+          <th style="border:1px solid black">$ '+(deudaSesiones)+'</th>\
+        </tr> \
+        <tr style="font-weight:bold"> \
+              Estados\
+            </tr>\
+            <tr> \
+              <th style="border:1px solid black">Total Deuda:</th>\
+              <th style="border:1px solid black">$'+deuda.rows[0].debito+'</th>\
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black">Abonos:</th>\
+              <th style="border:1px solid black">$'+abonosValue.rows[0].abonos+'</th>\
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black">Total Saldo:</th>\
+              <th style="border:1px solid black">$'+(abonosValue.rows[0].abonos-deuda.rows[0].debito-deudaSesiones)+'</th>\
+            </tr>';
+      }
       let htmlRow = ""
       let htmlRow2= ""
       ventas.rows.forEach(venta =>{
@@ -276,8 +311,8 @@ const pool = new Pool({
       abonos.rows.forEach(abono =>{
         htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
         htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
-        htmlRow2+='<td style="border:1px solid black">$'+abono.valor
-        +'</td></tr>'
+        htmlRow2+='<td style="border:1px solid black">$'+abono.valor+'</td>'
+        htmlRow2+='<td style="border:1px solid black">$'+abono.tipo+'</td></tr>'
       })
 
       let mailData = {
@@ -314,41 +349,12 @@ const pool = new Pool({
               <th style="border:1px solid black">Nombre</th> \
               <th style="border:1px solid black">Fecha</th> \
               <th style="border:1px solid black">Valor</th> \
+              <th style="border:1px solid black">Tipo</th> \
             </tr> \
             '+htmlRow2+'\
           </table><br><br> \
-          <table style="width:100%; border:1px solid black"> \
-            <tr style="font-weight:bold"> \
-              Estados\
-            </tr>\
-            <tr> \
-              <th style="border:1px solid black">Total Deuda:</th>\
-              <th style="border:1px solid black">$'+cuenta.rows[0].debito+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Total Abonos:</th>\
-              <th style="border:1px solid black">$'+cuenta.rows[0].abonos+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Total Saldo:</th>\
-              <th style="border:1px solid black">$'+cuenta.rows[0].saldo+'</th>\
-            </tr> \
-             <tr style="font-weight:bold"> \
-                Sesiones \
-             </tr> \
-             <tr> \
-              <th style="border:1px solid black">Sesiones Tomadas:</th>\
-              <th style="border:1px solid black">'+sesiones.rows[0].tomadas+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Sesiones Pagadas:</th>\
-              <th style="border:1px solid black">'+sesiones.rows[0].adquiridas+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Sesiones Restantes:</th>\
-              <th style="border:1px solid black">'+sesiones.rows[0].total+'</th>\
-            </tr> \
-          </table> \
+          <table style="width:100%; border:1px solid black">'+sesionesHtml+'\
+            </table> \
           </body> \
         </html>'
       }
@@ -530,9 +536,10 @@ const updateCliente = (request, response) =>{
     let telefono = request.body.telefono;
     let cedula = request.body.cedula;
     let nacimiento = request.body.fechaNacimiento;
-    let anticipado = request.body.anticipado
+    let anticipado = request.body.anticipado;
+    let precioSesion = request.body.precioSesion;
   if(nombre && email && direccion && telefono && cedula && nacimiento){
-      pool.query("UPDATE clientes SET nombre=$1,email=$2,direccion=$3,telefono=$4,fecha_nacimiento=$5,anticipado=$7 WHERE cedula=$6", [nombre, email,direccion,telefono,nacimiento,cedula,anticipado], (error, results)=>{
+      pool.query("UPDATE clientes SET nombre=$1,email=$2,direccion=$3,telefono=$4,fecha_nacimiento=$5,anticipado=$7,precio_sesion=$8 WHERE cedula=$6", [nombre, email,direccion,telefono,nacimiento,cedula,anticipado,precioSesion], (error, results)=>{
           if (error) {
             response.status(500)
                 .send({
