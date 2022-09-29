@@ -214,7 +214,6 @@ const pool = new Pool({
     let cedula = request.body.cedula;
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
-    let query=""
     let cuenta;let ventas;
     let abonos;
     let abonosValue;
@@ -243,11 +242,11 @@ const pool = new Pool({
       deuda = await pool.query("select c.cedula, sum(v.valor) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula \
         where c.cedula=$1 group by c.cedula",[cedula])
-        console.log("Error 7")
-        abonos = await pool.query("select fecha,valor,tipo from abonos where cliente=$1",[cliente])
-        console.log("Error 8")
-        ventas = await pool.query("select fecha,valor from ventas where cliente=$1",[cliente])
-        console.log("Error 9")
+      console.log("Error 7")
+      abonos = await pool.query("select fecha, valor,ntipo from abonos where cliente=$1",[cliente])
+      console.log("Error 8")
+      ventas = await pool.query("select fecha, valor from ventas where cliente=$1",[cliente])
+      console.log("Error 9")
 
       let sesionesHtml;
       if(cuenta.rows[0].anticipado){
