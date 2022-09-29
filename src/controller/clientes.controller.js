@@ -224,7 +224,7 @@ const pool = new Pool({
     let deuda;
     let sesion;
     try {
-      sesion = await pool.query("select precio from productos where codigo='SES");
+      sesion = await pool.query("select precio from productos where codigo='SES'");
       cuenta = await pool.query("select nombre,email ,anticipado, precio_sesion from clientes where cedula=$1",[cedula]);
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1",[cedula])
       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
