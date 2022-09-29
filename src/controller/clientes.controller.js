@@ -242,10 +242,9 @@ const pool = new Pool({
       deuda = await pool.query("select c.cedula, sum(v.valor) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula \
         where c.cedula=$1 group by c.cedula",[cedula])
-      console.log("Error 7"+ cliente)
-      abonos = await pool.query("select * where cliente=$1",[cliente])
+      abonos = await pool.query("select * where cliente=$1",[cedula])
       console.log("Error 8")
-      ventas = await pool.query("select fecha, valor from ventas where cliente=$1",[cliente])
+      ventas = await pool.query("select fecha, valor from ventas where cliente=$1",[cedula])
       console.log("Error 9")
 
       let sesionesHtml;
