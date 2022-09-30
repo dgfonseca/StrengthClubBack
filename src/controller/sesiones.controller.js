@@ -77,7 +77,8 @@ const borrarSesionesEntrenador = async (request,response)=>{
   let fechaFin = request.body.fechaFin;
   if(fechaInicio&&fechaFin){
     try{
-      await pool.query("delete from sesiones where entrenador=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD') AND TO_TIMESTAMP($3,'YYYY-MM-DD')",[entrenador,fechaInicio,fechaFin]);
+      const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
+      await pool.query("delete from sesiones where entrenador=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD') AND TO_TIMESTAMP($3,'YYYY-MM-DD')",[entrenadorRes.rows[0].cedula,fechaInicio,fechaFin]);
       response.status(200)
       .send({
         message: "Se borraron las sesiones del entrenador "+entrenador.replaceAll("%",'')+" entre el "+fechaInicio +" y el "+fechaFin,
@@ -92,7 +93,8 @@ const borrarSesionesEntrenador = async (request,response)=>{
     }
   }else{
     try{
-      await pool.query("delete from sesiones where entrenador=$1 and DATE_PART('week',TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)",[entrenador]);
+      const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
+      await pool.query("delete from sesiones where entrenador=$1 and DATE_PART('week',TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)",[entrenadorRes.rows[0].cedula]);
       response.status(200)
       .send({
         message: "Se borraron las sesiones del entrenador "+entrenador.replaceAll("%",'')+" de la semana actual",
