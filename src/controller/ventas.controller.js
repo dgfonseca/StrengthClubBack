@@ -150,7 +150,7 @@ const registrarVentaProductos = async (request, response) => {
         if(productos){
             for (let element of productos) {
                 let codigo = element.codigo;
-                if(codigo==='SES'){esSesiones=true}
+                if(codigo==='SES'||codigo.includes("VAL")){esSesiones=true}
                 let cantidad = element.cantidad;
                 let rescount = await client.query("SELECT count(*) FROM productos WHERE codigo=$1 AND inventario>=$2",[codigo,cantidad])
                 if(rescount.rows[0].count<=0){
@@ -167,7 +167,7 @@ const registrarVentaProductos = async (request, response) => {
         if(paquetes){
             for(element of paquetes){
                 let codigo = element.codigo
-                if(codigo.includes('SES')){
+                if(codigo.includes('SES')|| codigo.includes('VAL')){
                     esSesiones=true;
                 }
                 let cantidad = element.cantidad
