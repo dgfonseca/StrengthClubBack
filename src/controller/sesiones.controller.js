@@ -92,7 +92,7 @@ const borrarSesionesEntrenador = async (request,response)=>{
     }
   }else{
     try{
-      await pool.query("delete from sesiones where entrenador=$1 and DATE_PART('week',TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)");
+      await pool.query("delete from sesiones where entrenador=$1 and DATE_PART('week',TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)",[entrenador]);
       response.status(200)
       .send({
         message: "Se borraron las sesiones del entrenador "+entrenador.replaceAll("%",'')+" de la semana actual",
