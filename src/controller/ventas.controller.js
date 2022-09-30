@@ -136,6 +136,7 @@ const registrarVentaProductos = async (request, response) => {
     let valor = request.body.valor;
     let usuario = request.tokenData;
     let fecha = request.body.fecha;
+    let esSesiones = false;
     try{
         await client.query('BEGIN')
         let res;
@@ -149,6 +150,7 @@ const registrarVentaProductos = async (request, response) => {
         if(productos){
             for (let element of productos) {
                 let codigo = element.codigo;
+                if(codigo==='SES'){esSesiones=true}
                 let cantidad = element.cantidad;
                 let rescount = await client.query("SELECT count(*) FROM productos WHERE codigo=$1 AND inventario>=$2",[codigo,cantidad])
                 if(rescount.rows[0].count<=0){
@@ -165,6 +167,9 @@ const registrarVentaProductos = async (request, response) => {
         if(paquetes){
             for(element of paquetes){
                 let codigo = element.codigo
+                if(codigo.includes('SES')){
+                    esSesiones=true;
+                }
                 let cantidad = element.cantidad
                 let rescount = await client.query("SELECT COUNT(*) FROM paquetes AS paq INNER JOIN productos_paquete AS pp ON paq.codigo=pp.codigo_paquete INNER JOIN productos AS pro ON pp.codigo_producto=pro.codigo WHERE pro.inventario>=pp.cantidad*$1 AND paq.codigo=$2",[cantidad,codigo])
                 let prodcount = await client.query("SELECT COUNT(*) FROM paquetes AS paq INNER JOIN productos_paquete AS pp ON paq.codigo=pp.codigo_paquete INNER JOIN productos AS pro ON pp.codigo_producto=pro.codigo WHERE paq.codigo=$1",[codigo])
@@ -182,7 +187,8 @@ const registrarVentaProductos = async (request, response) => {
         if(errors.length==0){
             await  client.query("COMMIT")
             response.status(200).send({
-                message:"Venta registrada correctamente"
+                message:"Venta registrada correctamente",
+                esSesiones:esSesiones
             });
         }else{
             await client.query('ROLLBACK')
