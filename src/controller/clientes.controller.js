@@ -223,8 +223,8 @@ const pool = new Pool({
     let deuda;
     let sesion;
     try {
-      sesion = await pool.query("select precio from productos where codigo='SES'");
-      cuenta = await pool.query("select nombre,email ,anticipado, precio_sesion from clientes where cedula=$1",[cedula]);
+      sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
+      cuenta = await pool.query("select nombre,email ,anticipado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1",[cedula])
       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
@@ -232,12 +232,12 @@ const pool = new Pool({
       sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
       inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula])
-      abonosValue = await pool.query("select sum(valor) as abonos from abonos a where a.cliente=$1",[cedula])
-      deuda = await pool.query("select c.cedula, sum(v.valor) as debito from clientes c \
+      abonosValue = await pool.query("select round(sum(valor)) as abonos from abonos a where a.cliente=$1",[cedula])
+      deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula \
         where c.cedula=$1 group by c.cedula",[cedula])
-      abonos = await pool.query("select * from abonos where cliente=$1",[cedula])
-      ventas = await pool.query("select fecha, valor from ventas where cliente=$1",[cedula])
+      abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1",[cedula])
+      ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1",[cedula])
 
       let sesionesHtml;
       if(cuenta.rows[0].anticipado){
@@ -315,7 +315,7 @@ const pool = new Pool({
         htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
         htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
         htmlRow2+='<td style="border:1px solid black">$'+abono.valor+'</td>'
-        htmlRow2+='<td style="border:1px solid black">$'+abono.tipo+'</td></tr>'
+        htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
       })
 
       let mailData = {
