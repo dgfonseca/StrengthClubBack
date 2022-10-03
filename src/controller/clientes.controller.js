@@ -274,15 +274,14 @@ const pool = new Pool({
         </tr>';
       }else{
         let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
-        console.log("ENTROOOO")
-        let deudaTotal = deudaSesiones + deuda.rows[0].debito - abonosValue.rows[0].abonos;
+        let deudaTotal = deudaSesiones + deuda.rows[0].debito;
         sesionesHtml='<tr style="font-weight:bold"> \
         Sesiones \
         </tr> \
         <tr> \
           <th style="border:1px solid black">Sesiones Tomadas:</th>\
           <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
-          <th style="border:1px solid black">Precio Total de Sesiones Tomadas:</th>\
+          <th style="border:1px solid black">Deuda asociada a sesiones tomadas:</th>\
           <th style="border:1px solid black">$ '+(deudaSesiones)+'</th>\
         </tr> \
         <tr style="font-weight:bold"> \
@@ -293,7 +292,7 @@ const pool = new Pool({
               <th style="border:1px solid black">$'+deuda.rows[0].debito+'</th>\
             </tr> \
             <tr> \
-              <th style="border:1px solid black">Precio Total de Sesiones Tomadas:</th>\
+              <th style="border:1px solid black">Deuda asociada a sesiones tomadas:</th>\
               <th style="border:1px solid black">$ '+(deudaSesiones)+'</th>\
             </tr> \
             <tr> \
