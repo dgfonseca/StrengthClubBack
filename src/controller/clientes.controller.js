@@ -286,7 +286,8 @@ function formatMoney(number, decPlaces, decSep, thouSep) {
         <tr> \
           <th style="border:1px solid black">Saldo Final:</th>\
           <th style="border:1px solid black">$'+abonosValue.rows[0].abonos-deuda.rows[0].debito+'</th>\
-        </tr>';
+        </tr>'
+        console.log(sesionesHtml);
       }else{
         let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
         let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos);
