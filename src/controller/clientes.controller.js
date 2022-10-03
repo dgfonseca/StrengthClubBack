@@ -303,7 +303,7 @@ function formatMoney(number, decPlaces, decSep, thouSep) {
             </tr>\
             <tr> \
               <th style="border:1px solid black">Deuda:</th>\
-              <th style="border:1px solid black">$'+deuda.rows[0].debito.toFixed(0).replace('/\d(?=(\d{3})+\.)/g', '$&,')+'</th>\
+              <th style="border:1px solid black">$'+deuda.rows[0].debito.replace('/\d(?=(\d{3})+\.)/g', '$&,')+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black">Deuda asociada a sesiones tomadas:</th>\
@@ -311,7 +311,7 @@ function formatMoney(number, decPlaces, decSep, thouSep) {
             </tr> \
             <tr> \
               <th style="border:1px solid black">Abonos:</th>\
-              <th style="border:1px solid black">$'+abonosValue.rows[0].abonos.toFixed(0).replace('/\d(?=(\d{3})+\.)/g', '$&,')+'</th>\
+              <th style="border:1px solid black">$'+abonosValue.rows[0].abonos.replace('/\d(?=(\d{3})+\.)/g', '$&,')+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black">Total Saldo:</th>\
@@ -323,12 +323,12 @@ function formatMoney(number, decPlaces, decSep, thouSep) {
       ventas.rows.forEach(venta =>{
         htmlRow+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
         htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
-        htmlRow+='<td style="border:1px solid black">$'+venta.valor.toFixed(0).replace('/\d(?=(\d{3})+\.)/g', '$&,')+'</td></tr>'
+        htmlRow+='<td style="border:1px solid black">$'+venta.valor.replace('/\d(?=(\d{3})+\.)/g', '$&,')+'</td></tr>'
       })
       abonos.rows.forEach(abono =>{
         htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
         htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
-        htmlRow2+='<td style="border:1px solid black">$'+abono.valor.toFixed(0).replace('/\d(?=(\d{3})+\.)/g', '$&,')+'</td>'
+        htmlRow2+='<td style="border:1px solid black">$'+abono.valor.replace('/\d(?=(\d{3})+\.)/g', '$&,')+'</td>'
         htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
       })
 
