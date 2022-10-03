@@ -255,7 +255,7 @@ function formatMoney(number, decPlaces, decSep, thouSep) {
 
       let sesionesHtml;
       if(cuenta.rows[0].anticipado){
-        let sesionesPagadas = sesionesVentasProductos.rows[0].sesiones+sesionesVentasPaquetes.rows[0].sesiones
+        let sesionesPagadas = parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones)
         console.log(sesionesPagadas)
         let sesionesRestantes = sesionesPagadas-sesionesTomadas.rows[0].sesiones
         console.log(sesionesRestantes)
