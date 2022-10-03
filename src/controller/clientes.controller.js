@@ -239,7 +239,6 @@ const pool = new Pool({
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1",[cedula])
       ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1",[cedula])
 
-      console.log("Entrooo")
       let sesionesHtml;
       if(cuenta.rows[0].anticipado){
         let sesionesPagadas = sesionesVentasProductos.rows[0].sesiones+sesionesVentasPaquetes.rows[0].sesiones
@@ -274,8 +273,8 @@ const pool = new Pool({
           <th style="border:1px solid black">$'+abonosValue.rows[0].abonos-deuda.rows[0].debito+'</th>\
         </tr>';
       }else{
-
         let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
+        console.log("ENTROOOO")
         let deudaTotal = deudaSesiones + deuda.rows[0].debito - abonosValue.rows[0].abonos;
         sesionesHtml='<tr style="font-weight:bold"> \
         Sesiones \
