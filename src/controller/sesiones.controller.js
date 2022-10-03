@@ -126,7 +126,7 @@ const crearSesionDeIcs =  async (request, response)=>{
       cliente=cliente.replace("+++",'');
     }
     if(entrenador && cliente && fecha){
-      const clienteRes = await pool.query("SELECT cedula FROM clientes WHERE nombre LIKE $1",[cliente]);
+      const clienteRes = await pool.query("SELECT cedula,anticipado,precio_sesion FROM clientes WHERE nombre LIKE $1",[cliente]);
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
       if(entrenadorRes.rowCount<1){
         response.status(400)
@@ -146,6 +146,8 @@ const crearSesionDeIcs =  async (request, response)=>{
       else{
         let cliente2 = clienteRes.rows[0].cedula
         let entrenador2 = entrenadorRes.rows[0].cedula
+        let esAnticipado = clienteRes.rows[0].anticipado
+        let precioSesion = clienteRes.rows[0].precio_sesion
         const countRes1 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 and cliente=$2) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador2,cliente2,fecha, fecha]);
         const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador2,fecha, fecha]);
         const countRes2 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (cliente=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [cliente2,fecha, fecha]);
@@ -167,6 +169,17 @@ const crearSesionDeIcs =  async (request, response)=>{
             return;
           }
           else{
+            let message = "Sesion Agendada Exitosamente"
+            if(!esAnticipado){
+              message+=" Y venta registrada exitosamente"
+              if(precioSesion!==null && precioSesion>0 && precioSesion!==undefined){
+                await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData]);
+              }
+              else{
+                let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
+                await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData]);
+              }
+            }
             await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5)",[entrenador2,cliente2,fecha,asistio,virtual])
             response.status(200).send({message:"Sesion Agendada Exitosamente"});
             return;
