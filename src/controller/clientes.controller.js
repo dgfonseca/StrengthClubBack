@@ -224,29 +224,20 @@ const pool = new Pool({
     let sesion;
     try {
       sesion = await pool.query("select precio from productos where codigo='SES'");
-      console.log("Error 1")
       cuenta = await pool.query("select nombre,email ,anticipado, precio_sesion from clientes where cedula=$1",[cedula]);
-      console.log("Error 2")
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1",[cedula])
-      console.log("Error 3")
       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1",[cedula])
-      console.log("Error 4")
       sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
       inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula])
-      console.log("Error 5")
       abonosValue = await pool.query("select sum(valor) as abonos from abonos a where a.cliente=$1",[cedula])
-      console.log("Error 6")
       deuda = await pool.query("select c.cedula, sum(v.valor) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula \
         where c.cedula=$1 group by c.cedula",[cedula])
-      console.log("Error 7")
       abonos = await pool.query("select * from abonos where cliente=$1",[cedula])
-      console.log("Error 8")
       ventas = await pool.query("select fecha, valor from ventas where cliente=$1",[cedula])
-      console.log("Error 9")
 
       let sesionesHtml;
       if(cuenta.rows[0].anticipado){
@@ -278,7 +269,7 @@ const pool = new Pool({
           <th style="border:1px solid black">$'+abonosValue.rows[0].abonos+'</th>\
         </tr> \
         <tr> \
-          <th style="border:1px solid black">Total Saldo:</th>\
+          <th style="border:1px solid black">Saldo Final:</th>\
           <th style="border:1px solid black">$'+abonosValue.rows[0].abonos-deuda.rows[0].debito+'</th>\
         </tr>';
       }else{
@@ -288,17 +279,21 @@ const pool = new Pool({
         Sesiones \
         </tr> \
         <tr> \
-          <th style="border:1px solid black">Saldo de Sesiones:</th>\
+          <th style="border:1px solid black">Sesiones Tomadas:</th>\
           <th style="border:1px solid black">'+saldoSesiones+'</th>\
-          <th style="border:1px solid black">Precio de Sesiones:</th>\
+          <th style="border:1px solid black">Precio Total de Sesiones Tomadas:</th>\
           <th style="border:1px solid black">$ '+(deudaSesiones)+'</th>\
         </tr> \
         <tr style="font-weight:bold"> \
               Estados\
             </tr>\
             <tr> \
-              <th style="border:1px solid black">Total Deuda:</th>\
+              <th style="border:1px solid black">Deuda:</th>\
               <th style="border:1px solid black">$'+deuda.rows[0].debito+'</th>\
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black">Precio Total de Sesiones Tomadas:</th>\
+              <th style="border:1px solid black">$ '+(deudaSesiones)+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black">Abonos:</th>\
@@ -306,7 +301,7 @@ const pool = new Pool({
             </tr> \
             <tr> \
               <th style="border:1px solid black">Total Saldo:</th>\
-              <th style="border:1px solid black">$'+(abonosValue.rows[0].abonos-deuda.rows[0].debito-deudaSesiones)+'</th>\
+              <th style="border:1px solid black">$'+(abonosValue.rows[0].abonos-(deuda.rows[0].debito+deudaSesiones))+'</th>\
             </tr>';
       }
       let htmlRow = ""
@@ -366,19 +361,19 @@ const pool = new Pool({
           </body> \
         </html>'
       }
-      transporter.sendMail(mailData, (error,info)=>{
-        if(error){
-          response.status(500)
-          .send({
-            message: error
-          }); 
-          return;
-        }
+      // transporter.sendMail(mailData, (error,info)=>{
+      //   if(error){
+      //     response.status(500)
+      //     .send({
+      //       message: error
+      //     }); 
+      //     return;
+      //   }
         response.status(200).send({
-          message:"Correo enviado exitosamente"
+          message:mailData
         })
         return;
-      })
+      // })
     } catch (error) {
       response.status(500)
       .send({
