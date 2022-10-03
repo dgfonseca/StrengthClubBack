@@ -282,11 +282,11 @@ function formatMoney(number, decPlaces, decSep, thouSep) {
         </tr> \
         <tr> \
           <th style="border:1px solid black">Abonos:</th>\
-          <th style="border:1px solid black">$'+abonosValue.rows[0].abonos+'</th>\
+          <th style="border:1px solid black">$'+abonosValue.rows[0].valor+'</th>\
         </tr> \
         <tr> \
           <th style="border:1px solid black">Saldo Final:</th>\
-          <th style="border:1px solid black">$'+abonosValue.rows[0].abonos-deuda.rows[0].debito+'</th>\
+          <th style="border:1px solid black">$'+abonosValue.rows[0].valor-deuda.rows[0].debito+'</th>\
         </tr>';
         console.log(sesionesHtml);
       }else{
