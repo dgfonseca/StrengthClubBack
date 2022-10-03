@@ -281,7 +281,7 @@ const pool = new Pool({
         </tr> \
         <tr> \
           <th style="border:1px solid black">Sesiones Tomadas:</th>\
-          <th style="border:1px solid black">'+saldoSesiones+'</th>\
+          <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
           <th style="border:1px solid black">Precio Total de Sesiones Tomadas:</th>\
           <th style="border:1px solid black">$ '+(deudaSesiones)+'</th>\
         </tr> \
