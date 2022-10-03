@@ -273,8 +273,8 @@ const pool = new Pool({
           <th style="border:1px solid black">$'+abonosValue.rows[0].abonos-deuda.rows[0].debito+'</th>\
         </tr>';
       }else{
-        let saldoSesiones = sesionesVentasProductos.rows[0].sesiones+sesionesVentasPaquetes.rows[0].sesiones - sesionesTomadas.rows[0].sesiones
         let deudaSesiones = saldoSesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
+        let deudaTotal = deudaSesiones + deuda.rows[0].debito - abonosValue.rows[0].abonos;
         sesionesHtml='<tr style="font-weight:bold"> \
         Sesiones \
         </tr> \
@@ -301,7 +301,7 @@ const pool = new Pool({
             </tr> \
             <tr> \
               <th style="border:1px solid black">Total Saldo:</th>\
-              <th style="border:1px solid black">$'+(abonosValue.rows[0].abonos-(deuda.rows[0].debito+deudaSesiones))+'</th>\
+              <th style="border:1px solid black">$'+(deudaTotal)+'</th>\
             </tr>';
       }
       let htmlRow = ""
