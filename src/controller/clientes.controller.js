@@ -239,6 +239,7 @@ const pool = new Pool({
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1",[cedula])
       ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1",[cedula])
 
+      console.log("Entrooo")
       let sesionesHtml;
       if(cuenta.rows[0].anticipado){
         let sesionesPagadas = sesionesVentasProductos.rows[0].sesiones+sesionesVentasPaquetes.rows[0].sesiones
