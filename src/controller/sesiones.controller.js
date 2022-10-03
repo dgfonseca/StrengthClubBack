@@ -138,7 +138,7 @@ const crearSesionDeIcs =  async (request, response)=>{
       }if(clienteRes.rowCount<1 ){
         response.status(400)
         .send({
-          message: "El cliente "+ cliente.replaceAll("%",'') +" no existe",
+          message: "El cliente "+ cliente.replaceAll("%",'') +" no existe en la fecha" +fecha,
           code:2
         });
         return;
