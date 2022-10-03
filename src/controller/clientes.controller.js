@@ -482,7 +482,7 @@ const getContabilidadClientes = (request,response) =>{
   let fechaFin = request.body.fechaFin
   let query=""
   if(fechaInicio&&fechaFin){
-    query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.valor as money) as abonos, cast(coalesce(q2.valor,0)-sum(v.valor) as money) as saldo from clientes c \
+    query = "select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(coalesce(q2.valor,0)-sum(coalesce(v.valor,0)) as money) as saldo from clientes c \
     left join ventas v on v.cliente = c.cedula \
     left join \
     (	select c2.cedula, sum(a.valor) as valor \
@@ -503,7 +503,7 @@ const getContabilidadClientes = (request,response) =>{
         }
     })
   }else{
-    query = "select c.cedula, c.nombre, c.email, cast(sum(v.valor) as money) as debito, cast(q2.valor as money) as abonos, cast(q2.valor-sum(v.valor) as money) as saldo from clientes c \
+    query = "select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(coalesce(q2.valor,0)-sum(coalesce(v.valor,0)) as money) as saldo from clientes c \
     left join ventas v on v.cliente = c.cedula \
     left join \
     (	select c2.cedula, sum(a.valor) as valor \
