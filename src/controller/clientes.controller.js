@@ -32,6 +32,20 @@ const pool = new Pool({
 //   }
 //   });
 
+function formatMoney(number, decPlaces, decSep, thouSep) {
+  decPlaces = isNaN(decPlaces = Math.abs(decPlaces)) ? 2 : decPlaces,
+  decSep = typeof decSep === "undefined" ? "." : decSep;
+  thouSep = typeof thouSep === "undefined" ? "," : thouSep;
+  var sign = number < 0 ? "-" : "";
+  var i = String(parseInt(number = Math.abs(Number(number) || 0).toFixed(decPlaces)));
+  var j = (j = i.length) > 3 ? j % 3 : 0;
+
+  return sign +
+      (j ? i.substr(0, j) + thouSep : "") +
+      i.substr(j).replace(/(\decSep{3})(?=\decSep)/g, "$1" + thouSep) +
+      (decPlaces ? decSep + Math.abs(number - i).toFixed(decPlaces).slice(2) : "");
+}
+
   function sendEmailPromise(mailData,errors,cliente){
     return new Promise((resolve)=>{
       transporter.sendMail(mailData,(err)=>{
@@ -301,7 +315,7 @@ const pool = new Pool({
             </tr> \
             <tr> \
               <th style="border:1px solid black">Total Saldo:</th>\
-              <th style="border:1px solid black">$'+(deudaTotal)+'</th>\
+              <th style="border:1px solid black">$'+(formatMoney(deudaTotal))+'</th>\
             </tr>';
       }
       let htmlRow = ""
