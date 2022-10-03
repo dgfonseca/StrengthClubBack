@@ -378,19 +378,19 @@ function formatMoney(number, decPlaces, decSep, thouSep) {
           </body> \
         </html>'
       }
-      // transporter.sendMail(mailData, (error,info)=>{
-      //   if(error){
-      //     response.status(500)
-      //     .send({
-      //       message: error
-      //     }); 
-      //     return;
-      //   }
+      transporter.sendMail(mailData, (error,info)=>{
+        if(error){
+          response.status(500)
+          .send({
+            message: error
+          }); 
+          return;
+        }
         response.status(200).send({
           message:mailData
         })
         return;
-      // })
+      })
     } catch (error) {
       response.status(500)
       .send({
