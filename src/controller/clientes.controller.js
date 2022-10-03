@@ -274,7 +274,7 @@ const pool = new Pool({
         </tr>';
       }else{
         let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
-        let deudaTotal = deudaSesiones + deuda.rows[0].debito;
+        let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos);
         sesionesHtml='<tr style="font-weight:bold"> \
         Sesiones \
         </tr> \
