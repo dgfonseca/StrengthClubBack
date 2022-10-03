@@ -315,7 +315,7 @@ function formatMoney(number, decPlaces, decSep, thouSep) {
             </tr> \
             <tr> \
               <th style="border:1px solid black">Total Saldo:</th>\
-              <th style="border:1px solid black">$'+(deudaTotal.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'))+'</th>\
+              <th style="border:1px solid black">$'+(deudaTotal.toFixed(2).replace('/\d(?=(\d{3})+\.)/g', '$&,'))+'</th>\
             </tr>';
       }
       let htmlRow = ""
