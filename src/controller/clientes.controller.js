@@ -52,18 +52,22 @@ const pool = new Pool({
        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)",[cedula])
       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
-      where vp.producto='SES' and v.cliente=$1",[cedula])
+      where vp.producto='SES' and v.cliente=$1 and \
+      to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS')  >= date_trunc('month', current_date - interval '1' month) \
+       and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)",[cedula])
       sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
-      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula])
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' and \
+      to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS')  >= date_trunc('month', current_date - interval '1' month) \
+       and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)",[cedula])
       abonosValue = await pool.query("select round(sum(valor)) as abonos from abonos a where a.cliente=$1 and \
-      to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS')  >= date_trunc('month', current_date - interval '1' month) \
-       and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)",[cedula])
+      to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS')  >= date_trunc('month', current_date - interval '1' month) \
+       and to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)",[cedula])
       deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula \
         where c.cedula=$1 group by c.cedula and \
-        to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS')  >= date_trunc('month', current_date - interval '1' month) \
-         and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)",[cedula])
+        to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS')  >= date_trunc('month', current_date - interval '1' month) \
+         and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)",[cedula])
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1 and \
       to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS')  >= date_trunc('month', current_date - interval '1' month) \
        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)",[cedula])
