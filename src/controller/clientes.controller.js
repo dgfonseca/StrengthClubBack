@@ -64,6 +64,7 @@ const pool = new Pool({
       let sesionesHtml;
       if(cuenta.rows[0].anticipado){
         let sesionesPagadas = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
+        console.log(sesionesPagadas)
         let sesionesRestantes = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(sesionesPagadas-sesionesTomadas.rows[0].sesiones)
         let sesionesTomadas = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(sesionesTomadas.rows[0].sesiones)
         let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito - abonosValue.rows[0].abonos)
