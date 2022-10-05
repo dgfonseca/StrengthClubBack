@@ -89,17 +89,16 @@ const pool = new Pool({
         </tr>\
         <tr> \
           <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-          <th style="border:1px solid black">$'+debito+'</th>\
+          <th style="border:1px solid black">'+debito+'</th>\
         </tr> \
         <tr> \
           <th style="border:1px solid black">Abonos:</th>\
-          <th style="border:1px solid black">$'+abonosTotales+'</th>\
+          <th style="border:1px solid black">'+abonosTotales+'</th>\
         </tr> \
         <tr> \
           <th style="border:1px solid black">Saldo Final:</th>\
-          <th style="border:1px solid black">$'+saldoTotal+'</th>\
+          <th style="border:1px solid black">'+saldoTotal+'</th>\
         </tr>';
-        console.log(sesionesHtml);
       }else{
         let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
         let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos);
@@ -110,26 +109,26 @@ const pool = new Pool({
           <th style="border:1px solid black">Sesiones Tomadas:</th>\
           <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
           <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-          <th style="border:1px solid black">$ '+(deudaSesiones)+'</th>\
+          <th style="border:1px solid black">$ '+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaSesiones)+'</th>\
         </tr> \
         <tr style="font-weight:bold"> \
               Estados\
             </tr>\
             <tr> \
               <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-              <th style="border:1px solid black">$'+deuda.rows[0].debito+'</th>\
+              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-              <th style="border:1px solid black">$ '+(deudaSesiones)+'</th>\
+              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaSesiones)+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black">Abonos:</th>\
-              <th style="border:1px solid black">$'+abonosValue.rows[0].abonos+'</th>\
+              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black">Saldo Final:</th>\
-              <th style="border:1px solid black">$'+(deudaTotal.toFixed(0).replace('/\d(?=(\d{3})+\.)/g', '$&,'))+'</th>\
+              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaTotal)+'</th>\
             </tr>';
       }
       let htmlRow = ""
@@ -137,12 +136,12 @@ const pool = new Pool({
       ventas.rows.forEach(venta =>{
         htmlRow+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
         htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
-        htmlRow+='<td style="border:1px solid black">$'+venta.valor+'</td></tr>'
+        htmlRow+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(venta.valor)+'</td></tr>'
       })
       abonos.rows.forEach(abono =>{
         htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
         htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
-        htmlRow2+='<td style="border:1px solid black">$'+abono.valor+'</td>'
+        htmlRow2+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abono.valor)+'</td>'
         htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
       })
 
@@ -191,6 +190,7 @@ const pool = new Pool({
       }
       transporter.sendMail(mailData, (error,info)=>{
         if(error){
+          console.log(error)
           response.status(500)
           .send({
             message: error
