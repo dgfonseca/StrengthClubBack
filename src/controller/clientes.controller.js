@@ -160,7 +160,7 @@ const pool = new Pool({
               <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
             </head> \
             <body> \
-            <h2>Estado de Cuenta Strength Club:  '+fechaInicio?fechaInicio:"Mes Actual"+'   ---   '+fechaFin?fechaFin:"Mes Actual"+'</h2> \
+            <h2>Estado de Cuenta Strength Club:  '+fechaInicio+'   ---   '+fechaFin+'</h2> \
             <table style="width:100%; border:1px solid black"> \
             <tr style="font-weight:bold"> \
             Compras\
