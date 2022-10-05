@@ -61,8 +61,7 @@ const pool = new Pool({
        and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
       deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula \
-        where c.cedula=$1 group by c.cedula \
-         and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
+        where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) group by c.cedula",[cedula])
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1 \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
       ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
