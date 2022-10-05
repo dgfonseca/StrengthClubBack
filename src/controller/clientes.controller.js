@@ -48,6 +48,7 @@ const pool = new Pool({
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
       cuenta = await pool.query("select nombre,email ,anticipado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1",[cedula])
+      console.log(sesionesTomadas)
       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1",[cedula])
@@ -65,7 +66,6 @@ const pool = new Pool({
       if(cuenta.rows[0].anticipado){
         let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
         console.log("ASDAS")
-        console.log("Holaaaa"+sesionesTomadas)
         let sesionesRestantes = (sesionesPagadas-sesionesTomadas.rows[0].sesiones)
         let sesionesTomadas = (sesionesTomadas.rows[0].sesiones)
         let saldoTotalPre = parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos)
@@ -205,6 +205,7 @@ const pool = new Pool({
         return;
       })
     } catch (error) {
+      console.log(error)
       response.status(500)
       .send({
         message: error
