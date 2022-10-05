@@ -66,8 +66,9 @@ const pool = new Pool({
         let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
         let sesionesRestantes = (sesionesPagadas-sesionesTomadas.rows[0].sesiones)
         let sesionesTomadas = (sesionesTomadas.rows[0].sesiones)
-        let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos))
-        console.log(saldoTotal)
+        let saldoTotalPre = parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos)
+        console.log(saldoTotalPre)
+        let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(saldoTotalPre)
         let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)
         let abonos = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)
         sesionesHtml='<tr style="font-weight:bold"> \
