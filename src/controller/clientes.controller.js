@@ -46,7 +46,7 @@ const pool = new Pool({
     let sesion;
     try {
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
-      cuenta = await pool.query("select nombre,email ,anticipado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
+      cuenta = await pool.query("select nombre,email ,anticipado, habilitado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1",[cedula])
       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
@@ -62,146 +62,153 @@ const pool = new Pool({
       ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1",[cedula])
 
       let sesionesHtml;
-      if(cuenta.rows[0].anticipado){
-        let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
-        let sesionesRestantes = (sesionesPagadas-sesionesTomadas.rows[0].sesiones)
-        let sesionesTomadas2 = (sesionesTomadas.rows[0].sesiones)
-        let saldoTotalPre = parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos)
-        let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(saldoTotalPre)
-        let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)
-        let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)
-        sesionesHtml='<tr style="font-weight:bold"> \
-              Sesiones \
+      if(cuenta.rows[0].habilitado){
+        if(cuenta.rows[0].anticipado){
+          let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
+          let sesionesRestantes = (sesionesPagadas-sesionesTomadas.rows[0].sesiones)
+          let sesionesTomadas2 = (sesionesTomadas.rows[0].sesiones)
+          let saldoTotalPre = parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos)
+          let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(saldoTotalPre)
+          let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)
+          let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)
+          sesionesHtml='<tr style="font-weight:bold"> \
+                Sesiones \
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black">Sesiones Tomadas:</th>\
+              <th style="border:1px solid black">'+sesionesTomadas2+'</th>\
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black">Sesiones Adquiridas:</th>\
+              <th style="border:1px solid black">'+sesionesPagadas+'</th>\
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black">Sesiones Restantes:</th>\
+              <th style="border:1px solid black">'+sesionesRestantes+'</th>\
+            </tr> <tr style="font-weight:bold"> \
+            Estados\
+          </tr>\
+          <tr> \
+            <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
+            <th style="border:1px solid black">'+debito+'</th>\
+          </tr> \
+          <tr> \
+            <th style="border:1px solid black">Abonos:</th>\
+            <th style="border:1px solid black">'+abonosTotales+'</th>\
+          </tr> \
+          <tr> \
+            <th style="border:1px solid black">Saldo Final:</th>\
+            <th style="border:1px solid black">'+saldoTotal+'</th>\
+          </tr>';
+        }else{
+          let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
+          let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos);
+          sesionesHtml='<tr style="font-weight:bold"> \
+          Sesiones \
           </tr> \
           <tr> \
             <th style="border:1px solid black">Sesiones Tomadas:</th>\
-            <th style="border:1px solid black">'+sesionesTomadas2+'</th>\
+            <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
+            <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
+            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaSesiones)+'</th>\
           </tr> \
-          <tr> \
-            <th style="border:1px solid black">Sesiones Adquiridas:</th>\
-            <th style="border:1px solid black">'+sesionesPagadas+'</th>\
-          </tr> \
-          <tr> \
-            <th style="border:1px solid black">Sesiones Restantes:</th>\
-            <th style="border:1px solid black">'+sesionesRestantes+'</th>\
-          </tr> <tr style="font-weight:bold"> \
-          Estados\
-        </tr>\
-        <tr> \
-          <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-          <th style="border:1px solid black">'+debito+'</th>\
-        </tr> \
-        <tr> \
-          <th style="border:1px solid black">Abonos:</th>\
-          <th style="border:1px solid black">'+abonosTotales+'</th>\
-        </tr> \
-        <tr> \
-          <th style="border:1px solid black">Saldo Final:</th>\
-          <th style="border:1px solid black">'+saldoTotal+'</th>\
-        </tr>';
-      }else{
-        let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
-        let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos);
-        sesionesHtml='<tr style="font-weight:bold"> \
-        Sesiones \
-        </tr> \
-        <tr> \
-          <th style="border:1px solid black">Sesiones Tomadas:</th>\
-          <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
-          <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-          <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaSesiones)+'</th>\
-        </tr> \
-        <tr style="font-weight:bold"> \
-              Estados\
-            </tr>\
-            <tr> \
-              <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaSesiones)+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Abonos:</th>\
-              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Saldo Final:</th>\
-              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaTotal)+'</th>\
-            </tr>';
-      }
-      let htmlRow = ""
-      let htmlRow2= ""
-      ventas.rows.forEach(venta =>{
-        htmlRow+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
-        htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
-        htmlRow+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(venta.valor)+'</td></tr>'
-      })
-      abonos.rows.forEach(abono =>{
-        htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
-        htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
-        htmlRow2+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abono.valor)+'</td>'
-        htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
-      })
-
-      let mailData = {
-        from: process.env.MAIL_ACCOUNT,
-        to: cuenta.rows[0].email,
-        subject: "Notificacion de Deudas",
-        text : "Prueba",
-        html: '<!doctype html> \
-        <html ⚡4email> \
-          <head> \
-            <meta charset="utf-8"> \
-            <style amp4email-boilerplate>body{visibility:hidden}</style> \
-            <script async src="https://cdn.ampproject.org/v0.js"></script> \
-            <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
-          </head> \
-          <body> \
-          <h2>Estado de Cuenta Strength Club:  '+fechaInicio?fechaInicio:"Mes Actual"+'   ---   '+fechaFin?fechaFin:"Mes Actual"+'</h2> \
-          <table style="width:100%; border:1px solid black"> \
           <tr style="font-weight:bold"> \
-          Compras\
-          </tr> \
-            <tr> \
-              <th style="border:1px solid black">Nombre</th> \
-              <th style="border:1px solid black">Fecha</th> \
-              <th style="border:1px solid black">Valor</th> \
-            </tr> \
-           '+htmlRow+' \
-          </table><br><br> \
-          <table style="width:100%; border:1px solid black"> \
-            <tr style="font-weight:bold"> \
-              Abonos\
-            </tr>\
-            <tr> \
-              <th style="border:1px solid black">Nombre</th> \
-              <th style="border:1px solid black">Fecha</th> \
-              <th style="border:1px solid black">Valor</th> \
-              <th style="border:1px solid black">Tipo</th> \
-            </tr> \
-            '+htmlRow2+'\
-          </table><br><br> \
-          <table style="width:100%; border:1px solid black">'+sesionesHtml+'\
-            </table> \
-          </body> \
-        </html>'
-      }
-      transporter.sendMail(mailData, (error,info)=>{
-        if(error){
-          console.log(error)
-          response.status(500)
-          .send({
-            message: error
-          }); 
-          return;
+                Estados\
+              </tr>\
+              <tr> \
+                <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)+'</th>\
+              </tr> \
+              <tr> \
+                <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaSesiones)+'</th>\
+              </tr> \
+              <tr> \
+                <th style="border:1px solid black">Abonos:</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)+'</th>\
+              </tr> \
+              <tr> \
+                <th style="border:1px solid black">Saldo Final:</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaTotal)+'</th>\
+              </tr>';
         }
-        response.status(200).send({
-          message:mailData
+        let htmlRow = ""
+        let htmlRow2= ""
+        ventas.rows.forEach(venta =>{
+          htmlRow+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
+          htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
+          htmlRow+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(venta.valor)+'</td></tr>'
         })
-        return;
-      })
+        abonos.rows.forEach(abono =>{
+          htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
+          htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
+          htmlRow2+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abono.valor)+'</td>'
+          htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
+        })
+  
+        let mailData = {
+          from: process.env.MAIL_ACCOUNT,
+          to: cuenta.rows[0].email,
+          subject: "Notificacion de Deudas",
+          text : "Prueba",
+          html: '<!doctype html> \
+          <html ⚡4email> \
+            <head> \
+              <meta charset="utf-8"> \
+              <style amp4email-boilerplate>body{visibility:hidden}</style> \
+              <script async src="https://cdn.ampproject.org/v0.js"></script> \
+              <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
+            </head> \
+            <body> \
+            <h2>Estado de Cuenta Strength Club:  '+fechaInicio?fechaInicio:"Mes Actual"+'   ---   '+fechaFin?fechaFin:"Mes Actual"+'</h2> \
+            <table style="width:100%; border:1px solid black"> \
+            <tr style="font-weight:bold"> \
+            Compras\
+            </tr> \
+              <tr> \
+                <th style="border:1px solid black">Nombre</th> \
+                <th style="border:1px solid black">Fecha</th> \
+                <th style="border:1px solid black">Valor</th> \
+              </tr> \
+             '+htmlRow+' \
+            </table><br><br> \
+            <table style="width:100%; border:1px solid black"> \
+              <tr style="font-weight:bold"> \
+                Abonos\
+              </tr>\
+              <tr> \
+                <th style="border:1px solid black">Nombre</th> \
+                <th style="border:1px solid black">Fecha</th> \
+                <th style="border:1px solid black">Valor</th> \
+                <th style="border:1px solid black">Tipo</th> \
+              </tr> \
+              '+htmlRow2+'\
+            </table><br><br> \
+            <table style="width:100%; border:1px solid black">'+sesionesHtml+'\
+              </table> \
+            </body> \
+          </html>'
+        }
+        transporter.sendMail(mailData, (error,info)=>{
+          if(error){
+            console.log(error)
+            response.status(500)
+            .send({
+              message: error
+            }); 
+            return;
+          }
+          response.status(200).send({
+            message:mailData
+          })
+          return;
+        })
+      }else{
+        response.status(405)
+        .send({
+          message: "No se puede notificar un cliente deshabilitado"
+        });
+      }
     } catch (error) {
       console.log(error)
       response.status(500)
@@ -370,8 +377,9 @@ const updateCliente = (request, response) =>{
     let nacimiento = request.body.fechaNacimiento;
     let anticipado = request.body.anticipado;
     let precioSesion = request.body.precioSesion;
+    let habilitado = request.body.habilitado;
   if(nombre && email && direccion && telefono && cedula && nacimiento){
-      pool.query("UPDATE clientes SET nombre=$1,email=$2,direccion=$3,telefono=$4,fecha_nacimiento=$5,anticipado=$7,precio_sesion=$8 WHERE cedula=$6", [nombre, email,direccion,telefono,nacimiento,cedula,anticipado,precioSesion], (error, results)=>{
+      pool.query("UPDATE clientes SET nombre=$1,email=$2,direccion=$3,telefono=$4,fecha_nacimiento=$5,anticipado=$7,precio_sesion=$8,habilitado=$9 WHERE cedula=$6", [nombre, email,direccion,telefono,nacimiento,cedula,anticipado,precioSesion,habilitado], (error, results)=>{
           if (error) {
             response.status(500)
                 .send({
