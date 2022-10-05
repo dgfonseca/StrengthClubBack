@@ -85,7 +85,7 @@ const borrarSesionesEntrenador = async (request,response)=>{
       });
       return;
     }catch(exception){
-      response.status(200)
+      response.status(500)
       .send({
       message: "No se pudieron borrar las sesiones del entrenador "+entrenador.replaceAll("%",''),
       });
@@ -101,7 +101,7 @@ const borrarSesionesEntrenador = async (request,response)=>{
       });
       return;
     }catch(exception){
-      response.status(200)
+      response.status(500)
       .send({
       message: "No se pudieron borrar las sesiones del entrenador "+entrenador.replaceAll("%",''),
       });
@@ -170,16 +170,25 @@ const crearSesionDeIcs =  async (request, response)=>{
           }
           else{
             let message = "Sesion Agendada Exitosamente"
+            let resV = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
             if(!esAnticipado){
               message+=" Y venta registrada exitosamente"
               if(precioSesion!==null && precioSesion>0 && precioSesion!==undefined){
-                await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2 and valor=$3",[cliente2,fecha,precioSesion])
+                if(virtual){
+                  precioSesion = resV.rows[0].precio
+                }
+                await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2",[cliente2,fecha,precioSesion])
                 await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData]);
               }
               else{
-                let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
-                await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2 and valor=$3",[cliente2,fecha,ses.rows[0].precio])
-                await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData]);
+                if(virtual){
+                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2",[cliente2,fecha,resV.rows[0].precio])
+                  await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,resV.rows[0].precio,request.tokenData]);
+                }else{
+                  let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
+                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2 and valor=$3",[cliente2,fecha,ses.rows[0].precio])
+                  await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData]);
+                }
               }
             }
             await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5)",[entrenador2,cliente2,fecha,asistio,virtual])
