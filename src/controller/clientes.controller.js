@@ -48,7 +48,6 @@ const pool = new Pool({
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
       cuenta = await pool.query("select nombre,email ,anticipado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1",[cedula])
-      console.log(sesionesTomadas)
       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1",[cedula])
@@ -65,19 +64,18 @@ const pool = new Pool({
       let sesionesHtml;
       if(cuenta.rows[0].anticipado){
         let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
-        console.log("ASDAS")
         let sesionesRestantes = (sesionesPagadas-sesionesTomadas.rows[0].sesiones)
-        let sesionesTomadas = (sesionesTomadas.rows[0].sesiones)
+        let sesionesTomadas2 = (sesionesTomadas.rows[0].sesiones)
         let saldoTotalPre = parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos)
         let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(saldoTotalPre)
         let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)
-        let abonos = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)
+        let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)
         sesionesHtml='<tr style="font-weight:bold"> \
               Sesiones \
           </tr> \
           <tr> \
             <th style="border:1px solid black">Sesiones Tomadas:</th>\
-            <th style="border:1px solid black">'+sesionesTomadas+'</th>\
+            <th style="border:1px solid black">'+sesionesTomadas2+'</th>\
           </tr> \
           <tr> \
             <th style="border:1px solid black">Sesiones Adquiridas:</th>\
@@ -95,7 +93,7 @@ const pool = new Pool({
         </tr> \
         <tr> \
           <th style="border:1px solid black">Abonos:</th>\
-          <th style="border:1px solid black">$'+abonos+'</th>\
+          <th style="border:1px solid black">$'+abonosTotales+'</th>\
         </tr> \
         <tr> \
           <th style="border:1px solid black">Saldo Final:</th>\
