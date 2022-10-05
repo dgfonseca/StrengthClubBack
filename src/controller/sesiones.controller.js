@@ -199,6 +199,7 @@ const crearSesionDeIcs =  async (request, response)=>{
       }
     }
   }catch (e){
+    console.log(e)
       response.status(400).send({
         message: e
     });
