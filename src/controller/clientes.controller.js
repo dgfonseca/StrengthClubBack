@@ -149,8 +149,8 @@ const pool = new Pool({
         let mailData = {
           from: process.env.MAIL_ACCOUNT,
           to: cuenta.rows[0].email,
-          subject: "Notificacion de Deudas",
-          text : "Prueba",
+          subject: "Notificacion de Estado de Cuentas",
+          text : "Estado de Cuentas",
           html: '<!doctype html> \
           <html ⚡4email> \
             <head> \
@@ -160,7 +160,7 @@ const pool = new Pool({
               <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
             </head> \
             <body> \
-            <h2>Estado de Cuenta Strength Club:  '+fechaInicio+'   ---   '+fechaFin+'</h2> \
+            <h2>Estado de Cuenta Strength Club:</h2> \
             <table style="width:100%; border:1px solid black"> \
             <tr style="font-weight:bold"> \
             Compras\
@@ -189,20 +189,20 @@ const pool = new Pool({
             </body> \
           </html>'
         }
-        transporter.sendMail(mailData, (error,info)=>{
-          if(error){
-            console.log(error)
-            response.status(500)
-            .send({
-              message: error
-            }); 
-            return;
-          }
-          response.status(200).send({
-            message:mailData
-          })
-          return;
-        })
+        // transporter.sendMail(mailData, (error,info)=>{
+        //   if(error){
+        //     console.log(error)
+        //     response.status(500)
+        //     .send({
+        //       message: error
+        //     }); 
+        //     return;
+        //   }
+        //   response.status(200).send({
+        //     message:mailData
+        //   })
+        //   return;
+        // })
       }else{
         response.status(405)
         .send({
