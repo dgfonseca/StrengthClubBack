@@ -47,9 +47,9 @@ const pool = new Pool({
     try {
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
       cuenta = await pool.query("select nombre,email ,anticipado, habilitado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
+      console.log("ENtroooo1")
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1  \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-       console.log("ENtroooo1")
        sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1  \
