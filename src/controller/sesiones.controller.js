@@ -178,7 +178,7 @@ const crearSesionDeIcs =  async (request, response)=>{
               }
               else{
                 let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
-                await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2 and valor=$3",[cliente2,fecha,rows[0].precio])
+                await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2 and valor=$3",[cliente2,fecha,ses.rows[0].precio])
                 await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData]);
               }
             }
