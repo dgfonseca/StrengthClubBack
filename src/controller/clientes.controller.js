@@ -47,19 +47,16 @@ const pool = new Pool({
     try {
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
       cuenta = await pool.query("select nombre,email ,anticipado, habilitado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
-      console.log("ENtroooo1")
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1  \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
        sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1  \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-       console.log("ENtroooo2")
        sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
       inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-       console.log("ENtroooo3")
        abonosValue = await pool.query("select round(sum(valor)) as abonos from abonos a where a.cliente=$1  \
        and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
        deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
@@ -198,20 +195,20 @@ const pool = new Pool({
             </body> \
           </html>'
         }
-        // transporter.sendMail(mailData, (error,info)=>{
-        //   if(error){
-        //     console.log(error)
-        //     response.status(500)
-        //     .send({
-        //       message: error
-        //     }); 
-        //     return;
-        //   }
-        //   response.status(200).send({
-        //     message:mailData
-        //   })
-        //   return;
-        // })
+        transporter.sendMail(mailData, (error,info)=>{
+          if(error){
+            console.log(error)
+            response.status(500)
+            .send({
+              message: error
+            }); 
+            return;
+          }
+          response.status(200).send({
+            message:mailData
+          })
+          return;
+        })
         response.status(200).send({
               message:mailData
             })
