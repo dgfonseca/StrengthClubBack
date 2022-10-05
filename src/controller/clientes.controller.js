@@ -74,9 +74,9 @@ const pool = new Pool({
           let sesionesRestantes = (sesionesPagadas-sesionesTomadas.rows[0].sesiones)
           let sesionesTomadas2 = (sesionesTomadas.rows[0].sesiones)
           let saldoTotalPre = parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos)
-          let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(saldoTotalPre)
-          let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)
-          let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)
+          let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre)
+          let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deuda.rows[0].debito)
+          let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonosValue.rows[0].abonos)
           sesionesHtml='<tr style="font-weight:bold"> \
                 Sesiones \
             </tr> \
@@ -116,26 +116,26 @@ const pool = new Pool({
             <th style="border:1px solid black">Sesiones Tomadas:</th>\
             <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
             <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaSesiones)+'</th>\
+            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSesiones)+'</th>\
           </tr> \
           <tr style="font-weight:bold"> \
                 Estados\
               </tr>\
               <tr> \
                 <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deuda.rows[0].debito)+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deuda.rows[0].debito)+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaSesiones)+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSesiones)+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Abonos:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abonosValue.rows[0].abonos)+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonosValue.rows[0].abonos)+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Saldo por Pagar:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(deudaTotal)+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)+'</th>\
               </tr>';
         }
         let htmlRow = ""
@@ -143,12 +143,12 @@ const pool = new Pool({
         ventas.rows.forEach(venta =>{
           htmlRow+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
           htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
-          htmlRow+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(venta.valor)+'</td></tr>'
+          htmlRow+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(venta.valor)+'</td></tr>'
         })
         abonos.rows.forEach(abono =>{
           htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
           htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
-          htmlRow2+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(abono.valor)+'</td>'
+          htmlRow2+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abono.valor)+'</td>'
           htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
         })
   
