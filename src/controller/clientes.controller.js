@@ -67,6 +67,7 @@ const pool = new Pool({
         console.log(sesionesPagadas)
         let sesionesRestantes = sesionesPagadas-sesionesTomadas.rows[0].sesiones
         console.log(sesionesRestantes)
+        let saldoTotal = deuda.rows[0].debito - abonosValue.rows[0].abonos
         sesionesHtml='<tr style="font-weight:bold"> \
               Sesiones \
           </tr> \
@@ -90,11 +91,11 @@ const pool = new Pool({
         </tr> \
         <tr> \
           <th style="border:1px solid black">Abonos:</th>\
-          <th style="border:1px solid black">$'+abonosValue.rows[0].valor+'</th>\
+          <th style="border:1px solid black">$'+abonosValue.rows[0].abonos+'</th>\
         </tr> \
         <tr> \
           <th style="border:1px solid black">Saldo Final:</th>\
-          <th style="border:1px solid black">$'+'</th>\
+          <th style="border:1px solid black">$'+saldoTotal+'</th>\
         </tr>';
         console.log(sesionesHtml);
       }else{
