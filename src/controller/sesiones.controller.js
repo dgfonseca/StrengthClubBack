@@ -177,12 +177,12 @@ const crearSesionDeIcs =  async (request, response)=>{
                 if(virtual){
                   precioSesion = resV.rows[0].precio
                 }
-                await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2",[cliente2,fecha,precioSesion])
+                await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2",[cliente2,fecha])
                 await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData]);
               }
               else{
                 if(virtual){
-                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2",[cliente2,fecha,resV.rows[0].precio])
+                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2",[cliente2,fecha])
                   await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,resV.rows[0].precio,request.tokenData]);
                 }else{
                   let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
