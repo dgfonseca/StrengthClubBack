@@ -203,6 +203,9 @@ const pool = new Pool({
         //   })
         //   return;
         // })
+        response.status(200).send({
+              message:mailData
+            })
       }else{
         response.status(405)
         .send({
