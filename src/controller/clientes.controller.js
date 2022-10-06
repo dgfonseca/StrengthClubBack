@@ -125,7 +125,7 @@ const pool = new Pool({
             <th style="border:1px solid black">Sesiones Virtuales Tomadas:</th>\
             <th style="border:1px solid black">'+sesionesVirtualesTomadas.rows[0].sesiones+'</th>\
             <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSesiones)+'</th>\
+            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotalSesiones)+'</th>\
           </tr> \
           <tr style="font-weight:bold"> \
                 Estados\
