@@ -310,7 +310,7 @@ const deleteAbono = async(request,response) =>{
   let id = request.body.id
   let query = "DELETE FROM abonos where id=$1"
   let logInfo = await pool.query("select * from abonos where id=$1",[id]);
-  console.log("Se borra el abono del cliente "+logInfo.rows[0].cliente + "con valor de "+logInfo.rows[0].valor +" con fecha "+ logInfo.rows[0].fecha)
+  console.log("Se borra el abono del cliente "+logInfo.rows[0].cliente + " con valor de "+logInfo.rows[0].valor +" con fecha "+ logInfo.rows[0].fecha)
   pool.query(query,[id],(error,results)=>{
     if (error) {
       response.status(500)

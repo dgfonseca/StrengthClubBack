@@ -92,7 +92,7 @@ const pool = new Pool({
         try {
             await client.query("BEGIN");
             const logInfo = await client.query("select * from ventas where id=$1",[id]);
-            console.log("Se borra la venta del cliente "+logInfo.rows[0].cliente + "con valor de "+logInfo.rows[0].valor +" con fecha "+ logInfo.rows[0].fecha)
+            console.log("Se borra la venta del cliente "+logInfo.rows[0].cliente + " con valor de "+logInfo.rows[0].valor +" con fecha "+ logInfo.rows[0].fecha)
             const prods = await client.query("select foo.codigo, foo.nombre, foo.cantidad from \
                     (select pa.codigo, pa.nombre, vp.cantidad  from ventas ve \
                     inner join ventas_paquetes vp on vp.venta = ve.id \
