@@ -46,8 +46,11 @@ const pool = new Pool({
     let sesion;
     try {
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
+      sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
       cuenta = await pool.query("select nombre,email ,anticipado, habilitado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
-      sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1  \
+      sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
+      sesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
        sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
@@ -110,13 +113,17 @@ const pool = new Pool({
           </tr>';
         }else{
           let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
-          let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos);
+          let deudaSinSesiones = parseFloat(deuda.rows[0].debito) - ((sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)+deudaSesiones);
+          let deudaTotalSesiones = ((sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)+deudaSesiones);
+          let deudaTotal = parseFloat(deudaTotalSesiones) + parseFloat(deuda.rows[0].debito) - parseFloat(abonosValue.rows[0].abonos);
           sesionesHtml='<tr style="font-weight:bold"> \
           Sesiones \
           </tr> \
           <tr> \
             <th style="border:1px solid black">Sesiones Tomadas:</th>\
             <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
+            <th style="border:1px solid black">Sesiones Virtuales Tomadas:</th>\
+            <th style="border:1px solid black">'+sesionesVirtualesTomadas.rows[0].sesiones+'</th>\
             <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSesiones)+'</th>\
           </tr> \
@@ -125,11 +132,11 @@ const pool = new Pool({
               </tr>\
               <tr> \
                 <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deuda.rows[0].debito)+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSinSesiones)+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSesiones)+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotalSesiones)+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Abonos:</th>\
