@@ -83,7 +83,7 @@ const pool = new Pool({
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deuda.rows[0]?deuda.rows[0].debito:0)
           let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonosValue.rows[0].abonos)
           let textoSaldoTotal;
-          if(deudaTotal>0){
+          if(saldoTotal>0){
             textoSaldoTotal=saldoTotal
           }else{
             if(sesionesRestantes<0){
@@ -121,7 +121,7 @@ const pool = new Pool({
           </tr> \
           <tr> \
             <th style="border:1px solid black">Saldo por Pagar:</th>\
-            <th style="border:1px solid black">'+saldoTotal+'</th>\
+            <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
           </tr>';
         }else{
           let deudaSesiones = sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio)
