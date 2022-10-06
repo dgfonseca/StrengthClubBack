@@ -212,7 +212,6 @@ const pool = new Pool({
           <html ⚡4email> \
             <head> \
               <meta charset="utf-8"> \
-              <style amp4email-boilerplate>body{visibility:hidden}</style> \
               <script async src="https://cdn.ampproject.org/v0.js"></script> \
               <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
             </head> \
