@@ -91,7 +91,7 @@ const pool = new Pool({
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deuda.rows[0]?deuda.rows[0].debito:0)
           let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonosValue.rows[0].abonos)
           let textoSaldoTotal;
-          if(saldoTotal>0){
+          if(saldoTotal!=0){
             textoSaldoTotal=saldoTotal
           }else{
             if(sesionesRestantes<0){
