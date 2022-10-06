@@ -137,7 +137,7 @@ const pool = new Pool({
           let deudaTotalSesiones = ((parseFloat(sesionesVirtualesTomadas.rows[0].sesiones) * parseFloat(sesionVirtual.rows[0].precio))+deudaSesiones);
           let deudaTotal = parseFloat(deudaTotalSesiones) + parseFloat(deudaSinSesiones) - parseFloat(abonosValue.rows[0].abonos);
           let textoSaldoTotal;
-          if(deudaTotal>0){
+          if(deudaTotal!=0){
             textoSaldoTotal=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)
           }else{
             if(deudaTotalSesiones<0){
