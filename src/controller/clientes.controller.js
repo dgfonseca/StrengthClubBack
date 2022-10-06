@@ -152,6 +152,17 @@ const pool = new Pool({
           htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
         })
   
+        let titulo;
+        if(fechaInicio && fechaFin){
+          titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+'</h2>'
+        }else{
+
+          const date = new Date();
+
+          const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+          const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
+          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth+'-----'+lastDayPrevMonth+'</h2>'
+        }
         let mailData = {
           from: process.env.MAIL_ACCOUNT,
           to: cuenta.rows[0].email,
@@ -165,9 +176,9 @@ const pool = new Pool({
               <script async src="https://cdn.ampproject.org/v0.js"></script> \
               <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
             </head> \
-            <body> \
-            <h2>Estado de Cuenta Strength Club:</h2> \
-            <table style="width:100%; border:1px solid black"> \
+            <body>' 
+            + titulo + 
+            '<table style="width:100%; border:1px solid black"> \
             <tr style="font-weight:bold"> \
             Compras\
             </tr> \
