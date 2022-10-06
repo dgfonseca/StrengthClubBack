@@ -60,7 +60,7 @@ const pool = new Pool({
       inner join ventas_paquetes vp on vp.venta = v.id \
       inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-       abonosValue = await pool.query("select round(sum(valor)) as abonos from abonos a where a.cliente=$1  \
+       abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
        and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
        deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula  \
