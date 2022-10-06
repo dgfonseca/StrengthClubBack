@@ -161,7 +161,7 @@ const pool = new Pool({
 
           const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
           const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
-          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth+'-----'+lastDayPrevMonth+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'</h2>'
         }
         let mailData = {
           from: process.env.MAIL_ACCOUNT,
