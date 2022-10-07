@@ -91,9 +91,12 @@ const pool = new Pool({
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deuda.rows[0]?deuda.rows[0].debito:0)
           let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonosValue.rows[0].abonos)
           let textoSaldoTotal;
-          if(saldoTotal!=0){
+          if(saldoTotal>0){
             textoSaldoTotal=saldoTotal
-          }else{
+          }else if(saldoTotal<0){
+            textoSaldoTotal = "Saldo a favor de "+saldoTotal
+          }
+          else{
             if(sesionesRestantes<0){
               let deudaText= sesionesRestantes*-1;
               textoSaldoTotal="Debe " + deudaText + " Sesiones";
@@ -137,9 +140,12 @@ const pool = new Pool({
           let deudaTotalSesiones = ((parseFloat(sesionesVirtualesTomadas.rows[0].sesiones) * parseFloat(sesionVirtual.rows[0].precio))+deudaSesiones);
           let deudaTotal = parseFloat(deudaTotalSesiones) + parseFloat(deudaSinSesiones) - parseFloat(abonosValue.rows[0].abonos);
           let textoSaldoTotal;
-          if(deudaTotal!=0){
+          if(deudaTotal>0){
             textoSaldoTotal=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)
-          }else{
+          }else if(deudaTotal<0){
+            textoSaldoTotal="Saldo a favor de "+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)
+          }
+          else{
             if(deudaTotalSesiones<0){
               let deudaText= deudaTotalSesiones*-1;
               textoSaldoTotal="Debe " + deudaText + " Sesiones";
