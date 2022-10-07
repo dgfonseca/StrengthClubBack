@@ -91,10 +91,9 @@ const pool = new Pool({
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deuda.rows[0]?deuda.rows[0].debito:0)
           let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonosValue.rows[0].abonos)
           let textoSaldoTotal;
-          console.log(saldoTotal)
-          if(saldoTotal>0){
+          if(saldoTotalPre>0){
             textoSaldoTotal=saldoTotal
-          }else if(saldoTotal<0){
+          }else if(saldoTotalPre<0){
             textoSaldoTotal = "Saldo a favor de "+(saldoTotal*-1)
           }
           else{
