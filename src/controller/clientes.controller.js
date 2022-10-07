@@ -94,7 +94,7 @@ const pool = new Pool({
           if(saldoTotal>0){
             textoSaldoTotal=saldoTotal
           }else if(saldoTotal<0){
-            textoSaldoTotal = "Saldo a favor de "+saldoTotal
+            textoSaldoTotal = "Saldo a favor de "+(saldoTotal*-1)
           }
           else{
             if(sesionesRestantes<0){
@@ -143,7 +143,7 @@ const pool = new Pool({
           if(deudaTotal>0){
             textoSaldoTotal=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)
           }else if(deudaTotal<0){
-            textoSaldoTotal="Saldo a favor de "+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)
+            textoSaldoTotal="Saldo a favor de "+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal*-1)
           }
           else{
             if(deudaTotalSesiones<0){
