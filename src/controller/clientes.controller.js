@@ -136,10 +136,7 @@ const pool = new Pool({
           </tr>';
         }else{
           let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
-          console.log(deudaSesiones)
-          console.log(deuda.rows[0].debito)
           let deudaSinSesiones = parseFloat(deuda.rows[0]?(deuda.rows[0].debito-deudaSesiones):0);
-          console.log(deudaSinSesiones)
           let deudaTotalSesiones = (deudaSesiones);
           let deudaTotal = parseFloat(deudaTotalSesiones) + parseFloat(deudaSinSesiones) - parseFloat(abonosValue.rows[0].abonos);
           let textoSaldoTotal;
