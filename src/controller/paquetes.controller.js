@@ -23,16 +23,9 @@
 		try {
 			let codigoPaquete = request.body.codigo;
 			let nombre = request.body.nombre;
-			let productos = request.body.productos;
 			let precio = request.body.precio;
 			await client.query('BEGIN');
-			await client.query('DELETE FROM paquetes WHERE codigo=$1',[codigoPaquete]);
-			await client.query("INSERT INTO paquetes(codigo,precio,nombre) VALUES($1,$2,$3)",[codigoPaquete,precio,nombre]);
-			for (let producto of productos) {
-				let codigo = producto.codigo;
-				let cantidad = producto.cantidad;
-				await client.query("INSERT INTO productos_paquete(codigo_producto,codigo_paquete,cantidad) VALUES($1,$2,$3)",[codigo,codigoPaquete,cantidad]);
-			}
+			await client.query("UPDATE paquetes SET precio=$1,nombre=$2 WHERE codigo=$3",[precio,nombre,codigoPaquete]);
 			await client.query('COMMIT');
 			response.status(200).send({
 				message:"Paquete actualizado exitosamente"
