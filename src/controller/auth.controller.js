@@ -13,12 +13,6 @@ const pool = new Pool({
   }
   });
 
-// const pool = new Pool({
-//     connectionString:"postgres://emhkofcqvywsys:a8dd8f3cc858551e8bf86b5cceca98361f02972980bf0080a5650855b82fcdff@ec2-54-159-22-90.compute-1.amazonaws.com:5432/d6v6d92eqe67do",
-//     ssl: {
-//       rejectUnauthorized: false,
-//     }
-//     });
 
 const signup = (request, response) =>{
     let usuario = request.body.usuario;
@@ -51,6 +45,27 @@ const getUsuarios = (request,response) =>{
           });
       }else{
         response.status(200).send({usuarios:results.rows});
+      }
+  })
+}
+
+const getVentasUsuarios = (request,response) =>{
+  let usuario = request.tokenData;
+  pool.query("select * from \
+  (select c.nombre, v.fecha, v.valor, v.usuario, 'VENTA' as tipo from clientes c \
+  inner join ventas v on v.cliente = c.cedula  where v.usuario=$1 and \
+  (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('day', current_date - interval '1' day)) \
+  ) as q2 union( \
+  select c.nombre, a.fecha, a.valor, a.usuario, 'ABONO' as tipo from clientes c \
+  inner join abonos a on a.cliente = c.cedula  where a.usuario=$1 and \
+  (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('day', current_date - interval '1' day)))",[usuario],(error,results)=>{
+    if (error) {
+      response.status(500)
+          .send({
+            message: error
+          });
+      }else{
+        response.status(200).send({operaciones:results.rows});
       }
   })
 }
@@ -108,4 +123,4 @@ const signin = (req,res)=>{
     }
 }
 
-module.exports = {signup,signin,getUsuarios}
+module.exports = {signup,signin,getUsuarios,getVentasUsuarios}
