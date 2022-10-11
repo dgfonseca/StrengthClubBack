@@ -51,7 +51,7 @@ const getUsuarios = (request,response) =>{
 
 const getVentasUsuarios = (request,response) =>{
   let usuario = request.tokenData;
-  pool.query("select * from \
+  pool.query("select *, cast(valor as money) as valor from \
   (select c.nombre, v.fecha, v.valor, v.usuario, 'VENTA' as tipo from clientes c \
   inner join ventas v on v.cliente = c.cedula  where v.usuario=$1 and \
   (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('day', current_date - interval '1' day)) \
