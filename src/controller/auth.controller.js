@@ -49,14 +49,14 @@ const getUsuarios = (request,response) =>{
   })
 }
 
-const getVentasUsuarios = (request,response) =>{
+const getOperacionesUsuarios = (request,response) =>{
   let usuario = request.tokenData;
-  pool.query("select *, cast(valor as money) as valor from \
-  (select c.nombre, v.fecha, v.valor, v.usuario, 'VENTA' as tipo from clientes c \
+  pool.query("select * from \
+  (select c.nombre, v.fecha, cast(round(v.valor,0) as money) as valor, v.usuario, 'VENTA' as tipo from clientes c \
   inner join ventas v on v.cliente = c.cedula  where v.usuario=$1 and \
   (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('day', current_date - interval '1' day)) \
   ) as q2 union( \
-  select c.nombre, a.fecha, a.valor, a.usuario, 'ABONO' as tipo from clientes c \
+  select c.nombre, a.fecha, cast(round(a.valor,0) as money) as valor, a.usuario, 'ABONO' as tipo from clientes c \
   inner join abonos a on a.cliente = c.cedula  where a.usuario=$1 and \
   (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('day', current_date - interval '1' day)))",[usuario],(error,results)=>{
     if (error) {
@@ -123,4 +123,4 @@ const signin = (req,res)=>{
     }
 }
 
-module.exports = {signup,signin,getUsuarios,getVentasUsuarios}
+module.exports = {signup,signin,getUsuarios,getOperacionesUsuarios}
