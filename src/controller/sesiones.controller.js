@@ -225,7 +225,7 @@ const crearSesion = async (request, response) =>{
         }else{
           let sesion = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING id",[entrenador,cliente,fecha,asistio,virtual]);
           if(!clienteRes.rows[0].anticipado){
-            await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData,sesion.rows[0].id]);
+            await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente,fecha,precioSesion,request.tokenData,sesion.rows[0].id]);
           }
           response.status(200).send({message:"Sesion Agendada Exitosamente"});
           return;
