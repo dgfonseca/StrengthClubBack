@@ -231,6 +231,7 @@ const crearSesion = async (request, response) =>{
           return;
         }
       }catch(error){
+        console.log(error)
         response.status(500)
                     .send({
                       message: error
