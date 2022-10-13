@@ -33,7 +33,7 @@ const pool = new Pool({
         inner join ventas_productos vp2 on ve2.id=vp2.venta \
         inner join productos p on p.codigo=vp2.producto \
         inner join clientes c on c.cedula=ve2.cliente where ve2.cliente=$2\
-        group by ve2.id, ve2.fecha, ve2.cliente, c.nombre) as foo group by foo.id,foo.fecha,foo.cliente,foo.nombre ORDER BY foo.fecha desc",[cliente,cliente],(error,results)=>{
+        group by ve2.id, ve2.fecha, ve2.cliente, c.nombre) as foo where TO_TIMESTAMP(foo.fecha,'YYYY-MM-DD') <= date_trunc('month',current_date) group by foo.id,foo.fecha,foo.cliente,foo.nombre ORDER BY foo.fecha desc",[cliente,cliente],(error,results)=>{
           if (error) {
             response.status(500)
                 .send({
