@@ -366,11 +366,12 @@ const postAbono = (request, response)=>{
 const getAbonosCliente = async (request,response)=>{
   let cliente = request.body.cliente;
   try {
-    let abonos = await pool.query("SELECT fecha,valor,tipo FROM abonos WHERE cliente=$1 and TO_TIMESTAMP('YYYY-MM-DD')>=date_trunc('month',current_date')",[cliente])
+    let abonos = await pool.query("SELECT fecha,valor,tipo FROM abonos WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')>=date_trunc('month',current_date)",[cliente])
     response.status(200).send({abonos:abonos.rows});
     return;
   } catch (error) {
     response.status(500).send({abonos:error});
+    return;
   }
 }
 
