@@ -370,7 +370,7 @@ const getAbonosCliente = async (request,response)=>{
     response.status(200).send({abonos:abonos.rows});
     return;
   } catch (error) {
-    response.status(500).send({abono:error});
+    response.status(500).send({abonos:error});
   }
 }
 
