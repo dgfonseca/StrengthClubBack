@@ -85,6 +85,7 @@ const borrarSesionesEntrenador = async (request,response)=>{
       });
       return;
     }catch(exception){
+      console.log(exception)
       response.status(500)
       .send({
       message: "No se pudieron borrar las sesiones del entrenador "+entrenador.replaceAll("%",''),
