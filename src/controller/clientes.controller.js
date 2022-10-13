@@ -295,20 +295,12 @@ const pool = new Pool({
             })
           });
 
-          imap.once('error', function (err) {
-            reject(err);
-          });
-
-          imap.once('end', function () {
-            resolve(response);
-          });
-
           imap.connect();
+          response.status(200).send({
+            message:mailData
+          })
+          return;
         })
-        response.status(200).send({
-          message:mailData
-        })
-        return;
       }else{
         response.status(405)
         .send({
