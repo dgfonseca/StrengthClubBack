@@ -22,7 +22,7 @@ const pool = new Pool({
 
     const getVentasCliente = (request,response) =>{
         let cliente = request.body.cliente;
-        pool.query("SELECT * FROM ventas WHERE cliente=$1 TO_TIMESTAMP(fecha,'YYYY-MM-DD') >= date_trunc('month',current_date) ORDER BY fecha desc",[cliente],(error,results)=>{
+        pool.query("SELECT * FROM ventas WHERE cliente=$1 AND TO_TIMESTAMP(fecha,'YYYY-MM-DD') >= date_trunc('month',current_date) ORDER BY fecha desc",[cliente],(error,results)=>{
           if (error) {
             console.log(error)
             response.status(500)
