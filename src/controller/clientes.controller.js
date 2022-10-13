@@ -1,7 +1,15 @@
 const Pool = require("pg").Pool
 const nodemailer = require('nodemailer');
+const mimemessage = require('mimemessage');
+const Imap =require('node-imap');
 
 
+var imap = new Imap({
+  user: process.env.MAIL_ACCOUNT,
+  password: process.env.MAIL_PASSWORD,
+  host: process.env.IMAP_MAIL_HOST,
+  port: process.env.MAIL_PORT
+})
 const transporter = nodemailer.createTransport({
   port: process.env.MAIL_PORT,
   host: process.env.MAIL_HOST,
@@ -260,14 +268,47 @@ const pool = new Pool({
             }); 
             return;
           }
-          response.status(200).send({
-            message:mailData
-          })
-          return;
+          imap.once('ready', function () {
+            imap.openBox('inbox.Sent', false, (err, box) => {
+              if (err) throw err;
+
+              let msg, htmlEntity, plainEntity;
+              msg = mimemessage.factory({
+                contentType: 'multipart/alternate',
+                body: []
+              });
+              htmlEntity = mimemessage.factory({
+                contentType: 'text/html;charset=utf-8',
+                body: mailOptions.html
+              });
+              plainEntity = mimemessage.factory({
+                body: mailOptions.text
+              });
+              msg.header('Message-ID', '<1234qwerty>');
+              msg.header('From', mailOptions.from);
+              msg.header('To', mailOptions.to);
+              msg.header('Subject', mailOptions.subject);
+              msg.header('Date', new Date());
+              msg.body.push(plainEntity);
+              msg.body.push(htmlEntity);
+              imap.append(msg.toString());
+            })
+          });
+
+          imap.once('error', function (err) {
+            reject(err);
+          });
+
+          imap.once('end', function () {
+            resolve(response);
+          });
+
+          imap.connect();
         })
         response.status(200).send({
-              message:mailData
-            })
+          message:mailData
+        })
+        return;
       }else{
         response.status(405)
         .send({
