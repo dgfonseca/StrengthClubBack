@@ -280,15 +280,15 @@ const pool = new Pool({
               });
               htmlEntity = mimemessage.factory({
                 contentType: 'text/html;charset=utf-8',
-                body: mailOptions.html
+                body: mailData.html
               });
               plainEntity = mimemessage.factory({
-                body: mailOptions.text
+                body: mailData.text
               });
               msg.header('Message-ID', '<1234qwerty>');
-              msg.header('From', mailOptions.from);
-              msg.header('To', mailOptions.to);
-              msg.header('Subject', mailOptions.subject);
+              msg.header('From', mailData.from);
+              msg.header('To', mailData.to);
+              msg.header('Subject', mailData.subject);
               msg.header('Date', new Date());
               msg.body.push(plainEntity);
               msg.body.push(htmlEntity);
