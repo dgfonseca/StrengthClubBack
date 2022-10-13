@@ -363,6 +363,17 @@ const postAbono = (request, response)=>{
   }
 }
 
+const getAbonosCliente = async (request,response)=>{
+  let cliente = request.body.cliente;
+  try {
+    let abonos = await pool.query("SELECT fecha,valor,tipo FROM abonos WHERE cliente=$1 and TO_TIMESTAMP('YYYY-MM-DD')>=date_trunc('month',current_date')",[cliente])
+    response.status(200).send({abonos:abonos.rows});
+    return;
+  } catch (error) {
+    response.status(500).send({abono:error});
+  }
+}
+
 const getContabilidadClientes = (request,response) =>{
   let fechaInicio = request.body.fechaInicio
   let fechaFin = request.body.fechaFin
@@ -482,4 +493,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,getAbonos,deleteAbono}
+module.exports = {crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,getAbonos,deleteAbono, getAbonosCliente}
