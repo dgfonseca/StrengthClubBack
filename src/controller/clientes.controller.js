@@ -8,7 +8,7 @@ var imap = new Imap({
   user: process.env.MAIL_ACCOUNT,
   password: process.env.MAIL_PASSWORD,
   host: process.env.IMAP_MAIL_HOST,
-  port: process.env.MAIL_PORT
+  port: process.env.IMAP_MAIL_PORT
 })
 const transporter = nodemailer.createTransport({
   port: process.env.MAIL_PORT,
