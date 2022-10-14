@@ -285,7 +285,6 @@ const pool = new Pool({
               plainEntity = mimemessage.factory({
                 body: mailData.text
               });
-              msg.header('Message-ID', '<1234qwerty>');
               msg.header('From', mailData.from);
               msg.header('To', mailData.to);
               msg.header('Subject', mailData.subject);
