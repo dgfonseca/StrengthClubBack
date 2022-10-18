@@ -466,6 +466,7 @@ const crearCliente = (request, response) =>{
     if(nombre && email && direccion && telefono && cedula && nacimiento){
         pool.query("INSERT INTO clientes(cedula,nombre,email,telefono,direccion,fecha_nacimiento,anticipado) VALUES($1,$2,$3,$4,$5,$6,$7)", [cedula, nombre, email,telefono,direccion,nacimiento,anticipado], (error, results)=>{
             if (error) {
+              console.log(error)
               response.status(500)
                   .send({
                     message: error
