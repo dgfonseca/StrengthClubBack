@@ -82,7 +82,7 @@ const pool = new Pool({
       and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.paquete not like '%SES%' and v.cliente=$1 group by p.nombre",[cedula])
       suplementos = await pool.query("select p.nombre, sum(vp.cantidad) as cantidad ,SUM(vp.cantidad*p.precio) as precio from ventas v inner join \
       ventas_productos vp on v.id = vp.venta inner join productos p on p.codigo = vp.producto where (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-      and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' adn cliente=$1 group by p.nombre",[cedula])
+      and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' and cliente=$1 group by p.nombre",[cedula])
        if(!cuenta.rows[0].anticipado){
          ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
          and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
