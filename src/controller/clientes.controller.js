@@ -52,7 +52,7 @@ const pool = new Pool({
     let sesionesVentasProductos;
     let sesionesVentasPaquetes;
     let deuda;
-    let sesion;
+    let sesion,suplementos,proteinas;
     try {
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
       sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
@@ -77,6 +77,12 @@ const pool = new Pool({
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1 \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))\
        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
+      proteinas = await pool.query("select p.nombre, sum(vp.cantidad) as cantidad,SUM(vp.cantidad*p.precio) as precio from ventas v inner join ventas_paquetes vp on v.id = vp.venta \
+      inner join paquetes p on p.codigo = vp.paquete where (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
+      and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.paquete not like '%SES%' and v.cliente=$1 group by p.nombre",[cedula])
+      suplementos = await pool.query("select p.nombre, sum(vp.cantidad) as cantidad ,SUM(vp.cantidad*p.precio) as precio from ventas v inner join \
+      ventas_productos vp on v.id = vp.venta inner join productos p on p.codigo = vp.producto where (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
+      and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' adn cliente=$1 group by p.nombre",[cedula])
        if(!cuenta.rows[0].anticipado){
          ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
          and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
@@ -193,12 +199,23 @@ const pool = new Pool({
                 <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
               </tr>';
         }
-        let htmlRow = ""
+        let htmlRowSuplemento = ""
+        let htmlRowProteina = ""
         let htmlRow2= ""
-        ventas.rows.forEach(venta =>{
-          htmlRow+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
-          htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
-          htmlRow+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(venta.valor)+'</td></tr>'
+        // ventas.rows.forEach(venta =>{
+        //   htmlRow+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
+        //   htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
+        //   htmlRow+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(venta.valor)+'</td></tr>'
+        // })
+        suplementos.rows.forEach(suplemento=>{
+          htmlRowSuplemento+='<tr><td style="border:1px solid black">'+suplemento.nombre+'</td>'
+          htmlRowSuplemento+='<td style="border:1px solid black">'+suplemento.cantidad+'</td>'
+          htmlRowSuplemento+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
+        })
+        proteinas.rows.forEach(proteina=>{
+          htmlRowProteina+='<tr><td style="border:1px solid black">'+proteina.nombre+'</td>'
+          htmlRowProteina+='<td style="border:1px solid black">'+proteina.cantidad+'</td>'
+          htmlRowProteina+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
         })
         abonos.rows.forEach(abono =>{
           htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
@@ -236,12 +253,24 @@ const pool = new Pool({
             <tr style="font-weight:bold"> \
             Compras\
             </tr> \
+            <tr style="font-weight:bold"> \
+            Proteinas\
+            </tr> \
               <tr> \
-                <th style="border:1px solid black">Nombre</th> \
-                <th style="border:1px solid black">Fecha</th> \
+                <th style="border:1px solid black">Producto</th> \
+                <th style="border:1px solid black">Cantidad</th> \
                 <th style="border:1px solid black">Valor</th> \
               </tr> \
-             '+htmlRow+' \
+             '+htmlRowProteina+' \
+            <tr style="font-weight:bold"> \
+            Suplementos\
+            </tr> \
+              <tr> \
+                <th style="border:1px solid black">Producto</th> \
+                <th style="border:1px solid black">Cantidad</th> \
+                <th style="border:1px solid black">Valor</th> \
+              </tr> \
+             '+htmlRowSuplemento+' \
             </table><br><br> \
             <table style="width:100%; border:1px solid black"> \
               <tr style="font-weight:bold"> \
