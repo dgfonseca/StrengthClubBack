@@ -202,11 +202,6 @@ const pool = new Pool({
         let htmlRowSuplemento = ""
         let htmlRowProteina = ""
         let htmlRow2= ""
-        // ventas.rows.forEach(venta =>{
-        //   htmlRow+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
-        //   htmlRow+='<td style="border:1px solid black">'+venta.fecha+'</td>'
-        //   htmlRow+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(venta.valor)+'</td></tr>'
-        // })
         suplementos.rows.forEach(suplemento=>{
           htmlRowSuplemento+='<tr><td style="border:1px solid black">'+suplemento.nombre+'</td>'
           htmlRowSuplemento+='<td style="border:1px solid black">'+suplemento.cantidad+'</td>'
@@ -484,6 +479,66 @@ const getContabilidadClientes = (request,response) =>{
   }
 }
 
+const getDetalleContabilidadCliente = (request,response)=>{
+  let cedula = request.body.cedula;
+  sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
+  sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
+  try {
+      let cuenta = await pool.query("SELECT * from clientes where cedula=$1",[cedula]);
+      abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
+       and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))",[cedula])
+      let deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
+      left join ventas v on v.cliente = c.cedula  \
+      where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)) group by c.cedula",[cedula]);
+      let sesionesAgendadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
+      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)) \
+     and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula])
+      let sesionesVirtualesAgendadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
+      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date- interval '1' month)) \
+      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula]);
+      let sesionesCompradasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_productos vp on vp.venta = v.id \
+      where vp.producto='SES' and v.cliente=$1  \
+       and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)) \
+       and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula]);
+      let sesionesCompradasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_paquetes vp on vp.venta = v.id \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
+       and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') = date_trunc('month', current_date)) \
+       and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula]);
+      let sesionesPagadas, sesionesTomadas,sesionesVirtualesTomadas,deudaSesiones;
+      var data = {};
+      if(cuenta.rows[0].anticipado){
+        sesionesPagadas = parseFloat(sesionesCompradasProductos.rows[0].sesiones) + parseFloat(sesionesCompradasPaquetes.rows[0].sesiones);
+        sesionesTomadas = parseFloat(sesionesAgendadas.rows[0].sesiones)+parseFloat(sesionesVirtualesAgendadas.rows[0].sesiones);
+        sesionesRestantes = sesionesPagadas - sesionesRestantes;
+        data.sesionesPagadas=sesionesPagadas;
+        data.sesionesRestantes=sesionesRestantes;
+      }else{
+        sesionesTomadas = parseFloat(sesionesAgendadas.rows[0].sesiones);
+        sesionesVirtualesTomadas= parseFloat(sesionesVirtualesAgendadas.rows[0].sesiones);
+        deudaSesiones = (sesionesAgendadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesAgendadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
+        data.sesionesVirtualesTomadas=sesionesVirtualesTomadas;
+        data.deudaSesiones=deudaSesiones;
+      }
+      data.sesionesTomadas=sesionesTomadas
+      data.deuda=parseFloat(deuda.rows[0].debito)-parseFloat(deudaSesiones);
+      data.abonos=abonosValue.rows[0].abonosValue;
+
+      response.status(200)
+            .send({
+              data: data
+            });
+      return;
+  } catch (error) {
+    console.log(error)
+    response.status(500)
+            .send({
+              data: error
+            });
+      return;
+  }
+}
 const crearCliente = (request, response) =>{
     let nombre = request.body.nombre;
     let email = request.body.email;
