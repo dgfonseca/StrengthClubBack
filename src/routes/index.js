@@ -35,6 +35,7 @@ router.get("/entrenadores",[middlewareAuth.validateToken,middlewareAuth.isAdmin]
 router.get("/sesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.getSesiones)
 router.get("/contabilidadProductos",[middlewareAuth.validateToken,middlewareAuth.isAdmin], productos.getContabilidadProductos)
 router.post("/abonosCliente",[middlewareAuth.validateToken,middlewareAuth.isAdmin], cliente.getAbonosCliente)
+router.post("/detalleContabilidadCliente",[middlewareAuth.validateToken,middlewareAuth.isAdmin], cliente.getDetalleContabilidadCliente)
 router.post("/entrenador",[middlewareAuth.validateToken,middlewareAuth.isAdmin],entrenador.crearEntrenador)
 router.post("/cliente",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.crearCliente)
 router.post("/productos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],productos.crearProducto)
