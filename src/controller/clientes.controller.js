@@ -485,7 +485,7 @@ const getDetalleContabilidadCliente = async (request,response)=>{
   sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
   try {
       let cuenta = await pool.query("SELECT * from clientes where cedula=$1",[cedula]);
-      abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
+      let abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
        and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))",[cedula])
       let deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
       left join ventas v on v.cliente = c.cedula  \
@@ -514,16 +514,19 @@ const getDetalleContabilidadCliente = async (request,response)=>{
         sesionesRestantes = sesionesPagadas - sesionesRestantes;
         data.sesionesPagadas=sesionesPagadas;
         data.sesionesRestantes=sesionesRestantes;
+        data.deuda = parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0)
       }else{
         sesionesTomadas = parseFloat(sesionesAgendadas.rows[0].sesiones);
         sesionesVirtualesTomadas= parseFloat(sesionesVirtualesAgendadas.rows[0].sesiones);
         deudaSesiones = (sesionesAgendadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesAgendadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
+        let deudaSinSesiones = parseFloat(deuda.rows[0]?(deuda.rows[0].debito-deudaSesiones):0);
+        let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deudaSinSesiones) - parseFloat(abonosValue.rows[0].abonos);
         data.sesionesVirtualesTomadas=sesionesVirtualesTomadas;
         data.deudaSesiones=deudaSesiones;
+        data.deuda=deudaTotal;
       }
-      data.sesionesTomadas=sesionesTomadas
-      data.deuda=parseFloat(deuda.rows[0].debito)-parseFloat(deudaSesiones);
-      data.abonos=abonosValue.rows[0].abonosValue;
+      data.sesionesTomadas=sesionesTomadas;
+      data.abonos=abonosValue.rows[0].abonos;
 
       response.status(200)
             .send({
