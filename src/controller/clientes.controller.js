@@ -512,7 +512,7 @@ const getDetalleContabilidadCliente = async (request,response)=>{
         sesionesRestantes = sesionesPagadas - sesionesRestantes;
         data.sesionesPagadas=sesionesPagadas;
         data.sesionesRestantes=sesionesRestantes;
-        data.deuda = parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0)
+        data.deuda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0))
       }else{
         sesionesTomadas = parseFloat(sesionesAgendadas.rows[0].sesiones);
         sesionesVirtualesTomadas= parseFloat(sesionesVirtualesAgendadas.rows[0].sesiones);
@@ -520,11 +520,11 @@ const getDetalleContabilidadCliente = async (request,response)=>{
         let deudaSinSesiones = parseFloat(deuda.rows[0]?(deuda.rows[0].debito-deudaSesiones):0);
         let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deudaSinSesiones) - parseFloat(abonosValue.rows[0].abonos);
         data.sesionesVirtualesTomadas=sesionesVirtualesTomadas;
-        data.deudaSesiones=deudaSesiones;
-        data.deuda=deudaTotal;
+        data.deudaSesiones=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSesiones);
+        data.deuda=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal);
       }
       data.sesionesTomadas=sesionesTomadas;
-      data.abonos=abonosValue.rows[0].abonos;
+      data.abonos=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(abonosValue.rows[0].abonos));
       data.anticipado=cuenta.rows[0].anticipado;
 
       response.status(200)
