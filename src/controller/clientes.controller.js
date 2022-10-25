@@ -525,6 +525,7 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       }
       data.sesionesTomadas=sesionesTomadas;
       data.abonos=abonosValue.rows[0].abonos;
+      data.anticipado=cuenta.rows[0].anticipado;
 
       response.status(200)
             .send({
