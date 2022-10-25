@@ -487,7 +487,7 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       let cuenta = await pool.query("SELECT * from clientes where cedula=$1",[cedula]);
       let abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1",[cedula])
       let deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
-      left join ventas v on v.cliente = c.cedula group by c.cedula",[cedula]);
+      left join ventas v on v.cliente = c.cedula where v.cliente=$1 group by c.cedula",[cedula]);
       let sesionesAgendadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)) \
      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula])
