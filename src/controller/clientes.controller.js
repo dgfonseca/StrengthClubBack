@@ -509,7 +509,7 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       if(cuenta.rows[0].anticipado){
         sesionesPagadas = parseFloat(sesionesCompradasProductos.rows[0].sesiones) + parseFloat(sesionesCompradasPaquetes.rows[0].sesiones);
         sesionesTomadas = parseFloat(sesionesAgendadas.rows[0].sesiones)+parseFloat(sesionesVirtualesAgendadas.rows[0].sesiones);
-        sesionesRestantes = sesionesPagadas - sesionesRestantes;
+        sesionesRestantes = sesionesPagadas - sesionesTomadas;
         data.sesionesPagadas=sesionesPagadas;
         data.sesionesRestantes=sesionesRestantes;
         data.deuda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0))
