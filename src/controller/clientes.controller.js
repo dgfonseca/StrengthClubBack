@@ -479,7 +479,7 @@ const getContabilidadClientes = (request,response) =>{
   }
 }
 
-const getDetalleContabilidadCliente = (request,response)=>{
+const getDetalleContabilidadCliente = async (request,response)=>{
   let cedula = request.body.cedula;
   sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
   sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
