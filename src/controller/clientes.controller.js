@@ -485,11 +485,9 @@ const getDetalleContabilidadCliente = async (request,response)=>{
   sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
   try {
       let cuenta = await pool.query("SELECT * from clientes where cedula=$1",[cedula]);
-      let abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
-       and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))",[cedula])
+      let abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1",[cedula])
       let deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
-      left join ventas v on v.cliente = c.cedula  \
-      where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)) group by c.cedula",[cedula]);
+      left join ventas v on v.cliente = c.cedula group by c.cedula",[cedula]);
       let sesionesAgendadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)) \
      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula])
