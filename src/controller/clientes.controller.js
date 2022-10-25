@@ -506,7 +506,7 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') = date_trunc('month', current_date)) \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula]);
-      let sesionesPagadas, sesionesTomadas,sesionesVirtualesTomadas,deudaSesiones;
+      let sesionesPagadas, sesionesTomadas,sesionesVirtualesTomadas,deudaSesiones,sesionesRestantes;
       var data = {};
       if(cuenta.rows[0].anticipado){
         sesionesPagadas = parseFloat(sesionesCompradasProductos.rows[0].sesiones) + parseFloat(sesionesCompradasPaquetes.rows[0].sesiones);
