@@ -296,6 +296,7 @@ const pool = new Pool({
         }
         transporter.sendMail(mailData, (error,info)=>{
           if(error){
+            console.log("Error con la cedula: "+cedula)
             console.log(error)
             response.status(500)
             .send({
@@ -342,6 +343,7 @@ const pool = new Pool({
         });
       }
     } catch (error) {
+      console.log("Error con la cedula: "+cedula)
       console.log(error)
       response.status(500)
       .send({
