@@ -82,17 +82,17 @@ const pool = new Pool({
       and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) \
       and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date ) \
       and vp.paquete not like '%SES%' and v.cliente=$1 group by p.nombre",[cedula])
-      suplementos = await pool.query("select q.producto as nombre, sum(vp.cantidad) as cantidad ,SUM(vp.cantidad*q.precio) as precio from ventas v inner join \
+      suplementos = await pool.query("select q.nombre, q.producto, sum(vp.cantidad) as cantidad ,SUM(vp.cantidad*q.precio) as precio from ventas v inner join \
       ventas_productos vp on v.id = vp.venta \
       inner join \
       ( \
-      	select p.producto,p.precio,TO_TIMESTAMP(p.fechaInicio,'YYYY-MM-DD HH24:MI') as fechaInicio, coalesce(TO_TIMESTAMP(p.fechafin,'YYYY-MM-DD HH24:MI'),current_timestamp) as fechaFin \
-      	from historico_productos p \
+      	select pr.nombre,p.producto,p.precio,TO_TIMESTAMP(p.fechaInicio,'YYYY-MM-DD HH24:MI') as fechaInicio, coalesce(TO_TIMESTAMP(p.fechafin,'YYYY-MM-DD HH24:MI'),current_timestamp) as fechaFin \
+      	from historico_productos p INNER JOIN productos pr on pr.codigo=p.producto\
       ) \
       q on q.producto = vp.producto and \
       (TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') > q.fechaInicio and TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') < q.fechaFin) \
       where (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-      and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' and v.cliente=$1 group by q.producto",[cedula])
+      and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' and v.cliente=$1 group by q.producto, q.nombre",[cedula])
        if(!cuenta.rows[0].anticipado){
          ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
          and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
