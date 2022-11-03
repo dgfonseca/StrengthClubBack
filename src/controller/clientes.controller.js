@@ -106,7 +106,9 @@ const pool = new Pool({
       deudaMesActual = await pool.query("select  round(sum(valor)) as valor from ventas where cliente=$1 \
         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
         and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
-      
+      let abonoMesActual = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
+      and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))  \
+      and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
       if(!cuenta.rows[0].anticipado){
          ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
          and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
@@ -216,7 +218,7 @@ const pool = new Pool({
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Abonos:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonosAnteriorValue.rows[0].abonos)+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonoMesActual.rows[0].abonos)+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Saldo por Pagar:</th>\
