@@ -103,7 +103,7 @@ const pool = new Pool({
       where (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
       and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' and v.cliente=$1 group by q.producto, q.nombre",[cedula])
       let deudaMesActual;
-      deudaMesActual = await pool.query("select  round(sum(valor)) as valor from ventas where cliente=$1 \
+      deudaMesActual = await pool.query("select  coalesce(round(sum(valor)),0) as valor from ventas where cliente=$1 \
         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
         and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
       let abonoMesActual = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
@@ -128,8 +128,8 @@ const pool = new Pool({
           let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
           let saldoTotalPre = parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0)
           let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre)
-          let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deuda.rows[0]?deuda.rows[0].debito:0)
-          let abonosTotales = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonosValue.rows[0].abonos)
+          let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0].debito)-parseFloat(abonosAnteriorValue.rows[0].abonos) + parseFloat(deudaMesActual.rows[0].valor)
+          let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
           let textoSaldoTotal;
           if(saldoTotalPre>0){
             textoSaldoTotal=saldoTotal
@@ -168,7 +168,7 @@ const pool = new Pool({
           </tr> \
           <tr> \
             <th style="border:1px solid black">Abonos:</th>\
-            <th style="border:1px solid black">'+abonosTotales+'</th>\
+            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(abonoMesActual.rows[0].abonos))+'</th>\
           </tr> \
           <tr> \
             <th style="border:1px solid black">Saldo por Pagar:</th>\
