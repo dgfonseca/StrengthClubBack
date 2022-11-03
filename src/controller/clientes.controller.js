@@ -48,19 +48,23 @@ const pool = new Pool({
     let cuenta;let ventas;
     let abonos;
     let abonosValue;
+    let abonosAnteriorValue;
     let sesionesTomadas;
     let sesionesVentasProductos;
     let sesionesVentasPaquetes;
     let deuda;
+    let deudaAnterior;
     let sesion,suplementos,proteinas;
     try {
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
       sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
       cuenta = await pool.query("select nombre,email ,anticipado, habilitado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))",[cedula])
       sesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))\
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))",[cedula])
        sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1  \
@@ -71,9 +75,14 @@ const pool = new Pool({
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
        abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
        and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
+       abonosAnteriorValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
+       and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date - interval '1' month))",[cedula])
        deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula  \
         where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) group by c.cedula",[cedula])
+       deudaAnterior = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
+        left join ventas v on v.cliente = c.cedula  \
+        where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date - interval '1' month)) group by c.cedula",[cedula])
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1 \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))\
        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
@@ -93,7 +102,9 @@ const pool = new Pool({
       (TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') > q.fechaInicio and TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') < q.fechaFin) \
       where (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
       and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' and v.cliente=$1 group by q.producto, q.nombre",[cedula])
-       if(!cuenta.rows[0].anticipado){
+      let deudaMesActual;
+      
+      if(!cuenta.rows[0].anticipado){
          ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
          and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
          and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and \
@@ -102,7 +113,9 @@ const pool = new Pool({
          ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
          and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
          and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
-
+        deudaMesActual = await pool.query("select  round(sum(valor)) as valor from ventas where cliente=$1 \
+          and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
+          and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
        }
 
       let sesionesHtml;
@@ -161,9 +174,9 @@ const pool = new Pool({
           </tr>';
         }else{
           let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
-          let deudaSinSesiones = parseFloat(deuda.rows[0]?(deuda.rows[0].debito-deudaSesiones):0);
+          let deudaSinSesiones = parseFloat(deuda.rows[0]?(deuda.rows[0].debito-deudaSesiones+deudaMesActual.rows[0].valor):0);
           let deudaTotalSesiones = (deudaSesiones);
-          let deudaTotal = parseFloat(deudaTotalSesiones) + parseFloat(deudaSinSesiones) - parseFloat(abonosValue.rows[0].abonos);
+          let deudaTotal = parseFloat(deuda.rows[0]?(deuda.rows[0].debito):0) - parseFloat(abonosValue.rows[0].abonos);
           let textoSaldoTotal;
           if(deudaTotal>0){
             textoSaldoTotal=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)
