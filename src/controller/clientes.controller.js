@@ -80,7 +80,7 @@ const pool = new Pool({
        deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula  \
         where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) group by c.cedula",[cedula])
-       deudaAnterior = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
+       deudaAnterior = await pool.query("select coalesce(round(sum(v.valor)),0) as debito from clientes c \
         left join ventas v on v.cliente = c.cedula  \
         where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date - interval '1' month)) group by c.cedula",[cedula])
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1 \
@@ -174,7 +174,8 @@ const pool = new Pool({
           </tr>';
         }else{
           let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
-          let deudaSinSesiones = parseFloat(deuda.rows[0]?(deuda.rows[0].debito-deudaSesiones+parseFloat(deudaMesActual.rows[0].valor)):0);
+          let saldoAnterior = parseFloat(deudaAnterior.rows[0].debito)-parseFloat(abonosAnteriorValue.rows[0].abonos);
+          let deudaSinSesiones = saldoAnterior-deudaSesiones+parseFloat(deudaMesActual.rows[0].valor);
           let deudaTotalSesiones = (deudaSesiones);
           let deudaTotal = parseFloat(deuda.rows[0]?(deuda.rows[0].debito):0) - parseFloat(abonosValue.rows[0].abonos);
           let textoSaldoTotal;
