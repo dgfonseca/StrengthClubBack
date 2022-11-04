@@ -47,7 +47,6 @@ function delay(time) {
 }
 
 const sendAllEmail = async(request,response)=>{
-    console.log("Entrooo1")
     let cuenta;let ventas;
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
@@ -266,9 +265,7 @@ const sendAllEmail = async(request,response)=>{
           if(fechaInicio && fechaFin){
             titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+'</h2>'
           }else{
-  
             const date = new Date();
-  
             const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
             const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
             titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'</h2>'
@@ -334,7 +331,7 @@ const sendAllEmail = async(request,response)=>{
         console.log(error)
         errores.push("Error con la cedula: "+cedula)
       }
-      await delay(250)
+      await delay(1000)
     }
     if(errores.length>0){
         response.status(500)
