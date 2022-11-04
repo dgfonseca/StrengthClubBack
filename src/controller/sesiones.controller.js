@@ -174,7 +174,7 @@ const crearSesionDeIcs =  async (request, response)=>{
             let resV = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
             if(!esAnticipado){
               message+=" Y venta registrada exitosamente"
-              if(precioSesion!==null && precioSesion>0 && precioSesion!==undefined){
+              if(precioSesion!==null && precioSesion!==undefined){
                 if(virtual){
                   precioSesion = resV.rows[0].precio
                 }
