@@ -26,6 +26,8 @@
 			let precio = request.body.precio;
 			await client.query('BEGIN');
 			await client.query("UPDATE paquetes SET precio=$1,nombre=$2 WHERE codigo=$3",[precio,nombre,codigoPaquete]);
+			await client.query("UPDATE historico_paquetes set fechaFin=TO_CHAR(NOW(), 'yyyy/mm/dd HH12:MI:SS') WHERE codigo_paquete=$1 and fechaFin is null",[codigoPaquete])
+			await client.query("INSERT INTO historico_paquetes(codigo_paquete,precio,fechaInicio,fechaFin) values ($1,$2,TO_CHAR(NOW(), 'yyyy/mm/dd HH24:MI:SS'),null)",[codigoPaquete,precio]);
 			await client.query('COMMIT');
 			response.status(200).send({
 				message:"Paquete actualizado exitosamente"
@@ -55,6 +57,7 @@
 					let cantidad = producto.cantidad;
 					await client.query("INSERT INTO productos_paquete(codigo_producto,codigo_paquete,cantidad) VALUES($1,$2,$3)",[codigo,codigoPaquete,cantidad]);
 				}
+				await client.query("INSERT INTO historico_paquetes(codigo_paquete,precio,fechaInicio,fechaFin) values ($1,$2,TO_CHAR(NOW(), 'yyyy/mm/dd HH24:MI:SS'),null)",[codigoPaquete,precio]);
 				await client.query('COMMIT');
 				response.status(200).send({
 					message:"Paquete creado exitosamente"
