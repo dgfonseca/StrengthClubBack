@@ -360,7 +360,7 @@ const sendAllEmail = async(request,response)=>{
             imap.connect();
           })
         }
-        await delay(1000)
+        await delay(500)
       } catch (error) {
         console.log("Error con la cedula: "+cedula)
         console.log(error)
