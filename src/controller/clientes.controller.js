@@ -42,6 +42,10 @@ const pool = new Pool({
 //   });
 
 
+function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
 const sendAllEmail = async(request,response)=>{
     let cuenta;let ventas;
     let fechaInicio = request.body.fechaInicio;
@@ -356,6 +360,7 @@ const sendAllEmail = async(request,response)=>{
             imap.connect();
           })
         }
+        await delay(1000)
       } catch (error) {
         console.log("Error con la cedula: "+cedula)
         console.log(error)
