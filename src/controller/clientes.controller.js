@@ -135,7 +135,7 @@ const pool = new Pool({
           let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
           let saldoTotalPre = parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0)
           let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre)
-          let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0].debito)-parseFloat(abonosAnteriorValue.rows[0].abonos) + parseFloat(deudaMesActual.rows[0].valor)
+          let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0) + parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
           let textoSaldoTotal;
           if(saldoTotalPre>0){
@@ -175,7 +175,7 @@ const pool = new Pool({
           </tr> \
           <tr> \
             <th style="border:1px solid black">Abonos:</th>\
-            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(abonoMesActual.rows[0].abonos))+'</th>\
+            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(abonoMesActual.rows[0]?abonoMesActual.rows[0].abonos:0))+'</th>\
           </tr> \
           <tr> \
             <th style="border:1px solid black">Saldo por Pagar:</th>\
@@ -183,8 +183,8 @@ const pool = new Pool({
           </tr>';
         }else{
           let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
-          let saldoAnterior = parseFloat(deudaAnterior.rows[0].debito)-parseFloat(abonosAnteriorValue.rows[0].abonos);
-          let deudaSinSesiones = saldoAnterior-deudaSesiones+parseFloat(deudaMesActual.rows[0].valor);
+          let saldoAnterior = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0);
+          let deudaSinSesiones = saldoAnterior-deudaSesiones+parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0);
           let deudaTotalSesiones = (deudaSesiones);
           let deudaTotal = parseFloat(deuda.rows[0]?(deuda.rows[0].debito):0) - parseFloat(abonosValue.rows[0].abonos);
           let textoSaldoTotal;
