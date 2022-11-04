@@ -393,6 +393,7 @@ async function wrapedSendMail(mailData){
 
   const sendEmail = async (request,response)=>{
     let cedula = request.body.cedula;
+    console.log("Enviando correo a " +cedula)
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
     let cuenta;let ventas;
