@@ -44,6 +44,8 @@ const pool = new Pool({
 
 const sendAllEmail = async(request,response)=>{
     let cuenta;let ventas;
+    let fechaInicio = request.body.fechaInicio;
+    let fechaFin = request.body.fechaFin;
     let abonos;
     let abonosValue;
     let abonosAnteriorValue;
