@@ -334,7 +334,7 @@ const sendAllEmail = async(request,response)=>{
         console.log(error)
         errores.push("Error con la cedula: "+cedula)
       }
-      await delay(2000)
+      await delay(250)
     }
     if(errores.length>0){
         response.status(500)
@@ -352,20 +352,18 @@ const sendAllEmail = async(request,response)=>{
     
 }
 
-async function wrapedSendMail(mailOptions){
+async function wrapedSendMail(mailData){
   return new Promise((resolve,reject)=>{
     transporter.sendMail(mailData, (error,info)=>{
       if(error){
         console.log("Error con la cedula: "+cedula)
         console.log(error)
-        errores.push("Error con la cedula: "+cedula)
       }
       imap.once('ready', function () {
         imap.openBox('inbox.Sent', false, (err, box) => {
           if (err){
             console.log("Error en imap con la cedula: "+cedula)
             console.log(error)
-            errores.push("Error en imap con la cedula: "+cedula)
           };
 
           let msg, htmlEntity, plainEntity;
