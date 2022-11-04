@@ -667,48 +667,12 @@ async function wrapedSendMail(mailData){
             </body> \
           </html>'
         }
-        transporter.sendMail(mailData, (error,info)=>{
-          if(error){
-            console.log("Error con la cedula: "+cedula)
-            console.log(error)
-            response.status(500)
-            .send({
-              message: error
-            }); 
-            return;
-          }
-          imap.once('ready', function () {
-            imap.openBox('inbox.Sent', false, (err, box) => {
-              if (err) throw err;
-
-              let msg, htmlEntity, plainEntity;
-              msg = mimemessage.factory({
-                contentType: 'multipart/alternate',
-                body: []
-              });
-              htmlEntity = mimemessage.factory({
-                contentType: 'text/html;charset=utf-8',
-                body: mailData.html
-              });
-              plainEntity = mimemessage.factory({
-                body: mailData.text
-              });
-              msg.header('From', mailData.from);
-              msg.header('To', mailData.to);
-              msg.header('Subject', mailData.subject);
-              msg.header('Date', new Date());
-              msg.body.push(plainEntity);
-              msg.body.push(htmlEntity);
-              imap.append(msg.toString());
-            })
-          });
-
-          imap.connect();
-          response.status(200).send({
-            message:mailData
-          })
-          return;
-        })
+        await wrapedSendMail(mailData);
+        response.status(200)
+        .send({
+          message: "Success"
+        });
+        return;
       }else{
         response.status(405)
         .send({
