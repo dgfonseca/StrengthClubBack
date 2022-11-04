@@ -703,12 +703,10 @@ async function wrapedSendMail(mailData){
               imap.append(msg.toString());
             })
           });
-          f.once('end', function() {
-            console.log('Se envió el mensaje');
-            imap.end();
-          });
 
           imap.connect();
+          await delay(2000)
+          imap.end();
           response.status(200).send({
             message:mailData
           })
