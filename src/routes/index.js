@@ -59,7 +59,7 @@ router.delete("/abono",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cli
 router.delete("/sesionesEntrenador",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.borrarSesionesEntrenador)
 ////ADMIN TODO/////
 router.post("/sendEmail",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.sendEmail)
-router.get("/sendAllEmail",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.sendAllEmail)
+router.post("/sendAllEmail",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.sendAllEmail)
 router.post("/sesionesics",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.crearSesionDeIcs)
 
 module.exports = router;
