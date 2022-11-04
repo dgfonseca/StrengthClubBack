@@ -47,6 +47,7 @@ function delay(time) {
 }
 
 const sendAllEmail = async(request,response)=>{
+    console.log("Entrooo1")
     let cuenta;let ventas;
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
@@ -63,6 +64,7 @@ const sendAllEmail = async(request,response)=>{
     let errores = []
     for await (let cliente of clientes.rows){
       let cedula = cliente.cedula;
+      console.log("Entrooo "+cedula)
       try {
         sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
         sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
