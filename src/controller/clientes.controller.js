@@ -705,7 +705,6 @@ async function wrapedSendMail(mailData){
           });
 
           imap.connect();
-          await delay(2000)
           imap.end();
           response.status(200).send({
             message:mailData
