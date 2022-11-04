@@ -68,11 +68,11 @@ try {
   if(nombre && codigo && descripcion && inventario && precio){
       if(inventarioAdicional && inventarioAdicional!==0){
         await client.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=inventario+$3,precio=$4,habilitado=$5,preciocompra=$7 WHERE codigo=$6", [nombre, descripcion,inventarioAdicional,precio,habilitado,codigo,precioCompra]);
-        await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(now() at TIME ZONE 'America/Bogota', 'yyyy/mm/dd HH12:MI:SS') WHERE producto=$1 and fechaFin is null",[codigo]);
+        await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(now() at TIME ZONE 'America/Bogota', 'yyyy/mm/dd HH24:MI:SS') WHERE producto=$1 and fechaFin is null",[codigo]);
         await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH24:MI:SS'),null)", [codigo, inventarioAdicional,precioCompra,precio])
       }else{
         await client.query("UPDATE productos SET nombre=$1,descripcion=$2,inventario=$3,precio=$4,habilitado=$5,preciocompra=$7 WHERE codigo=$6", [nombre, descripcion,inventario,precio,habilitado,codigo,precioCompra]);
-        await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(now() at TIME ZONE 'America/Bogota', 'yyyy/mm/dd HH12:MI:SS') WHERE producto=$1 and fechaFin is null",[codigo]);
+        await client.query("UPDATE historico_productos SET fechaFin=TO_CHAR(now() at TIME ZONE 'America/Bogota', 'yyyy/mm/dd HH24:MI:SS') WHERE producto=$1 and fechaFin is null",[codigo]);
         await client.query("INSERT INTO historico_productos(producto,inventario,precioCompra,precio,fechaInicio,fechaFin) VALUES($1,$2,$3,$4, TO_CHAR(NOW(), 'yyyy/mm/dd HH24:MI:SS'),null)", [codigo, inventario,precioCompra,precio])
       }
       await client.query("COMMIT");
