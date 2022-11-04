@@ -333,7 +333,11 @@ const sendAllEmail = async(request,response)=>{
             }
             imap.once('ready', function () {
               imap.openBox('inbox.Sent', false, (err, box) => {
-                if (err) throw err;
+                if (err){
+                  console.log("Error en imap con la cedula: "+cedula)
+                  console.log(error)
+                  errores.push("Error en imap con la cedula: "+cedula)
+                };
   
                 let msg, htmlEntity, plainEntity;
                 msg = mimemessage.factory({
@@ -360,12 +364,12 @@ const sendAllEmail = async(request,response)=>{
             imap.connect();
           })
         }
-        await delay(500)
       } catch (error) {
         console.log("Error con la cedula: "+cedula)
         console.log(error)
         errores.push("Error con la cedula: "+cedula)
       }
+      await delay(1000)
     }
     if(errores.length>0){
         response.status(500)
