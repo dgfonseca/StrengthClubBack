@@ -79,6 +79,7 @@ const signin = (req,res)=>{
     if(usuario && email && password){
         pool.query("SELECT * FROM usuarios WHERE usuario = $1 AND email = $2",[usuario,email], function (error, results, fields){
           if (error) {
+            console.log(error)
                 res.status(500)
                   .send({
                     message: error
