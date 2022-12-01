@@ -82,6 +82,7 @@ try {
   }
   return;
 } catch (error) {
+  console.log(error)
   await client.query("ROLLBACK");
   response.status(500).json({message:error});
   return;
