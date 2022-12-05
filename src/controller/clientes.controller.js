@@ -678,10 +678,7 @@ async function wrapedSendMail(mailData){
           }
           
           imap.once('ready', function () {
-            imap.getBoxes(function (err, boxes) {
-              console.log(boxes)
-            })
-            imap.openBox('inbox.Sent', false, (err, box) => {
+            imap.openBox('INBOX.Sent', false, (err, box) => {
               if (err) {console.log(err);
                         throw err;
               }
@@ -704,6 +701,7 @@ async function wrapedSendMail(mailData){
               msg.body.push(plainEntity);
               msg.body.push(htmlEntity);
               imap.append(msg.toString());
+              imap.end()
             })
           });
 
