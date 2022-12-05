@@ -676,10 +676,11 @@ async function wrapedSendMail(mailData){
             }); 
             return;
           }
-          imap.getBoxes(function (err, boxes) {
-            console.log(boxes)
-          })
+          
           imap.once('ready', function () {
+            imap.getBoxes(function (err, boxes) {
+              console.log(boxes)
+            })
             imap.openBox('inbox.Sent', false, (err, box) => {
               if (err) {console.log(err);
                         throw err;
