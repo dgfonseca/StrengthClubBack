@@ -676,8 +676,8 @@ async function wrapedSendMail(mailData){
             }); 
             return;
           }
-          imap.listMailboxes({all:true}, function (error, info) {
-            console.log(info)
+          imap.getBoxes(function (err, boxes) {
+            console.log(boxes)
           })
           imap.once('ready', function () {
             imap.openBox('inbox.Sent', false, (err, box) => {
