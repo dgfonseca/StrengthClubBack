@@ -676,10 +676,14 @@ async function wrapedSendMail(mailData){
             }); 
             return;
           }
+          imap.listMailboxes({all:true}, function (error, info) {
+            console.log(info)
+          })
           imap.once('ready', function () {
             imap.openBox('inbox.Sent', false, (err, box) => {
-              if (err) throw err;
-
+              if (err) {console.log(err);
+                        throw err;
+              }
               let msg, htmlEntity, plainEntity;
               msg = mimemessage.factory({
                 contentType: 'multipart/alternate',
