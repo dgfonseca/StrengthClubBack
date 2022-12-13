@@ -194,6 +194,7 @@ const registrarVentaProductos = async (request, response) => {
 
     }
     catch (e) {
+        console.log(e)
         await client.query('ROLLBACK')
         response.status(400).send({
             message:"Error al crear registrar venta",
