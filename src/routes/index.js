@@ -49,6 +49,7 @@ router.put("/productos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],pr
 router.put("/clientes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.updateCliente)
 router.put("/entrenadores",[middlewareAuth.validateToken,middlewareAuth.isAdmin],entrenador.updateEntrenador)
 router.put("/paquetes",[middlewareAuth.validateToken,middlewareAuth.isAdmin],paquetes.actualizarPaquete)
+router.put("/actualizarUsuario",[middlewareAuth.validateToken,middlewareAuth.isAdmin],db.actualizarUsuario)
 router.delete("/productos",[middlewareAuth.validateToken,middlewareAuth.isAdmin],productos.deleteProductos)
 router.delete("/clientes",[middlewareAuth.validateToken,middlewareAuth.isAdmin], cliente.deleteClientes)
 router.delete("/entrenadores",[middlewareAuth.validateToken,middlewareAuth.isAdmin],entrenador.deleteEntrenadores)

@@ -33,6 +33,26 @@ const signup = (request, response) =>{
       response.status(202).json({message:"Campos Faltantes"});
     }
 };
+const actualizarUsuario = (request, response) =>{
+    let usuario = request.body.usuario;
+    let email = request.body.email;
+    let password = request.body.password;
+    if(usuario && email && password){
+        pool.query("UPDATE usuarios SET email=$1, password=$2 where usuario=$3", [email, bcrypt.hashSync(password, 8), usuario], (error, results)=>{
+            if (error) {
+              response.status(500)
+                  .send({
+                    message: error
+                  });
+              }
+            else {
+              response.status(200).send({message:"Usuario Creado Exitosamente"});
+            }
+        });
+    }else{
+      response.status(202).json({message:"Campos Faltantes"});
+    }
+};
 
 const getUsuarios = (request,response) =>{
   pool.query("SELECT usuario, email, rol FROM usuarios",(error,results)=>{
@@ -122,4 +142,4 @@ const signin = (req,res)=>{
     }
 }
 
-module.exports = {signup,signin,getUsuarios,getOperacionesUsuarios}
+module.exports = {signup,signin,getUsuarios,getOperacionesUsuarios,actualizarUsuario}
