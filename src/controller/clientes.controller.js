@@ -40,353 +40,6 @@ const pool = new Pool({
 //   });
 
 
-function delay(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
-const sendAllEmail = async(request,response)=>{
-    let cuenta;let ventas;
-    let fechaInicio = request.body.fechaInicio;
-    let fechaFin = request.body.fechaFin;
-    let abonos;
-    let abonosValue;
-    let abonosAnteriorValue;
-    let sesionesTomadas;
-    let sesionesVentasProductos;
-    let sesionesVentasPaquetes;
-    let deuda;
-    let deudaAnterior;
-    let sesion,suplementos,proteinas;
-    let clientes = await pool.query("select cedula from clientes")
-    let errores = []
-    for await (let cliente of clientes.rows){
-      let cedula = cliente.cedula;
-      console.log("Entrooo "+cedula)
-      try {
-        sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
-        sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
-        cuenta = await pool.query("select nombre,email ,anticipado, habilitado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
-        sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
-         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))",[cedula])
-        let totalSesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
-         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-        sesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
-         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))\
-         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))",[cedula])
-        let totalSesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
-         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-         sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
-        inner join ventas_productos vp on vp.venta = v.id \
-        where vp.producto='SES' and v.cliente=$1  \
-         and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-         sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
-        inner join ventas_paquetes vp on vp.venta = v.id \
-        inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
-         and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-         abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
-         and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-         abonosAnteriorValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
-         and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date - interval '1' month))",[cedula])
-         deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
-          left join ventas v on v.cliente = c.cedula  \
-          where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) group by c.cedula",[cedula])
-         deudaAnterior = await pool.query("select coalesce(round(sum(v.valor)),0) as debito from clientes c \
-          left join ventas v on v.cliente = c.cedula  \
-          where c.cedula=$1 and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date - interval '1' month)) group by c.cedula",[cedula])
-        abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1 \
-         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))\
-         and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
-        proteinas = await pool.query("select q.codigo_paquete as nombre, sum(vp.cantidad) as cantidad,SUM(vp.cantidad*q.precio) as precio from ventas v inner join ventas_paquetes vp on v.id = vp.venta \
-        inner JOIN ( \
-          SELECT hp.codigo_paquete, hp.precio,TO_TIMESTAMP(hp.fechaInicio,'YYYY-MM-DD HH24:MI') as fechaInicio, coalesce(TO_TIMESTAMP(hp.fechafin,'YYYY-MM-DD HH24:MI'),current_timestamp) as fechaFin \
-          FROM historico_paquetes hp \
-        ) q ON q.codigo_paquete=vp.paquete and \
-        (TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') > q.fechaInicio and TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') < q.fechaFin) \
-        where (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.paquete not like '%SES%' and v.cliente=$1 group by q.codigo_paquete",[cedula])
-        suplementos = await pool.query("select q.nombre, q.producto, sum(vp.cantidad) as cantidad ,SUM(vp.cantidad*q.precio) as precio from ventas v inner join \
-        ventas_productos vp on v.id = vp.venta \
-        inner join \
-        ( \
-          select pr.nombre,p.producto,p.precio,TO_TIMESTAMP(p.fechaInicio,'YYYY-MM-DD HH24:MI') as fechaInicio, coalesce(TO_TIMESTAMP(p.fechafin,'YYYY-MM-DD HH24:MI'),current_timestamp) as fechaFin \
-          from historico_productos p INNER JOIN productos pr on pr.codigo=p.producto\
-        ) \
-        q on q.producto = vp.producto and \
-        (TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') > q.fechaInicio and TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') < q.fechaFin) \
-        where (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-        and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' and v.cliente=$1 group by q.producto, q.nombre",[cedula])
-        let deudaMesActual;
-        deudaMesActual = await pool.query("select  coalesce(round(sum(valor)),0) as valor from ventas where cliente=$1 \
-          and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-          and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
-        let abonoMesActual = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
-        and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month))  \
-        and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))",[cedula])
-        if(!cuenta.rows[0].anticipado){
-           ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
-           and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-           and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and \
-           valor !=$2 and valor!=$3",[cedula,((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=0)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio),sesionVirtual.rows[0].precio])
-          }else{
-           ventas = await pool.query("select fecha, round(valor) as valor from ventas where cliente=$1 \
-           and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-           and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
-         }
-  
-        let sesionesHtml;
-        if(cuenta.rows[0].habilitado){
-          if(cuenta.rows[0].anticipado){
-            let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
-            let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
-            let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
-            let saldoTotalPre = parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0)
-            let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre)
-            let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0) + parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)
-            let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
-            let textoSaldoTotal;
-            if(saldoTotalPre>0){
-              textoSaldoTotal=saldoTotal
-            }else if(saldoTotalPre<0){
-              textoSaldoTotal = "Saldo a favor de "+(new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre*-1))
-            }
-            else{
-              if(sesionesRestantes<0){
-                let deudaText= sesionesRestantes*-1;
-                textoSaldoTotal="Debe " + deudaText + " Sesiones";
-              }else{
-                textoSaldoTotal="Saldo al día"
-              }
-            }
-            
-            sesionesHtml='<tr style="font-weight:bold"> \
-                  Sesiones \
-              </tr> \
-              <tr> \
-                <th style="border:1px solid black">Sesiones Tomadas:</th>\
-                <th style="border:1px solid black">'+sesionesTomadas2+'</th>\
-              </tr> \
-              <tr> \
-                <th style="border:1px solid black">Sesiones Adquiridas:</th>\
-                <th style="border:1px solid black">'+sesionesPagadas+'</th>\
-              </tr> \
-              <tr> \
-                <th style="border:1px solid black">Sesiones Restantes:</th>\
-                <th style="border:1px solid black">'+sesionesRestantes+'</th>\
-              </tr> <tr style="font-weight:bold"> \
-              Estados\
-            </tr>\
-            <tr> \
-              <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-              <th style="border:1px solid black">'+debito+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Abonos:</th>\
-              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(abonoMesActual.rows[0]?abonoMesActual.rows[0].abonos:0))+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Saldo por Pagar:</th>\
-              <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
-            </tr>';
-          }else{
-            let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
-            let saldoAnterior = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0);
-            let deudaSinSesiones = saldoAnterior-deudaSesiones+parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0);
-            let deudaTotalSesiones = (deudaSesiones);
-            let deudaTotal = parseFloat(deuda.rows[0]?(deuda.rows[0].debito):0) - parseFloat(abonosValue.rows[0].abonos);
-            let textoSaldoTotal;
-            if(deudaTotal>0){
-              textoSaldoTotal=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)
-            }else if(deudaTotal<0){
-              textoSaldoTotal="Saldo a favor de "+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal*-1)
-            }
-            else{
-              if(deudaTotalSesiones<0){
-                let deudaText= deudaTotalSesiones*-1;
-                textoSaldoTotal="Debe " + deudaText + " Sesiones";
-              }else{
-                textoSaldoTotal="Saldo al día"
-              }
-            }
-            sesionesHtml='<tr style="font-weight:bold"> \
-            Sesiones \
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Sesiones Tomadas:</th>\
-              <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
-              <th style="border:1px solid black">Sesiones Virtuales Tomadas:</th>\
-              <th style="border:1px solid black">'+sesionesVirtualesTomadas.rows[0].sesiones+'</th>\
-              <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-              <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotalSesiones)+'</th>\
-            </tr> \
-            <tr style="font-weight:bold"> \
-                  Estados\
-                </tr>\
-                <tr> \
-                  <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-                  <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSinSesiones)+'</th>\
-                </tr> \
-                <tr> \
-                  <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
-                  <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotalSesiones)+'</th>\
-                </tr> \
-                <tr> \
-                  <th style="border:1px solid black">Abonos:</th>\
-                  <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonoMesActual.rows[0].abonos)+'</th>\
-                </tr> \
-                <tr> \
-                  <th style="border:1px solid black">Saldo por Pagar:</th>\
-                  <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
-                </tr>';
-          }
-          let htmlRowSuplemento = ""
-          let htmlRowProteina = ""
-          let htmlRow2= ""
-          suplementos.rows.forEach(suplemento=>{
-            htmlRowSuplemento+='<tr><td style="border:1px solid black">'+suplemento.nombre+'</td>'
-            htmlRowSuplemento+='<td style="border:1px solid black">'+suplemento.cantidad+'</td>'
-            htmlRowSuplemento+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
-          })
-          proteinas.rows.forEach(proteina=>{
-            htmlRowProteina+='<tr><td style="border:1px solid black">'+proteina.nombre+'</td>'
-            htmlRowProteina+='<td style="border:1px solid black">'+proteina.cantidad+'</td>'
-            htmlRowProteina+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
-          })
-          abonos.rows.forEach(abono =>{
-            htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
-            htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
-            htmlRow2+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abono.valor)+'</td>'
-            htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
-          })
-    
-          let titulo;
-          if(fechaInicio && fechaFin){
-            titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+'</h2>'
-          }else{
-            const date = new Date();
-            const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
-            const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
-            titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'</h2>'
-          }
-          let mailData = {
-            from: process.env.MAIL_ACCOUNT,
-            to: cuenta.rows[0].email,
-            subject: "Notificacion de Estado de Cuentas",
-            text : "Estado de Cuentas",
-            html: '<!doctype html> \
-            <html ⚡4email> \
-              <head> \
-                <meta charset="utf-8"> \
-                <script async src="https://cdn.ampproject.org/v0.js"></script> \
-                <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
-              </head> \
-              <body>' 
-              + titulo + 
-              '<table style="width:100%; border:1px solid black"> \
-              <tr style="font-weight:bold"> \
-              Compras\
-              </tr> \
-              <tr style="font-weight:bold"> \
-              Proteinas\
-              </tr> \
-                <tr> \
-                  <th style="border:1px solid black">Producto</th> \
-                  <th style="border:1px solid black">Cantidad</th> \
-                  <th style="border:1px solid black">Valor</th> \
-                </tr> \
-               '+htmlRowProteina+' \
-              <tr style="font-weight:bold"> \
-              Suplementos\
-              </tr> \
-                <tr> \
-                  <th style="border:1px solid black">Producto</th> \
-                  <th style="border:1px solid black">Cantidad</th> \
-                  <th style="border:1px solid black">Valor</th> \
-                </tr> \
-               '+htmlRowSuplemento+' \
-              </table><br><br> \
-              <table style="width:100%; border:1px solid black"> \
-                <tr style="font-weight:bold"> \
-                  Abonos\
-                </tr>\
-                <tr> \
-                  <th style="border:1px solid black">Nombre</th> \
-                  <th style="border:1px solid black">Fecha</th> \
-                  <th style="border:1px solid black">Valor</th> \
-                  <th style="border:1px solid black">Tipo</th> \
-                </tr> \
-                '+htmlRow2+'\
-              </table><br><br> \
-              <table style="width:100%; border:1px solid black">'+sesionesHtml+'\
-                </table> \
-              </body> \
-            </html>'
-          }
-          await wrapedSendMail(mailData);
-        }
-      } catch (error) {
-        console.log("Error con la cedula: "+cedula)
-        console.log(error)
-        errores.push("Error con la cedula: "+cedula)
-      }
-      await delay(1000)
-    }
-    if(errores.length>0){
-        response.status(500)
-        .send({
-          message: errores
-        });
-        return;
-    }else{
-      response.status(200)
-      .send({
-        message: "Exitoso"
-      });
-      return;
-    }
-    
-}
-
-async function wrapedSendMail(mailData){
-  return new Promise((resolve,reject)=>{
-    transporter.sendMail(mailData, (error,info)=>{
-      if(error){
-        console.log("Error con la cedula: "+cedula)
-        console.log(error)
-      }
-      imap.once('ready', function () {
-        imap.openBox('inbox.Sent', false, (err, box) => {
-          if (err){
-            console.log("Error en imap con la cedula: "+cedula)
-            console.log(error)
-          };
-
-          let msg, htmlEntity, plainEntity;
-          msg = mimemessage.factory({
-            contentType: 'multipart/alternate',
-            body: []
-          });
-          htmlEntity = mimemessage.factory({
-            contentType: 'text/html;charset=utf-8',
-            body: mailData.html
-          });
-          plainEntity = mimemessage.factory({
-            body: mailData.text
-          });
-          msg.header('From', mailData.from);
-          msg.header('To', mailData.to);
-          msg.header('Subject', mailData.subject);
-          msg.header('Date', new Date());
-          msg.body.push(plainEntity);
-          msg.body.push(htmlEntity);
-          imap.append(msg.toString());
-        })
-      });
-
-      imap.connect();
-    })
-    });
-}
  
 
   const sendEmail = async (request,response)=>{
@@ -485,6 +138,7 @@ async function wrapedSendMail(mailData){
           let saldoTotalPre = parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0)
           let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre)
           let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0) + parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)
+          let saldoAnteror = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0)
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
           let textoSaldoTotal;
           if(saldoTotalPre>0){
@@ -518,6 +172,10 @@ async function wrapedSendMail(mailData){
             </tr> <tr style="font-weight:bold"> \
             Estados\
           </tr>\
+          <tr> \
+            <th style="border:1px solid black">Saldo Anterior:</th>\
+            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror)+'</th>\
+          </tr> \
           <tr> \
             <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
             <th style="border:1px solid black">'+debito+'</th>\
@@ -564,6 +222,10 @@ async function wrapedSendMail(mailData){
           <tr style="font-weight:bold"> \
                 Estados\
               </tr>\
+              <tr> \
+                <th style="border:1px solid black">Saldo Anterior:</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnterior)+'</th>\
+              </tr> \
               <tr> \
                 <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSinSesiones)+'</th>\
@@ -999,4 +661,4 @@ const deleteClientes = (request,response) =>{
 
 
 
-module.exports = {getDetalleContabilidadCliente,crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,getAbonos,deleteAbono, getAbonosCliente, sendAllEmail}
+module.exports = {getDetalleContabilidadCliente,crearCliente,getClientes,deleteClientes,updateCliente, getContabilidadClientes,postAbono,sendEmail,getAbonos,deleteAbono, getAbonosCliente}
