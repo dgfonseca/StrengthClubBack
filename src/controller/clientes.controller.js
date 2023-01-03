@@ -177,8 +177,8 @@ const pool = new Pool({
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror)+'</th>\
           </tr> \
           <tr> \
-            <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-            <th style="border:1px solid black">'+debito+'</th>\
+            <th style="border:1px solid black">Compras:</th>\
+            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0))+'</th>\
           </tr> \
           <tr> \
             <th style="border:1px solid black">Abonos:</th>\
@@ -227,8 +227,8 @@ const pool = new Pool({
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnterior)+'</th>\
               </tr> \
               <tr> \
-                <th style="border:1px solid black">Saldo Anterior Mas Compras:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSinSesiones)+'</th>\
+                <th style="border:1px solid black">Compras:</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0))+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
@@ -265,14 +265,14 @@ const pool = new Pool({
   
         let titulo;
         if(fechaInicio && fechaFin){
-          titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+ ' ' + cuenta.rows[0].nombre+'</h2>'
         }else{
 
           const date = new Date();
 
           const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
           const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
-          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+''+cuenta.rows[0].nombre+'</h2>'
         }
         let mailData = {
           from: process.env.MAIL_ACCOUNT,
