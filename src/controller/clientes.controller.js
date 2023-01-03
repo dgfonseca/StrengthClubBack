@@ -173,7 +173,7 @@ const pool = new Pool({
             </tr> \
             <tr> \
               <th style="border:1px solid black">Sesiones Restantes:</th>\
-              <th style="border:1px solid black">'+sesionesRestantes+'</th>\
+              <th style="border:1px solid black">'+textoSesionesRestantes+'</th>\
             </tr> <tr style="font-weight:bold"> \
             Estados\
           </tr>\
