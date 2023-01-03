@@ -144,6 +144,7 @@ const pool = new Pool({
           if(sesionesRestantes>0){
             textoSesionesRestantes = sesionesRestantes;
           }else{
+            sesionesRestantes = sesionesRestantes*-1
             textoSesionesRestantes = "Pendiente de pago: "+sesionesRestantes+" Sesiones"
           }
           if(saldoTotalPre>0){
