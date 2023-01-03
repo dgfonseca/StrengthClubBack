@@ -140,7 +140,12 @@ const pool = new Pool({
           let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0) + parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)
           let saldoAnteror = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0)
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
-          let textoSaldoTotal;
+          let textoSaldoTotal,textoSesionesRestantes;
+          if(sesionesRestantes>0){
+            textoSesionesRestantes = sesionesRestantes;
+          }else{
+            textoSesionesRestantes = "Pendiente de pago: "+sesionesRestantes+" Sesiones"
+          }
           if(saldoTotalPre>0){
             textoSaldoTotal=saldoTotal
           }else if(saldoTotalPre<0){
@@ -177,11 +182,11 @@ const pool = new Pool({
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror)+'</th>\
           </tr> \
           <tr> \
-            <th style="border:1px solid black">Compras:</th>\
+            <th style="border:1px solid black">Compras del mes:</th>\
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0))+'</th>\
           </tr> \
           <tr> \
-            <th style="border:1px solid black">Abonos:</th>\
+            <th style="border:1px solid black">Abonos del mes:</th>\
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(abonoMesActual.rows[0]?abonoMesActual.rows[0].abonos:0))+'</th>\
           </tr> \
           <tr> \
@@ -227,7 +232,7 @@ const pool = new Pool({
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnterior)+'</th>\
               </tr> \
               <tr> \
-                <th style="border:1px solid black">Compras:</th>\
+                <th style="border:1px solid black">Compras del mes:</th>\
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0))+'</th>\
               </tr> \
               <tr> \
@@ -235,7 +240,7 @@ const pool = new Pool({
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotalSesiones)+'</th>\
               </tr> \
               <tr> \
-                <th style="border:1px solid black">Abonos:</th>\
+                <th style="border:1px solid black">Abonos del mes:</th>\
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonoMesActual.rows[0].abonos)+'</th>\
               </tr> \
               <tr> \
