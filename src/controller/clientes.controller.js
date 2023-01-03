@@ -265,14 +265,14 @@ const pool = new Pool({
   
         let titulo;
         if(fechaInicio && fechaFin){
-          titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+ ' ' + cuenta.rows[0].nombre+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+ '------' + cuenta.rows[0].nombre+'</h2>'
         }else{
 
           const date = new Date();
 
           const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
           const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
-          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+''+cuenta.rows[0].nombre+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'-----'+cuenta.rows[0].nombre+'</h2>'
         }
         let mailData = {
           from: process.env.MAIL_ACCOUNT,
