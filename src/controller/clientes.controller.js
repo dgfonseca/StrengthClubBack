@@ -141,6 +141,7 @@ const pool = new Pool({
           let saldoAnteror = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0)
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
           let textoSaldoTotal,textoSesionesRestantes;
+          let validarSesiones=sesionesRestantes;
           if(sesionesRestantes>0){
             textoSesionesRestantes = sesionesRestantes;
           }else{
@@ -192,7 +193,7 @@ const pool = new Pool({
           </tr> \
           <tr> \
             <th style="border:1px solid black">Saldo por Pagar:</th>\
-            <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
+            <th style="border:1px solid black">'+textoSaldoTotal+'\n'+(validarSesiones<0?'Debes adquirir un nuevo paquete de sesiones':'')+'</th>\
           </tr>';
         }else{
           let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
