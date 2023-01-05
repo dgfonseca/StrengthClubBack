@@ -230,11 +230,11 @@ const pool = new Pool({
               </tr>\
               <tr> \
                 <th style="border:1px solid black">Saldo Anterior:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnterior-deudaSesiones)+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnterior)+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Compras del mes:</th>\
-                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0))+'</th>\
+                <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)-deudaSesiones)+'</th>\
               </tr> \
               <tr> \
                 <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
