@@ -171,23 +171,24 @@ const crearSesionDeIcs =  async (request, response)=>{
           else{
             let message = "Sesion Agendada Exitosamente"
             let resV = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
+            let sesionId = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING ID",[entrenador2,cliente2,fecha,asistio,virtual])
             if(!esAnticipado){
               message+=" Y venta registrada exitosamente"
               if(precioSesion!==null && precioSesion!==undefined){
                 if(virtual){
                   precioSesion = resV.rows[0].precio
                 }
-                await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2 and valor=$3",[cliente2,fecha,precioSesion])
-                await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData]);
+                await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha,precioSesion])
+                await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData,sesionId.rows[0].id]);
               }
               else{
                 if(virtual){
-                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2 and valor=$3",[cliente2,fecha,resV.rows[0].precio])
-                  await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,resV.rows[0].precio,request.tokenData]);
+                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha,precioSesion])
+                  await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,resV.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
                 }else{
                   let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
-                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and fecha=$2 and valor=$3",[cliente2,fecha,ses.rows[0].precio])
-                  await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario) VALUES ($1,$2,$3,$4) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData]);
+                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha,precioSesion])
+                  await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
                 }
               }
             }
