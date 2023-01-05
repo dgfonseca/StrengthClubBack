@@ -192,7 +192,6 @@ const crearSesionDeIcs =  async (request, response)=>{
                 }
               }
             }
-            await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5)",[entrenador2,cliente2,fecha,asistio,virtual])
             response.status(200).send({message:message});
             return;
           }
