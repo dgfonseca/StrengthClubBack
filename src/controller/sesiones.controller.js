@@ -178,16 +178,16 @@ const crearSesionDeIcs =  async (request, response)=>{
                 if(virtual){
                   precioSesion = resV.rows[0].precio
                 }
-                await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha,precioSesion])
+                await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha])
                 await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData,sesionId.rows[0].id]);
               }
               else{
                 if(virtual){
-                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha,precioSesion])
+                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha])
                   await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,resV.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
                 }else{
                   let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
-                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha,precioSesion])
+                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha])
                   await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
                 }
               }
