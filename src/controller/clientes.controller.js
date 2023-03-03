@@ -546,11 +546,12 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       let abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1",[cedula])
       let deuda = await pool.query("select c.cedula, round(sum(v.valor)) as debito from clientes c \
       left join ventas v on v.cliente = c.cedula where v.cliente=$1 group by c.cedula",[cedula]);
-      let sesionesAgendadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
-      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)) \
+      let sesionesAgendadasTotal = await pool.query("SELECT count(*) as sesiones from sesiones where cliente=$1",[cedula])
+      let sesionesAgendadasMes = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
+      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('month', current_date - interval '1' month)) \
      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula])
-      let sesionesVirtualesAgendadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
-      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date- interval '1' month)) \
+      let sesionesVirtualesAgendadasMes = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
+      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('month', current_date- interval '1' month)) \
       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_date))",[cedula]);
       let sesionesCompradasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
@@ -562,21 +563,22 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       var data = {};
       if(cuenta.rows[0].anticipado){
         sesionesPagadas = parseFloat(sesionesCompradasProductos.rows[0].sesiones) + parseFloat(sesionesCompradasPaquetes.rows[0].sesiones);
-        sesionesTomadas = parseFloat(sesionesAgendadas.rows[0].sesiones)+parseFloat(sesionesVirtualesAgendadas.rows[0].sesiones);
-        sesionesRestantes = sesionesPagadas - sesionesTomadas;
+        sesionesTomadas = parseFloat(sesionesAgendadasMes.rows[0].sesiones)+parseFloat(sesionesVirtualesAgendadasMes.rows[0].sesiones);
+        sesionesRestantes = sesionesPagadas - parseFloat(sesionesAgendadasTotal.rows[0].sesiones);
         data.sesionesPagadas=sesionesPagadas;
         data.sesionesRestantes=sesionesRestantes;
         data.deuda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0))
       }else{
-        sesionesTomadas = parseFloat(sesionesAgendadas.rows[0].sesiones);
-        sesionesVirtualesTomadas= parseFloat(sesionesVirtualesAgendadas.rows[0].sesiones);
-        deudaSesiones = (sesionesAgendadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesAgendadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
+        sesionesTomadas = parseFloat(sesionesAgendadasMes.rows[0].sesiones);
+        sesionesVirtualesTomadas= parseFloat(sesionesVirtualesAgendadasMes.rows[0].sesiones);
+        deudaSesiones = (sesionesAgendadasMes.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesAgendadasMes.rows[0].sesiones * sesionVirtual.rows[0].precio)
         let deudaSinSesiones = parseFloat(deuda.rows[0]?(deuda.rows[0].debito-deudaSesiones):0);
         let deudaTotal = parseFloat(deudaSesiones) + parseFloat(deudaSinSesiones) - parseFloat(abonosValue.rows[0].abonos);
         data.sesionesVirtualesTomadas=sesionesVirtualesTomadas;
         data.deudaSesiones=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaSesiones);
         data.deuda=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal);
       }
+      data.sesionesAgendadasTotal=sesionesAgendadasTotal.rows[0].sesiones
       data.sesionesTomadas=sesionesTomadas;
       data.abonos=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(abonosValue.rows[0].abonos));
       data.anticipado=cuenta.rows[0].anticipado;
