@@ -117,6 +117,7 @@ const crearSesionDeIcs =  async (request, response)=>{
   let asistio = request.body.asistio;
   let virtual=false;
   try{
+    cliente=cliente.replaceAll('\n',"")
     if(cliente.includes("*")){
       asistio=false
       cliente=cliente.replace("*",'')
