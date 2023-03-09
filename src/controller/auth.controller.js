@@ -72,11 +72,11 @@ const getOperacionesUsuarios = (request,response) =>{
   pool.query("select * from \
   (select c.nombre, v.fecha, cast(round(v.valor,0) as money) as valor, v.usuario, 'VENTA' as tipo from clientes c \
   inner join ventas v on v.cliente = c.cedula  where v.usuario=$1 and \
-  (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('day', current_date - interval '1' day)) \
+  (DATE_PART('week',TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)) \
   ) as q2 union( \
   select c.nombre, a.fecha, cast(round(a.valor,0) as money) as valor, a.usuario, 'ABONO' as tipo from clientes c \
   inner join abonos a on a.cliente = c.cedula  where a.usuario=$1 and \
-  (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('day', current_date - interval '1' day)))",[usuario],(error,results)=>{
+  (DATE_PART('week',TO_TIMESTAMP(a.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)))",[usuario],(error,results)=>{
     if (error) {
       response.status(500)
           .send({
