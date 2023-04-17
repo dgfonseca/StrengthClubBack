@@ -412,7 +412,10 @@ const getClientes = (request,response) =>{
 }
 
 const getAbonos = (request,response) =>{
-  let query = "SELECT c.nombre, a.id, a.fecha, cast(a.valor as money) as valor, a.usuario, a.tipo FROM abonos a inner join clientes c on c.cedula=a.cliente order by a.fecha desc"
+  let query = "SELECT c.nombre, a.id, a.fecha, cast(a.valor as money) as valor, a.usuario, a.tipo \
+  FROM abonos a inner join clientes c on c.cedula=a.cliente \
+  where TO_TIMESTAMP(a.fecha,'YYYY-MM-DD HH24:MI') >= date_trunc('month', current_date - interval '2' month) \
+  order by a.fecha desc"
   pool.query(query,(error,results)=>{
     if (error) {
       response.status(500)

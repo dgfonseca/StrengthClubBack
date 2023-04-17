@@ -35,7 +35,10 @@ const pool = new Pool({
       }
 
     const getVentas = (request,response) =>{
-        pool.query("select v.id,c.cedula,c.nombre,v.fecha,cast(round(v.valor) as money) as valor,v.usuario from ventas v inner join clientes c on c.cedula =v.cliente order by v.fecha desc",(error,results)=>{
+        pool.query("select v.id,c.cedula,c.nombre,v.fecha,cast(round(v.valor) as money) as valor,v.usuario \
+        from ventas v inner join clientes c on c.cedula =v.cliente \
+        where TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') >= date_trunc('month', current_date - interval '2' month) \
+        order by v.fecha desc",(error,results)=>{
           if (error) {
             response.status(500)
                 .send({
@@ -120,6 +123,7 @@ const pool = new Pool({
         }
       }
 const registrarVentaProductos = async (request, response) => {
+    request.connection.setTimeout( 1000 * 30 );
     const client = await pool.connect();
     let cliente = request.body.cliente;
     let productos = request.body.productos;
