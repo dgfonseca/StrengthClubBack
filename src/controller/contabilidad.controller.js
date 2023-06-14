@@ -36,7 +36,7 @@ const contabilidadSesiones = async (request, response) =>{
             (select count(*) as total from sesiones where to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd'))"
         }
 
-        let res = client.query(query,range===true?[fechaInicio,fechaFin]:[]);
+        let res = await client.query(query,range===true?[fechaInicio,fechaFin]:[]);
         response.status(200).send({sesiones:res.rows})
     } catch (error) {
         response.status(500).send({abonos:error});
