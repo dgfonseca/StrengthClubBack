@@ -14,7 +14,7 @@ const pool = new Pool({
 const contabilidadSesiones = async (request, response) =>{
 
     let fechaInicio =  request.body.fechaInicio;
-    let fechaFin = request.boy.fechaFin;
+    let fechaFin = request.body.fechaFin;
 
     try {
         const client = await pool.connect();
