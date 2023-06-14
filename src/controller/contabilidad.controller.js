@@ -33,7 +33,7 @@ const contabilidadSesiones = async (request, response) =>{
             (select count(*) as noasistio from sesiones where asistio = false and to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
             (select count(*) as virtual from sesiones where virtual = true and to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
             (select count(*) as novirtual from sesiones where virtual = false and to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
-            (select count(*) as total from sesiones and to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd'))"
+            (select count(*) as total from sesiones where to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd'))"
         }
 
         let res = client.query(query,range===true?[fechaInicio,fechaFin]:[]);
