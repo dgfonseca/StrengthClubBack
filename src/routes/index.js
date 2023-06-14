@@ -7,6 +7,7 @@ const productos = require("../controller/productos.controller")
 const paquetes = require("../controller/paquetes.controller")
 const sesiones = require("../controller/sesiones.controller")
 const ventas = require("../controller/ventas.controller")
+const contabilidad = require("../controller/contabilidad.controller")
 router = express.Router();
 router.use(function(req, res, next) {
     res.header(
@@ -61,5 +62,6 @@ router.delete("/sesionesEntrenador",[middlewareAuth.validateToken,middlewareAuth
 ////ADMIN TODO/////
 router.post("/sendEmail",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.sendEmail)
 router.post("/sesionesics",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.crearSesionDeIcs)
+router.post("/contabilidadSesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],contabilidad.contabilidadSesiones)
 
 module.exports = router;
