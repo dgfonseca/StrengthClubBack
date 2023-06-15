@@ -63,5 +63,6 @@ router.delete("/sesionesEntrenador",[middlewareAuth.validateToken,middlewareAuth
 router.post("/sendEmail",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.sendEmail)
 router.post("/sesionesics",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.crearSesionDeIcs)
 router.post("/contabilidadSesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],contabilidad.contabilidadSesiones)
+router.post("/contabilidadDeudores",[middlewareAuth.validateToken,middlewareAuth.isAdmin],contabilidad.getContabilidadDeudores)
 
 module.exports = router;
