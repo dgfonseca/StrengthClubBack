@@ -76,7 +76,7 @@ const getContabilidadDeudores = async (request,response)=>{
             range=true;
             query="select * from \
             ( \
-                select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(sum(coalesce(v.valor,0))-coalesce(q2.valor,0) as money) as saldo from clientes c \
+                select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(sum(coalesce(v.valor,0))-coalesce(q2.valor,0) as money) as saldo, c.anticipado from clientes c \
                 left join ventas v on v.cliente = c.cedula \
                 left join ( \
                     select c2.cedula, sum(a.valor) as valor \
