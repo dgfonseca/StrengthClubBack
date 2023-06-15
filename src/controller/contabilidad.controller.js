@@ -103,12 +103,12 @@ const getContabilidadDeudores = async (request,response)=>{
          }
 
          let res = await client.query(query,range===true?[fechaInicio,fechaFin]:[]);
-         for(const client of res.rows) {
+         for(const element of res.rows) {
             if(element.anticipado){
                 let ses = await client.query(query2,range===true?[element.cedula,fechaInicio,fechaFin]:[element.cedula])
-                client["sesiones"]=res.rows[0].deuda
+                element["sesiones"]=res.rows[0].deuda
             }else{
-                client["sesiones"]="N/A"
+                element["sesiones"]="N/A"
             }            
          }
 
