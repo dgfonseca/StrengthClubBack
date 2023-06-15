@@ -104,9 +104,7 @@ const getContabilidadDeudores = async (request,response)=>{
 
          let res = await client.query(query,range===true?[fechaInicio,fechaFin]:[]);
          for(const element of res.rows) {
-            console.log(element.anticipado)
             if(element.anticipado){
-                
                 let ses = await client.query(query2,range===true?[element.cedula,fechaInicio,fechaFin]:[element.cedula])
                 element["sesiones"]=ses.rows[0].deuda
             }else{
