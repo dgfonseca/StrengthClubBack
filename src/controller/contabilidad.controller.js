@@ -61,8 +61,8 @@ const getContabilidadDeudores = async (request,response)=>{
                   inner join abonos a on c2.cedula=a.cliente \
                   group by c2.cedula) as q2 \
             on q2.cedula=c.cedula \
-            order by saldo desc\
-            group by c.cedula, c.nombre,c.email, q2.valor ) q1 \
+            group by c.cedula, c.nombre,c.email, q2.valor  order by saldo desc\
+            ) q1 \
          where cast(q1.saldo as numeric) > 0"
         let query2="select q1.sesv+q1.sesp-q1.sest as deuda \
         from (select (select coalesce(sum(vp.cantidad),0) as sesiones \
@@ -87,8 +87,8 @@ const getContabilidadDeudores = async (request,response)=>{
                       group by c2.cedula) as q2 \
                 on q2.cedula=c.cedula \
                 where to_timestamp( v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd') \
-                order by saldo desc\
-                group by c.cedula, c.nombre,c.email, q2.valor ) q1 \
+                group by c.cedula, c.nombre,c.email, q2.valor order by saldo desc\
+                ) q1 \
              where cast(q1.saldo as numeric) > 0"
              query2="select q1.sesv+q1.sesp-q1.sest as deuda \
              from (select (select coalesce(sum(vp.cantidad),0) as sesiones \
