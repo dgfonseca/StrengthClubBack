@@ -115,7 +115,8 @@ const getContabilidadDeudores = async (request,response)=>{
         response.status(200).send({contabilidad:res.rows})
         
     } catch (error) {
-        response.status(500).send({abonos:error});
+        console.log(error)
+        response.status(500).send({contabilidad:error});
         return;
     }
 
