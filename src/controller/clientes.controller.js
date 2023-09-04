@@ -93,7 +93,7 @@ const pool = new Pool({
       (TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') > q.fechaInicio and TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') < q.fechaFin) \
       where (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
       and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.paquete not like '%SES%' and v.cliente=$1 group by q.codigo_paquete,vp.cantidad,q.precio",[cedula])
-      suplementos = await pool.query("select q.nombre, q.producto, count(distinct v.id)*q.precio*vp.cantidad as precio, count(distinct v.id) as cantidad from ventas v inner join \
+      suplementos = await pool.query("select q.nombre, q.producto, count(distinct v.id)*q.precio*vp.cantidad as precio, count(distinct v.id)*vp.cantidad as cantidad from ventas v inner join \
       ventas_productos vp on v.id = vp.venta \
       inner join \
       ( \
