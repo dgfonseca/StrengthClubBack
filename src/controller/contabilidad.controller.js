@@ -125,6 +125,16 @@ const getContabilidadDeudores = async (request,response)=>{
 
 }
 
+const getContabilidadGeneral = async (request,response) =>{
+    let fechaInicio =  request.body.fechaInicio;
+    let fechaFin = request.body.fechaFin;
+    try {
+        
+    } catch (error) {
+        
+    }
+}
+
 
 function validateNull(param){
     if(param === '' || param === null || param ===undefined){

@@ -15,9 +15,7 @@ const transporter = nodemailer.createTransport({
   port: process.env.MAIL_PORT,
   host: process.env.MAIL_HOST,
   secureConnection: false,
-  // tls: {
-  //    ciphers:'SSLv3'
-  // },
+  
   auth: {
     user: process.env.MAIL_ACCOUNT,
     pass: process.env.MAIL_PASSWORD,
@@ -32,12 +30,7 @@ const pool = new Pool({
   port: process.env.PG_PORT,
   ssl: false
   });
-// const pool = new Pool({
-//   connectionString:"postgres://emhkofcqvywsys:a8dd8f3cc858551e8bf86b5cceca98361f02972980bf0080a5650855b82fcdff@ec2-54-159-22-90.compute-1.amazonaws.com:5432/d6v6d92eqe67do",
-//   ssl: {
-//     rejectUnauthorized: false,
-//   }
-//   });
+
 
 
  
@@ -100,17 +93,17 @@ const pool = new Pool({
       (TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') > q.fechaInicio and TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') < q.fechaFin) \
       where (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
       and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.paquete not like '%SES%' and v.cliente=$1 group by q.codigo_paquete",[cedula])
-      suplementos = await pool.query("select q.nombre, q.producto, sum(vp.cantidad) as cantidad ,SUM(vp.cantidad*q.precio) as precio from ventas v inner join \
+      suplementos = await pool.query("select q.nombre, q.producto, count(distinct v.id)*q.precio*vp.cantidad as precio, count(distinct v.id) as cantidad from ventas v inner join \
       ventas_productos vp on v.id = vp.venta \
       inner join \
       ( \
       	select pr.nombre,p.producto,p.precio,TO_TIMESTAMP(p.fechaInicio,'YYYY-MM-DD HH24:MI') as fechaInicio, coalesce(TO_TIMESTAMP(p.fechafin,'YYYY-MM-DD HH24:MI'),current_timestamp) as fechaFin \
-      	from historico_productos p INNER JOIN productos pr on pr.codigo=p.producto\
+      	from historico_productos p INNER JOIN productos pr on pr.codigo=p.producto \
       ) \
       q on q.producto = vp.producto and \
       (TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') > q.fechaInicio and TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') < q.fechaFin) \
       where (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-      and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' and v.cliente=$1 group by q.producto, q.nombre",[cedula])
+      and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.producto not like '%SES%' and v.cliente=$1 group by q.producto,q.nombre,q.precio,vp.cantidad",[cedula])
       let deudaMesActual;
       deudaMesActual = await pool.query("select  coalesce(round(sum(valor)),0) as valor from ventas where cliente=$1 \
         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
