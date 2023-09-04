@@ -85,14 +85,14 @@ const pool = new Pool({
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1 \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date))\
        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month)",[cedula])
-      proteinas = await pool.query("select q.codigo_paquete as nombre, sum(vp.cantidad) as cantidad,SUM(vp.cantidad*q.precio) as precio from ventas v inner join ventas_paquetes vp on v.id = vp.venta \
+      proteinas = await pool.query("select q.codigo_paquete as nombre, count(distinct v.id)*vp.cantidad as cantidad,count(distinct v.id)*vp.cantidad*q.precio as precio from ventas v inner join ventas_paquetes vp on v.id = vp.venta \
       inner JOIN ( \
       	SELECT hp.codigo_paquete, hp.precio,TO_TIMESTAMP(hp.fechaInicio,'YYYY-MM-DD HH24:MI') as fechaInicio, coalesce(TO_TIMESTAMP(hp.fechafin,'YYYY-MM-DD HH24:MI'),current_timestamp) as fechaFin \
       	FROM historico_paquetes hp \
       ) q ON q.codigo_paquete=vp.paquete and \
       (TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') > q.fechaInicio and TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI') < q.fechaFin) \
       where (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_date)) \
-      and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.paquete not like '%SES%' and v.cliente=$1 group by q.codigo_paquete",[cedula])
+      and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_date - interval '1' month) and vp.paquete not like '%SES%' and v.cliente=$1 group by q.codigo_paquete,vp.cantidad,q.precio",[cedula])
       suplementos = await pool.query("select q.nombre, q.producto, count(distinct v.id)*q.precio*vp.cantidad as precio, count(distinct v.id) as cantidad from ventas v inner join \
       ventas_productos vp on v.id = vp.venta \
       inner join \
