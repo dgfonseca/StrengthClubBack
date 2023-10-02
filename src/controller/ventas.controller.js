@@ -12,13 +12,6 @@ const pool = new Pool({
 
     });
 
-    // const pool = new Pool({
-	// 	connectionString:"postgres://emhkofcqvywsys:a8dd8f3cc858551e8bf86b5cceca98361f02972980bf0080a5650855b82fcdff@ec2-54-159-22-90.compute-1.amazonaws.com:5432/d6v6d92eqe67do",
-	// 	ssl: {
-	// 	  rejectUnauthorized: false,
-	// 	}
-	// 	});
-
     const getVentasCliente = (request,response) =>{
         let cliente = request.body.cliente;
         pool.query("SELECT *, cast(ROUND(valor) as money) as valor FROM ventas WHERE cliente=$1 AND TO_TIMESTAMP(fecha,'YYYY-MM-DD') >= date_trunc('month',current_date) ORDER BY fecha desc",[cliente],(error,results)=>{

@@ -10,12 +10,6 @@ const pool = new Pool({
 
   });
 
-  // const pool = new Pool({
-	// 	connectionString:"postgres://emhkofcqvywsys:a8dd8f3cc858551e8bf86b5cceca98361f02972980bf0080a5650855b82fcdff@ec2-54-159-22-90.compute-1.amazonaws.com:5432/d6v6d92eqe67do",
-	// 	ssl: {
-	// 	  rejectUnauthorized: false,
-	// 	}
-	// 	});
 
 const desagendarSesion = (request, response)=>{
     let id = request.body.id;
@@ -110,6 +104,46 @@ const borrarSesionesEntrenador = async (request,response)=>{
   }
 }
 
+const borrarVentasSesionesEntrenador = async (request,response)=>{
+  let entrenador = "%"+request.body.entrenador+"%";
+  let fechaInicio = request.body.fechaInicio;
+  let fechaFin = request.body.fechaFin;
+  if(fechaInicio&&fechaFin){
+    try{
+      const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
+      await pool.query("delete from ventas v inner join sesiones s on v.sesion=s.id where entrenador=$1 and TO_TIMESTAMP(s.fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD') AND TO_TIMESTAMP($3,'YYYY-MM-DD')",[entrenadorRes.rows[0].cedula,fechaInicio,fechaFin]);
+      response.status(200)
+      .send({
+        message: "Se borraron las ventas de sesiones del entrenador "+entrenador.replaceAll("%",'')+" entre el "+fechaInicio +" y el "+fechaFin,
+      });
+      return;
+    }catch(exception){
+      console.log(exception)
+      response.status(500)
+      .send({
+      message: "No se pudieron borrar las ventas de sesiones del entrenador "+entrenador.replaceAll("%",''),
+      });
+      return;
+    }
+  }else{
+    try{
+      const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
+      await pool.query("delete from ventas v inner join sesiones s on v.sesion=s.id where entrenador=$1 and DATE_PART('week',TO_TIMESTAMP(s.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)",[entrenadorRes.rows[0].cedula]);
+      response.status(200)
+      .send({
+        message: "Se borraron las ventas de sesiones del entrenador "+entrenador.replaceAll("%",'')+" de la semana actual",
+      });
+      return;
+    }catch(exception){
+      response.status(500)
+      .send({
+      message: "No se pudieron borrar las ventas de sesiones del entrenador "+entrenador.replaceAll("%",''),
+      });
+      return;
+    }
+  }
+}
+
 const crearSesionDeIcs =  async (request, response)=>{
   let entrenador= "%"+request.body.entrenador+"%";
   let cliente = "%"+request.body.cliente+"%";
@@ -179,16 +213,13 @@ const crearSesionDeIcs =  async (request, response)=>{
                 if(virtual){
                   precioSesion = resV.rows[0].precio
                 }
-                await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha])
                 await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData,sesionId.rows[0].id]);
               }
               else{
                 if(virtual){
-                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha])
                   await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,resV.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
                 }else{
                   let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
-                  await pool.query("DELETE FROM ventas WHERE cliente=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD')=TO_TIMESTAMP($2,'YYYY-MM-DD') and sesion is not null",[cliente2,fecha])
                   await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
                 }
               }
@@ -269,4 +300,4 @@ const getSesiones = (request,response) =>{
 }
 
 
-module.exports = {crearSesion,desagendarSesion, registrarAsistencia, getSesiones, crearSesionDeIcs,borrarSesionesEntrenador}
+module.exports = {borrarVentasSesionesEntrenador,crearSesion,desagendarSesion, registrarAsistencia, getSesiones, crearSesionDeIcs,borrarSesionesEntrenador}
