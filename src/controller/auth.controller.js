@@ -72,11 +72,13 @@ const getOperacionesUsuarios = (request,response) =>{
   pool.query("select * from \
   (select c.nombre, v.fecha, cast(round(v.valor,0) as money) as valor, v.usuario, 'VENTA' as tipo from clientes c \
   inner join ventas v on v.cliente = c.cedula  where v.usuario=$1 and \
-  (DATE_PART('week',TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)) \
+  (DATE_PART('week',TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)) and \
+  (DATE_PART('year',TO_TIMESTAMP(v.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('year',current_timestamp)) \
   ) as q2 union( \
   select c.nombre, a.fecha, cast(round(a.valor,0) as money) as valor, a.usuario, 'ABONO' as tipo from clientes c \
   inner join abonos a on a.cliente = c.cedula  where a.usuario=$1 and \
-  (DATE_PART('week',TO_TIMESTAMP(a.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)))",[usuario],(error,results)=>{
+  (DATE_PART('week',TO_TIMESTAMP(a.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)) and \
+  (DATE_PART('year',TO_TIMESTAMP(a.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('year',current_timestamp)))",[usuario],(error,results)=>{
     if (error) {
       response.status(500)
           .send({
