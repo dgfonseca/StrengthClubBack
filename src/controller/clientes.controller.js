@@ -159,11 +159,11 @@ const pool = new Pool({
                 Sesiones \
             </tr> \
             <tr> \
-              <th style="border:1px solid black">Sesiones Tomadas:</th>\
+              <th style="border:1px solid black">Sesiones Agendadas:</th>\
               <th style="border:1px solid black">'+sesionesTomadas2+'</th>\
             </tr> \
             <tr> \
-              <th style="border:1px solid black">Sesiones Adquiridas:</th>\
+              <th style="border:1px solid black">Sesiones Compradas:</th>\
               <th style="border:1px solid black">'+sesionesPagadas+'</th>\
             </tr> \
             <tr> \
