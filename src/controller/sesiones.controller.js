@@ -88,7 +88,7 @@ const borrarSesionesEntrenador = async (request,response)=>{
   }else{
     try{
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
-      await pool.query("delete from sesiones where entrenador=$1 and DATE_PART('week',TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp)",[entrenadorRes.rows[0].cedula]);
+      await pool.query("delete from sesiones where entrenador=$1 and DATE_PART('week',TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp at time zone 'America/Bogota')",[entrenadorRes.rows[0].cedula]);
       response.status(200)
       .send({
         message: "Se borraron las sesiones del entrenador "+entrenador.replaceAll("%",'')+" de la semana actual",
@@ -128,7 +128,7 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
   }else{
     try{
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
-      await pool.query("delete from ventas v where sesion in (select id from sesiones s where entrenador=$1 and and DATE_PART('week',TO_TIMESTAMP(s.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp))",[entrenadorRes.rows[0].cedula]);
+      await pool.query("delete from ventas v where sesion in (select id from sesiones s where entrenador=$1 and and DATE_PART('week',TO_TIMESTAMP(s.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp at time zone 'America/Bogota'))",[entrenadorRes.rows[0].cedula]);
       response.status(200)
       .send({
         message: "Se borraron las ventas de sesiones del entrenador "+entrenador.replaceAll("%",'')+" de la semana actual",
@@ -287,7 +287,7 @@ const getSesiones = (request,response) =>{
   ent.nombre as nombreEntrenador,cli.nombre as nombreCliente, \
   TO_CHAR(TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') + interval '75 minutes','YYYY-MM-DD HH24:MI') as fechaFin, ses.virtual \
   FROM sesiones as ses INNER JOIN entrenadores AS ent ON ses.entrenador=ent.cedula INNER JOIN clientes AS cli on ses.cliente=cli.cedula \
-  where TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') >= date_trunc('month', current_date - interval '2' month)",(error,results)=>{
+  where TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '2' month)",(error,results)=>{
     if (error) {
       response.status(500)
           .send({
