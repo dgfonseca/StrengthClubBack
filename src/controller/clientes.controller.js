@@ -145,12 +145,15 @@ const pool = new Pool({
             textoSaldoTotal=saldoTotal
           }else if(saldoTotalPre<0){
             textoSaldoTotal = "Saldo a favor de "+(new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre*-1))
+            if(validarSesiones<0){
+              textoSaldoTotal+=", Debes adquirir un nuevo paquete de sesiones"
+            }
           }
           else{
-            if(sesionesRestantes<0){
-              let deudaText= sesionesRestantes*-1;
-              textoSaldoTotal="Debe " + deudaText + " Sesiones";
-            }else{
+            if(validarSesiones<0){
+              textoSaldoTotal="Debes adquirir un nuevo paquete de sesiones"
+            }
+            else{
               textoSaldoTotal="Saldo al día"
             }
           }
@@ -186,7 +189,7 @@ const pool = new Pool({
           </tr> \
           <tr> \
             <th style="border:1px solid black">Saldo por Pagar:</th>\
-            <th style="border:1px solid black">'+textoSaldoTotal+(validarSesiones<0?'<br/> Debes adquirir un nuevo paquete de sesiones':'')+'</th>\
+            <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
           </tr>';
         }else{
           let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
