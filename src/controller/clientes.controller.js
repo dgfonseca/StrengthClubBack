@@ -148,8 +148,8 @@ const pool = new Pool({
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
           let textoSaldoTotal,textoSesionesRestantes;
           let validarSesiones=sesionesRestantes;
-          if(saldoAnterior < 0){
-            saldoAnterior = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
+          if(saldoAnteror < 0){
+            saldoAnteror = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
           }
           if(sesionesRestantes>0){
             textoSesionesRestantes = sesionesRestantes;
