@@ -159,6 +159,7 @@ const pool = new Pool({
           }
           if(saldoTotalPre>0){
             textoSaldoTotal=saldoTotal
+            textoSesionesRestantes=""
           }else if(saldoTotalPre<0){
             textoSaldoTotal = "Saldo a favor de "+(new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre*-1))
             textoSesionesRestantes = '<tr> \
@@ -183,7 +184,7 @@ const pool = new Pool({
             </tr> \
             <tr> \
               <th style="border:1px solid black">Sesiones Agendadas en el Mes:</th>\
-              <th style="border:1px solid black">'+sesionesTomadas+'</th>\
+              <th style="border:1px solid black">'+parseFloat(sesionesTomadas.rows[0].sesiones)+'</th>\
             </tr> \
             <tr> \
               <th style="border:1px solid black">Sesiones Acordadas en el Mes:</th>\
