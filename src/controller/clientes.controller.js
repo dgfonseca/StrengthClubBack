@@ -156,6 +156,7 @@ const pool = new Pool({
           }else{
             textoSesionesRestantes = sesionesRestantes;
           }
+          console.log("texto1: "+textoSesionesRestantes)
           if(saldoTotalPre>0){
             textoSaldoTotal=saldoTotal
             if(sesionesRestantes<0){
@@ -166,6 +167,7 @@ const pool = new Pool({
             }else{
               textoSesionesRestantes=""
             }
+            console.log("texto1: "+textoSesionesRestantes)
           }else if(saldoTotalPre<0){
             textoSaldoTotal = "Saldo a favor de "+(new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre*-1))
             textoSesionesRestantes = '<tr> \
@@ -175,6 +177,7 @@ const pool = new Pool({
             if(validarSesiones<0){
               textoSaldoTotal+=", Debes adquirir un nuevo paquete de sesiones"
             }
+            console.log("texto1: "+textoSesionesRestantes)
           }
           else{
             if(validarSesiones<0){
