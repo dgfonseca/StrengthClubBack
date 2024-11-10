@@ -159,12 +159,13 @@ const pool = new Pool({
           }
           if(saldoTotalPre>0){
             textoSaldoTotal=saldoTotal
-            textoSesionesRestantes=""
             if(sesionesRestantes<0){
               textoSesionesRestantes = '<tr> \
                                         <th style="border:1px solid black">Sesiones Restantes:</th>\
                                         <th style="border:1px solid black">'+textoSesionesRestantes+'</th>\
                                       </tr>'
+            }else{
+              textoSesionesRestantes=""
             }
           }else if(saldoTotalPre<0){
             textoSaldoTotal = "Saldo a favor de "+(new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre*-1))
