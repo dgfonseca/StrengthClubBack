@@ -152,14 +152,14 @@ const pool = new Pool({
             saldoAnteror = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
           }
           if(sesionesRestantes<0){
-            textoSesionesRestantes = sesionesRestantes;
+            textoSesionesRestantes = sesionesRestantes*-1;
           }else{
-            sesionesRestantes = sesionesRestantes*-1
+            sesionesRestantes = sesionesRestantes
             textoSesionesRestantes = "Pendiente de pago: "+sesionesRestantes+" Sesiones"
           }
           if(saldoTotalPre>0){
             textoSaldoTotal=saldoTotal
-            if(sesionesRestantes<0){
+            if(sesionesRestantes>0){
               textoSesionesRestantes = '<tr> \
                                         <th style="border:1px solid black">Sesiones Restantes:</th>\
                                         <th style="border:1px solid black">'+textoSesionesRestantes+'</th>\
