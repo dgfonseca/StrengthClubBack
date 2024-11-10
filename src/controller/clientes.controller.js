@@ -194,7 +194,7 @@ const pool = new Pool({
           </tr>\
           <tr> \
             <th style="border:1px solid black">Saldo Anterior:</th>\
-            <th style="border:1px solid black">'+saldoAnteror+'</th>\
+            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnterior)+'</th>\
           </tr> \
           <tr> \
             <th style="border:1px solid black">Compras del mes:</th>\

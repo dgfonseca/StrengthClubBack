@@ -206,7 +206,7 @@ const crearSesionDeIcs =  async (request, response)=>{
           else{
             let message = "Sesion Agendada Exitosamente"
             let resV = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
-            let sesionId = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING ID",[entrenador2,cliente2,fecha,asistio,virtual])
+            let sesionId = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING ID",[entrenador2,cliente2,fecha,asistio,virtual==null?false:virtual])
             if(!esAnticipado){
               message+=" Y venta registrada exitosamente"
               if(precioSesion!==null && precioSesion!==undefined){
