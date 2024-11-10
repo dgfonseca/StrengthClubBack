@@ -47,6 +47,8 @@ const pool = new Pool({
     let sesionesTomadas;
     let sesionesVentasProductos;
     let sesionesVentasPaquetes;
+    let sesionesVentasProductosMes;
+    let sesionesVentasPaquetesMes;
     let deuda;
     let deudaAnterior;
     let sesion,suplementos,proteinas;
@@ -72,6 +74,16 @@ const pool = new Pool({
       inner join ventas_paquetes vp on vp.venta = v.id \
       inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
+       sesionesVentasProductosMes = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_productos vp on vp.venta = v.id \
+      where vp.producto='SES' and v.cliente=$1  \
+       and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
+       sesionesVentasPaquetesMes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_paquetes vp on vp.venta = v.id \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
+       and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))\
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
        abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
        and (to_timestamp(a.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
        abonosAnteriorValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
@@ -126,6 +138,7 @@ const pool = new Pool({
       if(cuenta.rows[0].habilitado){
         if(cuenta.rows[0].anticipado){
           let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
+          let sesionesPagadasMes = (parseFloat(sesionesVentasProductosMes.rows[0].sesiones)+parseFloat(sesionesVentasPaquetesMes.rows[0].sesiones))
           let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
           let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
           let saldoTotalPre = parseFloat(deuda.rows[0]?deuda.rows[0].debito:0) - parseFloat(abonosValue.rows[0]?abonosValue.rows[0].abonos:0)
@@ -135,6 +148,9 @@ const pool = new Pool({
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
           let textoSaldoTotal,textoSesionesRestantes;
           let validarSesiones=sesionesRestantes;
+          if(saldoAnterior < 0){
+            saldoAnterior = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
+          }
           if(sesionesRestantes>0){
             textoSesionesRestantes = sesionesRestantes;
           }else{
@@ -145,6 +161,10 @@ const pool = new Pool({
             textoSaldoTotal=saldoTotal
           }else if(saldoTotalPre<0){
             textoSaldoTotal = "Saldo a favor de "+(new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre*-1))
+            textoSesionesRestantes = '<tr> \
+                                        <th style="border:1px solid black">Sesiones Restantes:</th>\
+                                        <th style="border:1px solid black">'+textoSesionesRestantes+'</th>\
+                                      </tr>'
             if(validarSesiones<0){
               textoSaldoTotal+=", Debes adquirir un nuevo paquete de sesiones"
             }
@@ -162,22 +182,18 @@ const pool = new Pool({
                 Sesiones \
             </tr> \
             <tr> \
-              <th style="border:1px solid black">Sesiones Agendadas:</th>\
-              <th style="border:1px solid black">'+sesionesTomadas2+'</th>\
+              <th style="border:1px solid black">Sesiones Agendadas en el Mes:</th>\
+              <th style="border:1px solid black">'+sesionesTomadas+'</th>\
             </tr> \
             <tr> \
-              <th style="border:1px solid black">Sesiones Compradas:</th>\
-              <th style="border:1px solid black">'+sesionesPagadas+'</th>\
-            </tr> \
-            <tr> \
-              <th style="border:1px solid black">Sesiones Restantes:</th>\
-              <th style="border:1px solid black">'+textoSesionesRestantes+'</th>\
-            </tr> <tr style="font-weight:bold"> \
+              <th style="border:1px solid black">Sesiones Acordadas en el Mes:</th>\
+              <th style="border:1px solid black">'+sesionesPagadasMes+'</th>\
+            </tr>' + textoSesionesRestantes + '<tr style="font-weight:bold"> \
             Estados\
           </tr>\
           <tr> \
             <th style="border:1px solid black">Saldo Anterior:</th>\
-            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror)+'</th>\
+            <th style="border:1px solid black">'+saldoAnteror+'</th>\
           </tr> \
           <tr> \
             <th style="border:1px solid black">Compras del mes:</th>\
@@ -215,9 +231,9 @@ const pool = new Pool({
           Sesiones \
           </tr> \
           <tr> \
-            <th style="border:1px solid black">Sesiones Tomadas:</th>\
+            <th style="border:1px solid black">Sesiones Agendadas en el Mes:</th>\
             <th style="border:1px solid black">'+sesionesTomadas.rows[0].sesiones+'</th>\
-            <th style="border:1px solid black">Sesiones Virtuales Tomadas:</th>\
+            <th style="border:1px solid black">Sesiones Virtuales Agendadas en el Mes:</th>\
             <th style="border:1px solid black">'+sesionesVirtualesTomadas.rows[0].sesiones+'</th>\
             <th style="border:1px solid black">Valor Sesiones Tomadas:</th>\
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotalSesiones)+'</th>\
