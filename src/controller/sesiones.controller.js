@@ -256,7 +256,7 @@ const crearSesion = async (request, response) =>{
           })
           return;
         }else{
-          let sesion = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING id",[entrenador,cliente,fecha,asistio,virtual]);
+          let sesion = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING id",[entrenador,cliente,fecha,asistio,virtual==null?false:virtual]);
           if(!clienteRes.rows[0].anticipado){
             let precioSesion;
             if(clienteRes.rows[0].precio_sesion!=null&&clienteRes.rows[0].precio_sesion!=undefined){
