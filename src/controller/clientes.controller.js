@@ -61,11 +61,15 @@ const pool = new Pool({
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
       let totalSesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
+      let totalSesionesTomadasSaldoAnterior = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota') - INTERVAL '1 months')",[cedula])
       sesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))\
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
       let totalSesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
+      let totalSesionesVirtualesTomadasSaldoAnterior = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
+       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'- INTERVAL '1' month) )",[cedula])
        sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1  \
@@ -74,6 +78,14 @@ const pool = new Pool({
       inner join ventas_paquetes vp on vp.venta = v.id \
       inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
+       let sesionesVentasProductosSaldoAnterior = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_productos vp on vp.venta = v.id \
+      where vp.producto='SES' and v.cliente=$1  \
+       and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota' - INTERVAL '1' month))",[cedula])
+       let sesionesVentasPaquetesSaldoAnterior = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_paquetes vp on vp.venta = v.id \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
+       and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota' - INTERVAL '1' month))",[cedula])
        sesionesVentasProductosMes = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1  \
@@ -137,6 +149,9 @@ const pool = new Pool({
       let sesionesHtml;
       if(cuenta.rows[0].habilitado){
         if(cuenta.rows[0].anticipado){
+          let sesionesTotalesTomadasSaldoAnterior = parseFloat(totalSesionesTomadasSaldoAnterior)+parseFloat(totalSesionesVirtualesTomadasSaldoAnterior)
+          let sesionesPagadasSaldoAnterior = (parseFloat(sesionesVentasProductosSaldoAnterior.rows[0].sesiones)+parseFloat(sesionesVentasPaquetesSaldoAnterior.rows[0].sesiones))
+          let saldoAnteriorSesiones = sesionesPagadasSaldoAnterior-sesionesTotalesTomadasSaldoAnterior
           let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
           let sesionesPagadasMes = (parseFloat(sesionesVentasProductosMes.rows[0].sesiones)+parseFloat(sesionesVentasPaquetesMes.rows[0].sesiones))
           let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
@@ -146,8 +161,14 @@ const pool = new Pool({
           let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0) + parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)
           let saldoAnteror = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0)
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
-          let textoSaldoTotal,textoSesionesRestantes;
+          let textoSaldoTotal,textoSesionesRestantes,textoSesionesRestantesAnterior;
           let validarSesiones=sesionesRestantes;
+          if(saldoAnteriorSesiones<0){
+            textoSesionesRestantesAnterior="Pendiente de pago: "+(saldoAnteriorSesiones*-1)+" Sesiones"
+          }
+          else{
+            textoSesionesRestantesAnterior=saldoAnteriorSesiones
+          }
           if(saldoAnteror < 0){
             saldoAnteror = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
           }
@@ -198,23 +219,27 @@ const pool = new Pool({
             <tr> \
               <th style="border:1px solid black">Sesiones Acordadas en el Mes:</th>\
               <th style="border:1px solid black">'+sesionesPagadasMes+'</th>\
+            </tr> \
+            <tr> \
+              <th style="border:1px solid black">Saldo Anterior Sesiones:</th>\
+              <th style="border:1px solid black">'+textoSesionesRestantesAnterior+'</th>\
             </tr>' + textoSesionesRestantes + '<tr style="font-weight:bold"> \
             Estados\
           </tr>\
           <tr> \
-            <th style="border:1px solid black">Saldo Anterior:</th>\
+            <th style="border:1px solid black">Saldo Anterior (Sesiones, Suplementos, Otros):</th>\
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror)+'</th>\
           </tr> \
           <tr> \
-            <th style="border:1px solid black">Compras del mes:</th>\
+            <th style="border:1px solid black">Compras del mes (Sesiones, Suplementos, Otros):</th>\
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0))+'</th>\
           </tr> \
           <tr> \
-            <th style="border:1px solid black">Abonos del mes:</th>\
+            <th style="border:1px solid black">Pagos del mes:</th>\
             <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(abonoMesActual.rows[0]?abonoMesActual.rows[0].abonos:0))+'</th>\
           </tr> \
           <tr> \
-            <th style="border:1px solid black">Saldo por Pagar:</th>\
+            <th style="border:1px solid black">Saldo Total por Pagar:</th>\
             <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
           </tr>';
         }else{
@@ -252,11 +277,11 @@ const pool = new Pool({
                 Estados\
               </tr>\
               <tr> \
-                <th style="border:1px solid black">Saldo Anterior:</th>\
+                <th style="border:1px solid black">Saldo Anterior (Sesiones, Suplementos, Otros):</th>\
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnterior)+'</th>\
               </tr> \
               <tr> \
-                <th style="border:1px solid black">Compras del mes:</th>\
+                <th style="border:1px solid black">Compras del mes (Sesiones, Suplementos, Otros):</th>\
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)-deudaSesiones)+'</th>\
               </tr> \
               <tr> \
@@ -264,7 +289,7 @@ const pool = new Pool({
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotalSesiones)+'</th>\
               </tr> \
               <tr> \
-                <th style="border:1px solid black">Abonos del mes:</th>\
+                <th style="border:1px solid black">Pagos del mes:</th>\
                 <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abonoMesActual.rows[0].abonos)+'</th>\
               </tr> \
               <tr> \
