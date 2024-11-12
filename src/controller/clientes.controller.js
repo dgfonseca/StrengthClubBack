@@ -206,7 +206,7 @@ const pool = new Pool({
               textoSaldoTotal="Saldo al día"
             }
           }
-
+          console.log("sesiones restantes"+sesionesRestantes)
           if(sesionesRestantes<0){
             textoSaldoTotal+= ", Pendiente de pago: "+(sesionesRestantes*-1)+" Sesiones"
           }
