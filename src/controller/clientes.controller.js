@@ -243,9 +243,7 @@ const pool = new Pool({
           <tr> \
             <th style="border:1px solid black">Saldo Total por Pagar:</th>\
             <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
-          </tr> \
-          <p>* Sesiones Acordadas: Las sesiones acordadas son aquellas que se han registrado en la plataforma como ventas de paquetes de sesiones o sesiones individuales. Sin embargo, estas ventas registradas no necesariamente indican que las sesiones hayan sido pagadas.</p> \
-          <p>* Saldo Total: Diferencia entre el total de compras registradas en el sistema y todos los abonos/pagos registrados. Puede darse el caso de que el cliente agende más sesiones de las acordadas, las cuales se reflejarán por separado en este campo.</p>'
+          </tr> 
           ;
         }else{
           let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
@@ -300,7 +298,9 @@ const pool = new Pool({
               <tr> \
                 <th style="border:1px solid black">Saldo por Pagar:</th>\
                 <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
-              </tr>';
+              </tr>\
+              <p>* Sesiones Acordadas: Las sesiones acordadas son aquellas que se han registrado en la plataforma como ventas de paquetes de sesiones o sesiones individuales. Sin embargo, estas ventas registradas no necesariamente indican que las sesiones hayan sido pagadas.</p> \
+              <p>* Saldo Total: Diferencia entre el total de compras registradas en el sistema y todos los abonos/pagos registrados. Puede darse el caso de que el cliente agende más sesiones de las acordadas, las cuales se reflejarán por separado en este campo.</p>';
         }
         let htmlRowSuplemento = ""
         let htmlRowProteina = ""
