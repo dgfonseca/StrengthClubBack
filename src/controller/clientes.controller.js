@@ -149,7 +149,7 @@ const pool = new Pool({
       let sesionesHtml;
       if(cuenta.rows[0].habilitado){
         if(cuenta.rows[0].anticipado){
-          let sesionesTotalesTomadasSaldoAnterior = parseFloat(totalSesionesTomadasSaldoAnterior)+parseFloat(totalSesionesVirtualesTomadasSaldoAnterior)
+          let sesionesTotalesTomadasSaldoAnterior = parseFloat(totalSesionesTomadasSaldoAnterior.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadasSaldoAnterior.rows[0].sesiones)
           console.log("Sesiones totales tomadas: "+sesionesTotalesTomadasSaldoAnterior)
           let sesionesPagadasSaldoAnterior = (parseFloat(sesionesVentasProductosSaldoAnterior.rows[0].sesiones)+parseFloat(sesionesVentasPaquetesSaldoAnterior.rows[0].sesiones))
           console.log("Sesiones totales pagadas: "+sesionesTotalesTomadasSaldoAnterior)
