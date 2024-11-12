@@ -243,7 +243,7 @@ const pool = new Pool({
           <tr> \
             <th style="border:1px solid black">Saldo Total por Pagar:</th>\
             <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
-          </tr> 
+          </tr>' 
           ;
         }else{
           let deudaSesiones = (sesionesTomadas.rows[0].sesiones*((cuenta.rows[0].precio_sesion!=null&&cuenta.rows[0].precio_sesion!=undefined)?cuenta.rows[0].precio_sesion:sesion.rows[0].precio))+(sesionesVirtualesTomadas.rows[0].sesiones * sesionVirtual.rows[0].precio)
