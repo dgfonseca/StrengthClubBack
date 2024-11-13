@@ -219,7 +219,7 @@ const pool = new Pool({
               <th style="border:1px solid black">'+parseFloat(sesionesTomadas.rows[0].sesiones)+'</th>\
             </tr> \
             <tr> \
-              <th style="border:1px solid black">Sesiones Acordadas en el Mes:</th>\
+              <th style="border:1px solid black">Sesiones Vendidas en el Mes:</th>\
               <th style="border:1px solid black">'+sesionesPagadasMes+'</th>\
             </tr> \
             <tr> \
