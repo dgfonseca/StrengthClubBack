@@ -382,7 +382,7 @@ const pool = new Pool({
             </table><br><br> \
             <table style="width:100%; border:1px solid black">'+sesionesHtml+'\
               </table> \
-              <p>* Sesiones Acordadas: Las sesiones acordadas son aquellas que se han registrado en la plataforma como ventas de paquetes de sesiones o sesiones individuales. Sin embargo, estas ventas registradas no necesariamente indican que las sesiones hayan sido pagadas.</p> \
+              <p>* Sesiones Vendidas: Las sesiones vendidas son aquellas que se han registrado en la plataforma como ventas de paquetes de sesiones o sesiones individuales. Sin embargo, estas ventas registradas no necesariamente indican que las sesiones hayan sido pagadas.</p> \
               <p>* Saldo Total: Diferencia entre el total de compras registradas en el sistema y todos los abonos/pagos registrados. Puede darse el caso de que el cliente agende más sesiones de las acordadas, las cuales se reflejarán por separado en este campo.</p> \
             </body> \
           </html>'
