@@ -176,6 +176,9 @@ const pool = new Pool({
           if(saldoAnteror < 0){
             saldoAnteror = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
             console.log("Saldo Anteror 2:"+saldoAnteror)
+          }else{
+            saldoAnteror = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
+            console.log("Saldo Anteror 2.1:"+saldoAnteror)
           }
           if(sesionesRestantes<0){
             textoSesionesRestantes = "Pendiente de pago: "+(sesionesRestantes*-1)+" Sesiones"
@@ -232,7 +235,7 @@ const pool = new Pool({
           </tr>\
           <tr> \
             <th style="border:1px solid black">Saldo Anterior (Sesiones, Suplementos, Otros):</th>\
-            <th style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror)+'</th>\
+            <th style="border:1px solid black">'+saldoAnteror+'</th>\
           </tr> \
           <tr> \
             <th style="border:1px solid black">Compras del mes (Sesiones, Suplementos, Otros):</th>\
