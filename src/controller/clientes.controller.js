@@ -163,6 +163,7 @@ const pool = new Pool({
           let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre)
           let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0) + parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)
           let saldoAnteror = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0)
+          console.log("Saldo Anteror 1:"+saldoAnteror)
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
           let textoSaldoTotal,textoSesionesRestantes,textoSesionesRestantesAnterior;
           let validarSesiones=sesionesRestantes;
@@ -174,6 +175,7 @@ const pool = new Pool({
           }
           if(saldoAnteror < 0){
             saldoAnteror = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
+            console.log("Saldo Anteror 2:"+saldoAnteror)
           }
           if(sesionesRestantes<0){
             textoSesionesRestantes = "Pendiente de pago: "+(sesionesRestantes*-1)+" Sesiones"
@@ -210,7 +212,7 @@ const pool = new Pool({
           if(sesionesRestantes<0){
             textoSaldoTotal+= ", Pendiente de pago: "+(sesionesRestantes*-1)+" Sesiones"
           }
-          
+          console.log("Saldo Anteror 3:"+saldoAnteror)
           sesionesHtml='<tr style="font-weight:bold"> \
                 Sesiones \
             </tr> \
