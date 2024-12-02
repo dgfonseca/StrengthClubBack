@@ -389,6 +389,7 @@ const pool = new Pool({
               </table> \
               <p>* Sesiones Vendidas: Las sesiones vendidas son aquellas que se han registrado en la plataforma como ventas de paquetes de sesiones o sesiones individuales. Sin embargo, estas ventas registradas no necesariamente indican que las sesiones hayan sido pagadas.</p> \
               <p>* Saldo Total: Diferencia entre el total de compras registradas en el sistema y todos los abonos/pagos registrados. Puede darse el caso de que el cliente agende más sesiones de las acordadas, las cuales se reflejarán por separado en este campo.</p> \
+              <p>* Saldo Anterior Sesiones: Indica el saldo de sesiones acumulado hasta el mes anterior. Un número positivo representa la cantidad de sesiones disponibles para agendar, provenientes de paquetes adquiridos previamente. Si el saldo es negativo, se reflejará la cantidad de sesiones adeudadas junto con el texto correspondiente que indica la deuda.</p> \
             </body> \
           </html>'
         }
