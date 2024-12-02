@@ -177,7 +177,7 @@ const pool = new Pool({
             saldoAnteror = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
             console.log("Saldo Anteror 2:"+saldoAnteror)
           }else{
-            saldoAnteror = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
+            saldoAnteror = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror)
             console.log("Saldo Anteror 2.1:"+saldoAnteror)
           }
           if(sesionesRestantes<0){
