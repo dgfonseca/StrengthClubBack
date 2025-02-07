@@ -124,6 +124,7 @@ const registrarVentaProductos = async (request, response) => {
     let usuario = request.tokenData;
     let fecha = request.body.fecha;
     let esSesiones = false;
+    
     try{
         await client.query('BEGIN')
         let res;
