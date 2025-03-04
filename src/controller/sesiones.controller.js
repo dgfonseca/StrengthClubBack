@@ -1,4 +1,26 @@
 const Pool = require("pg").Pool
+const nodemailer = require('nodemailer');
+const mimemessage = require('mimemessage');
+const Imap =require('node-imap');
+
+
+var imap = new Imap({
+  user: process.env.MAIL_ACCOUNT,
+  password: process.env.MAIL_PASSWORD,
+  host: process.env.IMAP_MAIL_HOST,
+  port: process.env.IMAP_MAIL_PORT,
+  tls: true
+})
+const transporter = nodemailer.createTransport({
+  port: process.env.MAIL_PORT,
+  host: process.env.MAIL_HOST,
+  secureConnection: false,
+  
+  auth: {
+    user: process.env.MAIL_ACCOUNT,
+    pass: process.env.MAIL_PASSWORD,
+  }
+});
 
 const pool = new Pool({
   user: process.env.PG_USER,
@@ -144,6 +166,113 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
   }
 }
 
+const enviarCorreoSesionesVencidas = async (cliente) =>{
+    let cedula = cliente.cedula;
+    let sesionesVentasProductos;
+    let sesionesVentasPaquetes;
+    try {
+
+      let totalSesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false",[cedula])
+      
+      let totalSesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true",[cedula])
+
+       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_productos vp on vp.venta = v.id \
+      where vp.producto='SES' and v.cliente=$1",[cedula])
+       sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_paquetes vp on vp.venta = v.id \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula])
+       
+
+          let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
+          let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
+          let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
+          
+          if(sesionesRestantes<=0){
+            let mailData = {
+              from: process.env.MAIL_ACCOUNT,
+              to: cliente.email,
+              subject: "Notificacion de Estado de Cuentas",
+              text : "Estado de Cuentas",
+              html: '<!doctype html> \
+              <html ⚡4email> \
+                <head> \
+                  <meta charset="utf-8"> \
+                  <script async src="https://cdn.ampproject.org/v0.js"></script> \
+                  <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
+                </head> \
+                <body> \
+                  <div class="container"> \
+                    <h2 class="header">Notificación de Consumo de Sesiones Strength Club</h2> \
+                    <p class="content">Estimado/a <strong>'+cliente.nombre+'</strong>,</p> \
+                    <p class="content">Le informamos que ha consumido la totalidad de las sesiones de su paquete adquirido. Para continuar disfrutando de nuestros servicios, le invitamos a adquirir un nuevo paquete de sesiones.</p> \
+                    <p class="content">Si tiene alguna duda o necesita asistencia, no dude en contactarnos.</p> \
+                    <p class="footer">Atentamente,<br>Equipo de Atención al Cliente</p> \
+                  </div> \
+                </body> \
+              </html>'
+            }
+            
+            transporter.sendMail(mailData, (error,info)=>{
+              if(error){
+                console.log("Error con la cedula: "+cedula)
+                console.log(error)
+                response.status(500)
+                .send({
+                  message: error
+                }); 
+                return;
+              }
+              
+              imap.once('ready', function () {
+                imap.openBox('INBOX.Sent', false, (err, box) => {
+                  if (err) {console.log(err);
+                            throw err;
+                  }
+                  let msg, htmlEntity, plainEntity;
+                  msg = mimemessage.factory({
+                    contentType: 'multipart/alternate',
+                    body: []
+                  });
+                  htmlEntity = mimemessage.factory({
+                    contentType: 'text/html;charset=utf-8',
+                    body: mailData.html
+                  });
+                  plainEntity = mimemessage.factory({
+                    body: mailData.text
+                  });
+                  msg.header('From', mailData.from);
+                  msg.header('To', mailData.to);
+                  msg.header('Subject', mailData.subject);
+                  msg.header('Date', new Date());
+                  msg.body.push(plainEntity);
+                  msg.body.push(htmlEntity);
+                  imap.append(msg.toString());
+                  imap.end()
+                })
+              });
+    
+              imap.connect();
+              response.status(200).send({
+                message:mailData
+              })
+              return;
+            })
+          }
+          return;
+    } catch (error) {
+      console.log("Error con la cedula: "+cedula)
+      console.log(error)
+      response.status(500)
+      .send({
+        message: error
+      });
+      return;
+    }
+
+}
+
+
 const crearSesionDeIcs =  async (request, response)=>{
   let entrenador= "%"+request.body.entrenador+"%";
   let cliente = "%"+request.body.cliente+"%";
@@ -161,7 +290,7 @@ const crearSesionDeIcs =  async (request, response)=>{
       cliente=cliente.replace("+++",'');
     }
     if(entrenador && cliente && fecha){
-      const clienteRes = await pool.query("SELECT cedula,anticipado,precio_sesion FROM clientes WHERE nombre LIKE $1",[cliente]);
+      const clienteRes = await pool.query("SELECT cedula,anticipado,precio_sesion,nombre,email FROM clientes WHERE nombre LIKE $1",[cliente]);
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
       if(entrenadorRes.rowCount<1){
         response.status(400)
@@ -223,6 +352,8 @@ const crearSesionDeIcs =  async (request, response)=>{
                   await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
                 }
               }
+            }else{
+                await enviarCorreoSesionesVencidas(clienteRes.rows[0])
             }
             response.status(200).send({message:message});
             return;
