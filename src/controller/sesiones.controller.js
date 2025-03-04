@@ -378,7 +378,7 @@ const crearSesion = async (request, response) =>{
     let virtual = request.body.virtual;
     if(entrenador && cliente && fecha){
       try{
-        let clienteRes = await pool.query("SELECT anticipado,precio_sesion from clientes where cedula=$1",[cliente])
+        let clienteRes = await pool.query("SELECT cedula,anticipado,precio_sesion,nombre,email from clientes where cedula=$1",[cliente])
         let results = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 OR cliente=$2) AND virtual=false AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha,fecha]);
         let sesionPrecio = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
         if(results.rows[0].count>0){
@@ -396,6 +396,8 @@ const crearSesion = async (request, response) =>{
               precioSesion=sesionPrecio.rows[0].precio
             }
             await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente,fecha,precioSesion,request.tokenData,sesion.rows[0].id]);
+          }else{
+            await enviarCorreoSesionesVencidas(clienteRes.rows[0])
           }
           response.status(200).send({message:"Sesion Agendada Exitosamente"});
           return;
