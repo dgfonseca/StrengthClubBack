@@ -171,24 +171,37 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
     let sesionesVentasProductos;
     let sesionesVentasPaquetes;
     try {
-
+      
       let totalSesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false",[cedula])
       
       let totalSesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true",[cedula])
-
-       sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
-      inner join ventas_productos vp on vp.venta = v.id \
-      where vp.producto='SES' and v.cliente=$1",[cedula])
-       sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
-      inner join ventas_paquetes vp on vp.venta = v.id \
-      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula])
-       
-
-          let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
-          let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
-          let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
+      
+      sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
+        inner join ventas_productos vp on vp.venta = v.id \
+        where vp.producto='SES' and v.cliente=$1",[cedula])
+        sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
+          inner join ventas_paquetes vp on vp.venta = v.id \
+          inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula])
           
-          if(sesionesRestantes<=0){
+          ultimaVenta = await pool.query("SELECT TO_TIMESTAMP(ve.fecha,'yyyy-mm-dd HH24:MI:SS'), vepa.paquete, vepa.cantidad, pa.precio FROM VENTAS ve \
+            INNER JOIN VENTAS_PAQUETES vepa ON ve.id=vepa.venta \
+            INNER JOIN PAQUETES pa ON pa.codigo=vepa.paquete \
+            INNER JOIN PRODUCTOS_PAQUETE pp ON pp.codigo_paquete = pa.codigo \
+            WHERE pp.codigo_producto LIKE '%SES%' and ve.cliente=$1 \
+            order by ve.fecha desc \
+            fetch first 1 rows only",[cedula])
+            let paquete = ultimaVenta.rows[0].paquete
+            let precio = ultimaVenta.rows[0].precio
+            
+            const client = await pool.connect();
+
+            
+            let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
+            let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
+            let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
+            
+            if(sesionesRestantes<=0){
+            
             let mailData = {
               from: process.env.MAIL_ACCOUNT,
               to: cliente.email,
@@ -259,6 +272,15 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
               return;
             })
           }
+          console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
+          await client.query('BEGIN')
+          let res = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1, TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),$2,'SISTEMA',null) RETURNING id",[cedula,precio]);
+          let venta = res.rows[0].id
+          console.log("Venta generada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
+          await client.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
+          await client.query('COMMIT')
+          console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
+
           return;
     } catch (error) {
       console.log("Error con la cedula: "+cedula)
