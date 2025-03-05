@@ -271,15 +271,15 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
               })
               return;
             })
+            console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
+            await client.query('BEGIN')
+            let res = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1, TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),$2,'SISTEMA',null) RETURNING id",[cedula,precio]);
+            let venta = res.rows[0].id
+            console.log("Venta generada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
+            await client.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
+            await client.query('COMMIT')
+            console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
           }
-          console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
-          await client.query('BEGIN')
-          let res = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1, TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),$2,'SISTEMA',null) RETURNING id",[cedula,precio]);
-          let venta = res.rows[0].id
-          console.log("Venta generada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
-          await client.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
-          await client.query('COMMIT')
-          console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
 
           return;
     } catch (error) {
