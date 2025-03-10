@@ -486,13 +486,14 @@ const crearSesion = async (request, response) =>{
 const getSesiones = async (request,response) =>{
   let res;
   try {
-    
+    console.log("Inicia Sesion")
     res = await pool.query("SELECT ses.asistio,ses.id,ses.entrenador,ses.cliente,TO_CHAR(ses.fecha,'YYYY-MM-DD HH24:MI') as fecha,ent.color as color, \
     ent.nombre as nombreEntrenador,cli.nombre as nombreCliente, \
     TO_CHAR(ses.fecha + interval '75 minutes','YYYY-MM-DD HH24:MI') as fechaFin, ses.virtual \
     FROM sesiones as ses INNER JOIN entrenadores AS ent ON ses.entrenador=ent.cedula INNER JOIN clientes AS cli on ses.cliente=cli.cedula \
     where ses.fecha >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '2' month)")
-     
+    console.log("Finaliza Sesion")
+
           response.status(200).send({sesiones:res.rows});
   } catch (error) {
     response.status(500)
