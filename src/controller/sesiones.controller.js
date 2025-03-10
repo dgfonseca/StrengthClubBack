@@ -308,9 +308,9 @@ const cargaSesionesDeIcs = async (request, response)=>{
         element.tokenData=request.tokenData
         response = await crearSesionDeIcs(element);
         if(response.success){
-          successElements.push(response.message)
+          successElements.push(response.descripcion)
         }else{
-          errorElements.push(response.message)
+          errorElements.push(response.descripcion)
         }
       } catch (error) {
         console.log("ERROR processing ics data: ",error,element)
