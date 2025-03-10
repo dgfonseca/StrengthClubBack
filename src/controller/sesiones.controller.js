@@ -401,7 +401,7 @@ const crearSesionDeIcs =  async (request)=>{
           else{
             let message = "Sesion Agendada Exitosamente"
             let resV = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
-            let sesionId = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING ID",[entrenador2,cliente2,fecha,asistio,virtual==null?false:virtual])
+            let sesionId = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI'),$4,$5) RETURNING ID",[entrenador2,cliente2,fecha,asistio,virtual==null?false:virtual])
             if(!esAnticipado){
               console.log("Insertando Vencido para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
 
@@ -455,7 +455,7 @@ const crearSesion = async (request, response) =>{
           })
           return;
         }else{
-          let sesion = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING id",[entrenador,cliente,fecha,asistio,virtual==null?false:virtual]);
+          let sesion = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI'),$4,$5) RETURNING id",[entrenador,cliente,fecha,asistio,virtual==null?false:virtual]);
           if(!clienteRes.rows[0].anticipado){
             let precioSesion;
             if(clienteRes.rows[0].precio_sesion!=null&&clienteRes.rows[0].precio_sesion!=undefined){
