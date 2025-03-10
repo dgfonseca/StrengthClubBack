@@ -11,7 +11,7 @@ var app = express();
 
 
 
-app.use(cors({origin:'*'}));
+app.use(cors({origin:'*',allowedHeaders:['*']}));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({
