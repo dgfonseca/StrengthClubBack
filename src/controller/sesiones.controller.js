@@ -295,6 +295,46 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
 }
 
 
+const cargaSesionesDeIcs = async (request, response)=>{
+
+  let elementos = request.body.sesiones;
+  let errorElements = []
+  let successElements = []
+
+  try{
+    await Promise.all(elementos.map(async (element)=>{
+      try {
+        let response;
+        response = await crearSesionDeIcs();
+        if(response.success){
+          successElements.push(response.message)
+        }else{
+          errorElements.push(response.message)
+        }
+      } catch (error) {
+        console.log("ERROR processing ics data: ",error,element)
+        errorElements.push({descripcion:"Error insertando el cliente "+element.cliente+" el dia: "+element.fecha+" con el entrenador:"+element.entrenador,
+          success:false
+        })
+      }
+      response.status(200).send({
+        successClients:successElements,
+        errorClients:errorElements
+      })
+      return
+    }))
+  }catch(error){
+    console.log("ERROR processing ics data: ",error)
+    response.status(500)
+        .send({
+          message: error
+        });
+        return;
+  }
+
+}
+
+
 const crearSesionDeIcs =  async (request, response)=>{
   let entrenador= "%"+request.body.entrenador+"%";
   let cliente = "%"+request.body.cliente+"%";
@@ -316,19 +356,9 @@ const crearSesionDeIcs =  async (request, response)=>{
       const clienteRes = await pool.query("SELECT cedula,anticipado,precio_sesion,nombre,email FROM clientes WHERE nombre LIKE $1",[cliente]);
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
       if(entrenadorRes.rowCount<1){
-        response.status(400)
-          .send({
-            message: "El entrenador "+ entrenador.replaceAll("%",'') +" no existe",
-            code:1
-          });
-          return;
+          return { descripcion: "El entrenador "+ entrenador.replaceAll("%",'') +" no existe",success: false};
       }if(clienteRes.rowCount<1 ){
-        response.status(400)
-        .send({
-          message: "El cliente "+ cliente.replaceAll("%",'') +" no existe en la fecha" +fecha,
-          code:2
-        });
-        return;
+        return {descripcion: "El cliente "+ cliente.replaceAll("%",'') +" no existe en la fecha" +fecha,success:false};
       }
       else{
         let cliente2 = clienteRes.rows[0].cedula
@@ -339,21 +369,19 @@ const crearSesionDeIcs =  async (request, response)=>{
         const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '59 minutes' ", [entrenador2,fecha, fecha]);
         const countRes2 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (cliente=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [cliente2,fecha, fecha]);
         if(countRes1.rows[0].count>0){
-          response.status(200).send({message:"Ya se cargo dicha sesion"})
+          return {descripcion:"Ya se cargo dicha sesion",success: false};
         }else{
           if(countRes.rows[0].count>0){
-              response.status(400).send({
-                message: "Ya hay sesiones agendadas para el entrenador "+entrenador.replaceAll("%",'')+" en el horario: "+fecha+ " con un cliente distinto a: "+cliente.replaceAll("%",''),
-                code: 3
-            })
-            return;
+              return{
+                descripcion: "Ya hay sesiones agendadas para el entrenador "+entrenador.replaceAll("%",'')+" en el horario: "+fecha+ " con un cliente distinto a: "+cliente.replaceAll("%",''),
+                success: false
+            }
           }
           if(countRes2.rows[0].count>0){
-              response.status(400).send({
-                message: "Ya hay sesiones agendadas para el cliente "+cliente.replaceAll("%",'')+" en el horario: "+fecha+ " con un entrenador distinto",
-                code: 3
-            })
-            return;
+              return{
+                descripcion: "Ya hay sesiones agendadas para el cliente "+cliente.replaceAll("%",'')+" en el horario: "+fecha+ " con un entrenador distinto",
+                success: false
+            }
           }
           else{
             let message = "Sesion Agendada Exitosamente"
@@ -384,18 +412,14 @@ const crearSesionDeIcs =  async (request, response)=>{
             }
             console.log("Finalizó para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
 
-            response.status(200).send({message:message});
-            return;
+            return{descripcion:message,success:true};
           }
         }
       }
     }
   }catch (e){
-    console.log(e)
-      response.status(400).send({
-        message: e
-    });
-    return;
+    console.log("ERROR: "+e)
+    return{descripcion: e,success:false};
   }
 }
 
@@ -462,4 +486,4 @@ const getSesiones = (request,response) =>{
 }
 
 
-module.exports = {borrarVentasSesionesEntrenador,crearSesion,desagendarSesion, registrarAsistencia, getSesiones, crearSesionDeIcs,borrarSesionesEntrenador}
+module.exports = {borrarVentasSesionesEntrenador,crearSesion,desagendarSesion, registrarAsistencia, getSesiones, cargaSesionesDeIcs,borrarSesionesEntrenador}

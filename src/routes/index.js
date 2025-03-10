@@ -62,7 +62,7 @@ router.delete("/sesionesEntrenador",[middlewareAuth.validateToken,middlewareAuth
 router.delete("/ventasSesionesEntrenador",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.borrarVentasSesionesEntrenador)
 ////ADMIN TODO/////
 router.post("/sendEmail",[middlewareAuth.validateToken,middlewareAuth.isAdmin],cliente.sendEmail)
-router.post("/sesionesics",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.crearSesionDeIcs)
+router.post("/sesionesics",[middlewareAuth.validateToken,middlewareAuth.isAdmin],sesiones.cargaSesionesDeIcs)
 router.post("/contabilidadSesiones",[middlewareAuth.validateToken,middlewareAuth.isAdmin],contabilidad.contabilidadSesiones)
 router.post("/contabilidadDeudores",[middlewareAuth.validateToken,middlewareAuth.isAdmin],contabilidad.getContabilidadDeudores)
 
