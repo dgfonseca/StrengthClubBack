@@ -305,7 +305,7 @@ const cargaSesionesDeIcs = async (request, response)=>{
     await Promise.all(elementos.map(async (element)=>{
       try {
         let response;
-        response = await crearSesionDeIcs();
+        response = await crearSesionDeIcs(element);
         if(response.success){
           successElements.push(response.message)
         }else{
@@ -335,11 +335,11 @@ const cargaSesionesDeIcs = async (request, response)=>{
 }
 
 
-const crearSesionDeIcs =  async (request, response)=>{
-  let entrenador= "%"+request.body.entrenador+"%";
-  let cliente = "%"+request.body.cliente+"%";
-  let fecha = request.body.fecha;
-  let asistio = request.body.asistio;
+const crearSesionDeIcs =  async (request)=>{
+  let entrenador= "%"+request.entrenador+"%";
+  let cliente = "%"+request.cliente+"%";
+  let fecha = request.fecha;
+  let asistio = request.asistio;
   console.log("Generando Sesiones para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
   let virtual=false;
   try{
