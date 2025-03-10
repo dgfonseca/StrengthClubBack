@@ -386,7 +386,7 @@ const crearSesionDeIcs =  async (request)=>{
         console.log("entro2")
         
         if(countRes1.rows[0].count>0){
-          return {descripcion:"Ya se cargo dicha sesion",success: false};
+          return {descripcion:"Ya se cargo la sesion del cliente "+cliente2+" el dia "+fecha+"con el entrenador "+entrenador2,success: false};
         }else{
           if(countRes.rows[0].count>0){
               return{
