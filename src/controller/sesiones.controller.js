@@ -317,12 +317,12 @@ const cargaSesionesDeIcs = async (request, response)=>{
           success:false
         })
       }
-      response.status(200).send({
-        successClients:successElements,
-        errorClients:errorElements
-      })
-      return
     }))
+    response.status(200).send({
+      successClients:successElements,
+      errorClients:errorElements
+    })
+    return
   }catch(error){
     console.log("ERROR processing ics data: ",error)
     response.status(500)
