@@ -57,19 +57,19 @@ const pool = new Pool({
       sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
       cuenta = await pool.query("select nombre,email ,anticipado, habilitado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
       sesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
+       and (fecha < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
+       and (fecha >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
       let totalSesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
+       and (fecha < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
       let totalSesionesTomadasSaldoAnterior = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota') - INTERVAL '1 months')",[cedula])
+       and (fecha < date_trunc('month', current_timestamp at time zone 'America/Bogota') - INTERVAL '1 months')",[cedula])
       sesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))\
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
+       and (fecha < date_trunc('month', current_timestamp at time zone 'America/Bogota'))\
+       and (fecha >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
       let totalSesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
+       and (fecha < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
       let totalSesionesVirtualesTomadasSaldoAnterior = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
-       and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'- INTERVAL '1' month) )",[cedula])
+       and (fecha < date_trunc('month', current_timestamp at time zone 'America/Bogota'- INTERVAL '1' month) )",[cedula])
        sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1  \
@@ -608,11 +608,11 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       left join ventas v on v.cliente = c.cedula where v.cliente=$1 group by c.cedula",[cedula]);
       let sesionesAgendadasTotal = await pool.query("SELECT count(*) as sesiones from sesiones where cliente=$1",[cedula])
       let sesionesAgendadasMes = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false \
-      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month)) \
-     and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
+      and (fecha > date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month)) \
+     and (fecha <= date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
       let sesionesVirtualesAgendadasMes = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true \
-      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') > date_trunc('month', current_timestamp at time zone 'America/Bogota'- interval '1' month)) \
-      and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') <= date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula]);
+      and (fecha > date_trunc('month', current_timestamp at time zone 'America/Bogota'- interval '1' month)) \
+      and (fecha <= date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula]);
       let sesionesCompradasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
       where vp.producto='SES' and v.cliente=$1",[cedula]);

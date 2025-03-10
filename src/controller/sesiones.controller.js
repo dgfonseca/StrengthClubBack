@@ -93,7 +93,7 @@ const borrarSesionesEntrenador = async (request,response)=>{
   if(fechaInicio&&fechaFin){
     try{
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
-      await pool.query("delete from sesiones where entrenador=$1 and TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD') AND TO_TIMESTAMP($3,'YYYY-MM-DD')",[entrenadorRes.rows[0].cedula,fechaInicio,fechaFin]);
+      await pool.query("delete from sesiones where entrenador=$1 and fecha BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD') AND TO_TIMESTAMP($3,'YYYY-MM-DD')",[entrenadorRes.rows[0].cedula,fechaInicio,fechaFin]);
       response.status(200)
       .send({
         message: "Se borraron las sesiones del entrenador "+entrenador.replaceAll("%",'')+" entre el "+fechaInicio +" y el "+fechaFin,
@@ -110,7 +110,7 @@ const borrarSesionesEntrenador = async (request,response)=>{
   }else{
     try{
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
-      await pool.query("delete from sesiones where entrenador=$1 and DATE_PART('week',TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp at time zone 'America/Bogota')",[entrenadorRes.rows[0].cedula]);
+      await pool.query("delete from sesiones where entrenador=$1 and DATE_PART('week',fecha)=DATE_PART('week',current_timestamp at time zone 'America/Bogota')",[entrenadorRes.rows[0].cedula]);
       response.status(200)
       .send({
         message: "Se borraron las sesiones del entrenador "+entrenador.replaceAll("%",'')+" de la semana actual",
@@ -133,7 +133,7 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
   if(fechaInicio&&fechaFin){
     try{
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
-      await pool.query("delete from ventas v where sesion in (select id from sesiones s where entrenador=$1 and TO_TIMESTAMP(s.fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD') AND TO_TIMESTAMP($3,'YYYY-MM-DD'))",[entrenadorRes.rows[0].cedula,fechaInicio,fechaFin]);
+      await pool.query("delete from ventas v where sesion in (select id from sesiones s where entrenador=$1 and s.fecha BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD') AND TO_TIMESTAMP($3,'YYYY-MM-DD'))",[entrenadorRes.rows[0].cedula,fechaInicio,fechaFin]);
       response.status(200)
       .send({
         message: "Se borraron las ventas de sesiones del entrenador "+entrenador.replaceAll("%",'')+" entre el "+fechaInicio +" y el "+fechaFin,
@@ -150,7 +150,7 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
   }else{
     try{
       const entrenadorRes = await pool.query("SELECT cedula FROM entrenadores where nombre LIKE $1",[entrenador]);
-      await pool.query("delete from ventas v where sesion in (select id from sesiones s where entrenador=$1 and and DATE_PART('week',TO_TIMESTAMP(s.fecha,'YYYY-MM-DD HH24:MI'))=DATE_PART('week',current_timestamp at time zone 'America/Bogota'))",[entrenadorRes.rows[0].cedula]);
+      await pool.query("delete from ventas v where sesion in (select id from sesiones s where entrenador=$1 and and DATE_PART('week',s.fecha)=DATE_PART('week',current_timestamp at time zone 'America/Bogota'))",[entrenadorRes.rows[0].cedula]);
       response.status(200)
       .send({
         message: "Se borraron las ventas de sesiones del entrenador "+entrenador.replaceAll("%",'')+" de la semana actual",
@@ -379,9 +379,9 @@ const crearSesionDeIcs =  async (request)=>{
         let entrenador2 = entrenadorRes.rows[0].cedula
         let esAnticipado = clienteRes.rows[0].anticipado
         let precioSesion = clienteRes.rows[0].precio_sesion
-        const countRes1 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 and cliente=$2) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador2,cliente2,fecha, fecha]);
-        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '59 minutes' ", [entrenador2,fecha, fecha]);
-        const countRes2 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (cliente=$1) AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [cliente2,fecha, fecha]);
+        const countRes1 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 and cliente=$2) AND fecha BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador2,cliente2,fecha, fecha]);
+        const countRes = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1) AND fecha BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '59 minutes' ", [entrenador2,fecha, fecha]);
+        const countRes2 = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (cliente=$1) AND fecha BETWEEN TO_TIMESTAMP($2,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [cliente2,fecha, fecha]);
         
         if(countRes1.rows[0].count>0){
           return {descripcion:"Ya se cargo la sesion del cliente "+cliente2+" el dia "+fecha+"con el entrenador "+entrenador2,success: false};
@@ -447,7 +447,7 @@ const crearSesion = async (request, response) =>{
     if(entrenador && cliente && fecha){
       try{
         let clienteRes = await pool.query("SELECT cedula,anticipado,precio_sesion,nombre,email from clientes where cedula=$1",[cliente])
-        let results = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 OR cliente=$2) AND virtual=false AND TO_TIMESTAMP(fecha,'YYYY-MM-DD HH24:MI') BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha,fecha]);
+        let results = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 OR cliente=$2) AND virtual=false AND fecha BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha,fecha]);
         let sesionPrecio = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
         if(results.rows[0].count>0){
           response.status(400).send({
@@ -491,7 +491,7 @@ const getSesiones = async (request,response) =>{
     ent.nombre as nombreEntrenador,cli.nombre as nombreCliente, \
     TO_CHAR(TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') + interval '75 minutes','YYYY-MM-DD HH24:MI') as fechaFin, ses.virtual \
     FROM sesiones as ses INNER JOIN entrenadores AS ent ON ses.entrenador=ent.cedula INNER JOIN clientes AS cli on ses.cliente=cli.cedula \
-    where TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '2' month)")
+    where ses.fecha >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '2' month)")
      
           response.status(200).send({sesiones:res.rows});
   } catch (error) {

@@ -29,11 +29,11 @@ const contabilidadSesiones = async (request, response) =>{
         if(validateNull(fechaInicio) && validateNull(fechaFin)){
             range=true
             query = "select \
-            (select count(*) as asistio from sesiones where asistio = true and to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
-            (select count(*) as noasistio from sesiones where asistio = false and to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
-            (select count(*) as virtual from sesiones where virtual = true and to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
-            (select count(*) as novirtual from sesiones where virtual = false and to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
-            (select count(*) as total from sesiones where to_timestamp( fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd'))"
+            (select count(*) as asistio from sesiones where asistio = true and fecha  between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
+            (select count(*) as noasistio from sesiones where asistio = false and fecha  between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
+            (select count(*) as virtual from sesiones where virtual = true and  fecha  between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
+            (select count(*) as novirtual from sesiones where virtual = false and  fecha between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')), \
+            (select count(*) as total from sesiones where  fecha  between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd'))"
         }
 
         let res = await client.query(query,range===true?[fechaInicio,fechaFin]:[]);
@@ -101,7 +101,7 @@ const getContabilidadDeudores = async (request,response)=>{
                        inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 \
                        and pp.codigo_producto ='SES' and to_timestamp( v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd')) as sesp, \
                    (select count(*) as sesiones from sesiones s where s.cliente=$1 \
-                        and to_timestamp( s.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd')) as sest) as q1"
+                        and s.fecha  between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd')) as sest) as q1"
          }
 
          let res = await client.query(query,range===true?[fechaInicio,fechaFin]:[]);
