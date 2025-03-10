@@ -483,21 +483,24 @@ const crearSesion = async (request, response) =>{
     }
 };
 
-const getSesiones = (request,response) =>{
-  pool.query("SELECT ses.asistio,ses.id,ses.entrenador,ses.cliente,ses.fecha,ent.color as color, \
-  ent.nombre as nombreEntrenador,cli.nombre as nombreCliente, \
-  TO_CHAR(TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') + interval '75 minutes','YYYY-MM-DD HH24:MI') as fechaFin, ses.virtual \
-  FROM sesiones as ses INNER JOIN entrenadores AS ent ON ses.entrenador=ent.cedula INNER JOIN clientes AS cli on ses.cliente=cli.cedula \
-  where TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '2' month)",(error,results)=>{
-    if (error) {
-      response.status(500)
-          .send({
-            message: error
-          });
-      }else{
-        response.status(200).send({sesiones:results.rows});
-      }
-  })
+const getSesiones = async (request,response) =>{
+  let res;
+  try {
+    
+    res = await pool.query("SELECT ses.asistio,ses.id,ses.entrenador,ses.cliente,ses.fecha,ent.color as color, \
+    ent.nombre as nombreEntrenador,cli.nombre as nombreCliente, \
+    TO_CHAR(TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') + interval '75 minutes','YYYY-MM-DD HH24:MI') as fechaFin, ses.virtual \
+    FROM sesiones as ses INNER JOIN entrenadores AS ent ON ses.entrenador=ent.cedula INNER JOIN clientes AS cli on ses.cliente=cli.cedula \
+    where TO_TIMESTAMP(ses.fecha,'YYYY-MM-DD HH24:MI') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '2' month)")
+     
+          response.status(200).send({sesiones:res.rows});
+  } catch (error) {
+    response.status(500)
+            .send({
+              message: error
+            });
+  }
+  return
 }
 
 
