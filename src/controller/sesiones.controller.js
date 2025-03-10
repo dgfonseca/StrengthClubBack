@@ -418,7 +418,7 @@ const crearSesionDeIcs =  async (request)=>{
       }
     }
   }catch (e){
-    console.log("ERROR: "+e)
+    console.log("ERROR: "+e.stack)
     return{descripcion: e,success:false};
   }
 }
