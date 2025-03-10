@@ -305,6 +305,7 @@ const cargaSesionesDeIcs = async (request, response)=>{
     await Promise.all(elementos.map(async (element)=>{
       try {
         let response;
+        element.tokenData=request.tokenData
         response = await crearSesionDeIcs(element);
         if(response.success){
           successElements.push(response.message)
