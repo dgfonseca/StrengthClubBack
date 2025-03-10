@@ -300,6 +300,7 @@ const crearSesionDeIcs =  async (request, response)=>{
   let cliente = "%"+request.body.cliente+"%";
   let fecha = request.body.fecha;
   let asistio = request.body.asistio;
+  console.log("Generando Sesiones para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
   let virtual=false;
   try{
     cliente=cliente.replaceAll('\n',"")
@@ -359,6 +360,8 @@ const crearSesionDeIcs =  async (request, response)=>{
             let resV = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
             let sesionId = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,$3,$4,$5) RETURNING ID",[entrenador2,cliente2,fecha,asistio,virtual==null?false:virtual])
             if(!esAnticipado){
+              console.log("Insertando Vencido para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
+
               message+=" Y venta registrada exitosamente"
               if(precioSesion!==null && precioSesion!==undefined){
                 if(virtual){
@@ -375,8 +378,12 @@ const crearSesionDeIcs =  async (request, response)=>{
                 }
               }
             }else{
-                await enviarCorreoSesionesVencidas(clienteRes.rows[0])
+                console.log("Enviando correos anticipado para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
+
+                enviarCorreoSesionesVencidas(clienteRes.rows[0])
             }
+            console.log("Finalizó para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
+
             response.status(200).send({message:message});
             return;
           }
