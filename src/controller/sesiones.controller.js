@@ -487,11 +487,12 @@ const getSesiones = async (request,response) =>{
   let res;
   try {
     console.log("Inicia Sesion")
-    res = await pool.query("SELECT ses.asistio,ses.id,ses.entrenador,ses.cliente,TO_CHAR(ses.fecha,'YYYY-MM-DD HH24:MI') as fecha,ent.color as color, \
-    ent.nombre as nombreEntrenador,cli.nombre as nombreCliente, \
-    TO_CHAR(ses.fecha + interval '75 minutes','YYYY-MM-DD HH24:MI') as fechaFin, ses.virtual \
-    FROM sesiones as ses INNER JOIN entrenadores AS ent ON ses.entrenador=ent.cedula INNER JOIN clientes AS cli on ses.cliente=cli.cedula \
-    where ses.fecha >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '2' month)")
+    res = await pool.query("SELECT ses.asistio,ses.id,ses.entrenador,ses.cliente,TO_CHAR(ses.fecha, 'YYYY-MM-DD HH24:MI') AS fecha,ent.color AS color,ent.nombre AS nombreEntrenador,cli.nombre AS nombreCliente,TO_CHAR(ses.fecha + INTERVAL '75 minutes', 'YYYY-MM-DD HH24:MI') AS fechaFin,ses.virtual \
+FROM sesiones AS ses \
+INNER JOIN entrenadores AS ent ON ses.entrenador = ent.cedula \
+INNER JOIN clientes AS cli ON ses.cliente = cli.cedula \
+WHERE ses.fecha >= (current_date - INTERVAL '2 month') \
+AND ses.fecha >= date_trunc('month', current_timestamp AT TIME ZONE 'America/Bogota')")
     console.log("Finaliza Sesion")
 
           response.status(200).send({sesiones:res.rows});
