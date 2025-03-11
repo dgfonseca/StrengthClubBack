@@ -423,7 +423,7 @@ const crearSesionDeIcs =  async (request)=>{
             }else{
                 console.log("Enviando correos anticipado para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
 
-                enviarCorreoSesionesVencidas(clienteRes.rows[0])
+                // enviarCorreoSesionesVencidas(clienteRes.rows[0])
             }
             console.log("Finalizó para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
 
