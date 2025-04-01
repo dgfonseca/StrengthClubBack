@@ -218,8 +218,8 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                   <div class="container"> \
                     <h2 class="header">Notificación de Consumo de Sesiones Strength Club</h2> \
                     <p class="content">Estimado/a <strong>'+cliente.nombre+'</strong>,</p> \
-                    <p class="content">Le informamos que ha consumido la totalidad de las sesiones de su paquete adquirido. Para tu comidad, el sistema te ha asignado un nuevo paquete de sesiones igual al último que compró.</p> \
-                    <p class="content">Si tiene alguna duda o necesita asistencia, no dude en contactarnos.</p> \
+                    <p class="content">Te informamos que has consumido la totalidad de las sesiones de su paquete adquirido. Para tu comidad, el sistema te ha asignado un nuevo paquete de sesiones igual al último que compraste.</p> \
+                    <p class="content">Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos.</p> \
                     <p class="footer">Atentamente,<br>Equipo de Atención al Cliente</p> \
                   </div> \
                 </body> \
