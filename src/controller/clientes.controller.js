@@ -615,10 +615,10 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       and (fecha <= date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula]);
       let sesionesCompradasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
-      where vp.producto='SES' and v.cliente=$1",[cedula]);
+      where vp.producto LIKE '%SES%' and v.cliente=$1",[cedula]);
       let sesionesCompradasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
-      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula]);
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto LIKE '%SES%'",[cedula]);
       let sesionesPagadas, sesionesTomadas,sesionesVirtualesTomadas,deudaSesiones,sesionesRestantes;
       var data = {};
       if(cuenta.rows[0].anticipado){
