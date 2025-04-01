@@ -72,28 +72,28 @@ const pool = new Pool({
        and (fecha < date_trunc('month', current_timestamp at time zone 'America/Bogota'- INTERVAL '1' month) )",[cedula])
        sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
-      where vp.producto='SES' and v.cliente=$1  \
+      where vp.producto like '%SES%' and v.cliente=$1  \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
        sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
-      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto like '%SES%' \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))",[cedula])
        let sesionesVentasProductosSaldoAnterior = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
-      where vp.producto='SES' and v.cliente=$1  \
+      where vp.producto like '%SES%' and v.cliente=$1  \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota' - INTERVAL '1' month))",[cedula])
        let sesionesVentasPaquetesSaldoAnterior = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
-      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto like '%SES%' \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota' - INTERVAL '1' month))",[cedula])
        sesionesVentasProductosMes = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
-      where vp.producto='SES' and v.cliente=$1  \
+      where vp.producto like '%SES%' and v.cliente=$1  \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
        sesionesVentasPaquetesMes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
-      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES' \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto like '%SES%' \
        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))\
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month))",[cedula])
        abonosValue = await pool.query("select coalesce(round(sum(valor)),0) as abonos from abonos a where a.cliente=$1  \
