@@ -68,10 +68,10 @@ const getContabilidadDeudores = async (request,response)=>{
         from (select (select coalesce(sum(vp.cantidad),0) as sesiones \
                   from ventas v \
                   inner join ventas_productos vp on vp.venta = v.id \
-                  where vp.producto='SES' and v.cliente=$1) as sesv, \
+                  where vp.producto LIKE '%SES%' and v.cliente=$1) as sesv, \
               (select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
                   inner join ventas_paquetes vp on vp.venta = v.id \
-                  inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES') as sesp, \
+                  inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto LIKE '%SES%') as sesp, \
               (select count(*) as sesiones from sesiones s where s.cliente=$1) as sest) as q1"
          if(validateNull(fechaInicio) && validateNull(fechaFin)){
             range=true;
@@ -94,12 +94,12 @@ const getContabilidadDeudores = async (request,response)=>{
              from (select (select coalesce(sum(vp.cantidad),0) as sesiones \
                        from ventas v \
                        inner join ventas_productos vp on vp.venta = v.id \
-                       where vp.producto='SES' and v.cliente=$1 \
+                       where vp.productoLIKE '%SES%' and v.cliente=$1 \
                        and to_timestamp( v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd')) as sesv, \
                    (select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
                        inner join ventas_paquetes vp on vp.venta = v.id \
                        inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 \
-                       and pp.codigo_producto ='SES' and to_timestamp( v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd')) as sesp, \
+                       and pp.codigo_producto LIKE '%SES%' and to_timestamp( v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd')) as sesp, \
                    (select count(*) as sesiones from sesiones s where s.cliente=$1 \
                         and s.fecha  between to_timestamp($2 ,'yyyy-mm-dd') and to_timestamp( $3 ,'yyyy-mm-dd')) as sest) as q1"
          }
