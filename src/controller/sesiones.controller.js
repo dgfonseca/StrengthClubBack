@@ -492,7 +492,7 @@ FROM sesiones AS ses \
 INNER JOIN entrenadores AS ent ON ses.entrenador = ent.cedula \
 INNER JOIN clientes AS cli ON ses.cliente = cli.cedula \
 WHERE ses.fecha >= (current_date - INTERVAL '2 month') \
-AND ses.fecha >= date_trunc('month', current_timestamp AT TIME ZONE 'America/Bogota')")
+AND ses.fecha <= date_trunc('month', current_timestamp AT TIME ZONE 'America/Bogota')")
     console.log("Finaliza Sesion")
 
           response.status(200).send({sesiones:res.rows});
