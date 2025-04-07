@@ -411,17 +411,17 @@ const crearSesionDeIcs =  async (request)=>{
                   precioSesion = resV.rows[0].precio
                 }
                  let id = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,precioSesion,request.tokenData,sesionId.rows[0].id]);
-                 await pool.query("INSERT INTO public.ventas_productos (venta, producto, cantidad) VALUES($1, 'SES', 1)",[id.rows[0].id])
+                 await pool.query("INSERT INTO ventas_productos (venta, producto, cantidad) VALUES($1, 'SES', 1)",[id.rows[0].id])
               }
               else{
                 if(virtual){
                   let id = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,resV.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
-                  await pool.query("INSERT INTO public.ventas_productos (venta, producto, cantidad) VALUES($1, 'SES', 1)",[id.rows[0].id])
+                  await pool.query("INSERT INTO ventas_productos (venta, producto, cantidad) VALUES($1, 'SES', 1)",[id.rows[0].id])
 
                 }else{
                   let ses=await pool.query("SELECT precio FROM productos WHERE codigo='SES'");
                   let id = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente2,fecha,ses.rows[0].precio,request.tokenData,sesionId.rows[0].id]);
-                  await pool.query("INSERT INTO public.ventas_productos (venta, producto, cantidad) VALUES($1, 'SES', 1)",[id.rows[0].id])
+                  await pool.query("INSERT INTO ventas_productos (venta, producto, cantidad) VALUES($1, 'SES', 1)",[id.rows[0].id])
                 }
               }
             }else{
