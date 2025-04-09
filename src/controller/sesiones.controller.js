@@ -450,8 +450,6 @@ const crearSesion = async (request, response) =>{
     let virtual = request.body.virtual;
     if(entrenador && cliente && fecha){
       try{
-        let test = await pool.query("select TO_CHAR(NOW(), 'yyyy/mm/dd HH24:MI:SS') as fecha")
-        console.log("TEEEST"+test.rows[0].fecha)
         let clienteRes = await pool.query("SELECT cedula,anticipado,precio_sesion,nombre,email from clientes where cedula=$1",[cliente])
         let results = await pool.query("SELECT COUNT(*) FROM SESIONES WHERE (entrenador=$1 OR cliente=$2) AND virtual=false AND fecha BETWEEN TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI') AND TO_TIMESTAMP($4,'YYYY-MM-DD HH24:MI') + interval '74 minutes' ", [entrenador, cliente, fecha,fecha]);
         let sesionPrecio = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
