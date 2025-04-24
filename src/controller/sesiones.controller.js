@@ -190,6 +190,11 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
             WHERE pp.codigo_producto LIKE '%SES%' and ve.cliente=$1 \
             order by ve.fecha desc \
             fetch first 1 rows only",[cedula])
+
+            if(ultimaVenta.rows.length === 0){
+              console.log("No tiene ventas")
+              return;
+            }
             let paquete = ultimaVenta.rows[0].paquete
             let precio = ultimaVenta.rows[0].precio
             
