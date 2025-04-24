@@ -193,100 +193,100 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
 
             if(ultimaVenta.rows.length === 0){
               console.log("No tiene ventas")
-              return;
             }
-            let paquete = ultimaVenta.rows[0].paquete
-            let precio = ultimaVenta.rows[0].precio
-            
-            const client = await pool.connect();
+            else{
 
-            
-            let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
-            let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
-            let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
-            
-            if(sesionesRestantes<=0){
-            
-            let mailData = {
-              from: process.env.MAIL_ACCOUNT,
-              to: cliente.email,
-              subject: "Notificacion de Estado de Cuentas",
-              text : "Estado de Cuentas",
-              html: '<!doctype html> \
-              <html ⚡4email> \
-                <head> \
-                  <meta charset="utf-8"> \
-                  <script async src="https://cdn.ampproject.org/v0.js"></script> \
-                  <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
-                </head> \
-                <body> \
-                  <div class="container"> \
-                    <h2 class="header">Notificación de Consumo de Sesiones Strength Club</h2> \
-                    <p class="content">Estimado/a <strong>'+cliente.nombre+'</strong>,</p> \
-                    <p class="content">Te informamos que has consumido la totalidad de las sesiones de su paquete adquirido. Para tu comidad, el sistema te ha asignado un nuevo paquete de sesiones igual al último que compraste.</p> \
-                    <p class="content">Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos.</p> \
-                    <p class="footer">Atentamente,<br>Equipo de Atención al Cliente</p> \
-                  </div> \
-                </body> \
-              </html>'
-            }
-            
-            transporter.sendMail(mailData, (error,info)=>{
-              if(error){
-                console.log("Error con la cedula: "+cedula)
-                console.log(error)
-                response.status(500)
-                .send({
-                  message: error
-                }); 
-                return;
-              }
-              
-              imap.once('ready', function () {
-                imap.openBox('INBOX.Sent', false, (err, box) => {
-                  if (err) {console.log(err);
-                            throw err;
-                  }
-                  let msg, htmlEntity, plainEntity;
-                  msg = mimemessage.factory({
-                    contentType: 'multipart/alternate',
-                    body: []
-                  });
-                  htmlEntity = mimemessage.factory({
-                    contentType: 'text/html;charset=utf-8',
-                    body: mailData.html
-                  });
-                  plainEntity = mimemessage.factory({
-                    body: mailData.text
-                  });
-                  msg.header('From', mailData.from);
-                  msg.header('To', mailData.to);
-                  msg.header('Subject', mailData.subject);
-                  msg.header('Date', new Date());
-                  msg.body.push(plainEntity);
-                  msg.body.push(htmlEntity);
-                  imap.append(msg.toString());
-                  imap.end()
-                })
-              });
+                let paquete = ultimaVenta.rows[0].paquete
+                let precio = ultimaVenta.rows[0].precio
+                
+                const client = await pool.connect();
     
-              imap.connect();
-              response.status(200).send({
-                message:mailData
-              })
-              return;
-            })
-            console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
-            await client.query('BEGIN')
-            let res = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1, TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),$2,'SISTEMA',null) RETURNING id",[cedula,precio]);
-            let venta = res.rows[0].id
-            console.log("Venta generada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
-            await client.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
-            await client.query('COMMIT')
-            console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
-          }
-
-          return;
+                
+                let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
+                let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
+                let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
+                
+                if(sesionesRestantes<=0){
+                
+                let mailData = {
+                  from: process.env.MAIL_ACCOUNT,
+                  to: cliente.email,
+                  subject: "Notificacion de Estado de Cuentas",
+                  text : "Estado de Cuentas",
+                  html: '<!doctype html> \
+                  <html ⚡4email> \
+                    <head> \
+                      <meta charset="utf-8"> \
+                      <script async src="https://cdn.ampproject.org/v0.js"></script> \
+                      <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
+                    </head> \
+                    <body> \
+                      <div class="container"> \
+                        <h2 class="header">Notificación de Consumo de Sesiones Strength Club</h2> \
+                        <p class="content">Estimado/a <strong>'+cliente.nombre+'</strong>,</p> \
+                        <p class="content">Te informamos que has consumido la totalidad de las sesiones de su paquete adquirido. Para tu comidad, el sistema te ha asignado un nuevo paquete de sesiones igual al último que compraste.</p> \
+                        <p class="content">Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos.</p> \
+                        <p class="footer">Atentamente,<br>Equipo de Atención al Cliente</p> \
+                      </div> \
+                    </body> \
+                  </html>'
+                }
+                
+                transporter.sendMail(mailData, (error,info)=>{
+                  if(error){
+                    console.log("Error con la cedula: "+cedula)
+                    console.log(error)
+                    response.status(500)
+                    .send({
+                      message: error
+                    }); 
+                    return;
+                  }
+                  
+                  imap.once('ready', function () {
+                    imap.openBox('INBOX.Sent', false, (err, box) => {
+                      if (err) {console.log(err);
+                                throw err;
+                      }
+                      let msg, htmlEntity, plainEntity;
+                      msg = mimemessage.factory({
+                        contentType: 'multipart/alternate',
+                        body: []
+                      });
+                      htmlEntity = mimemessage.factory({
+                        contentType: 'text/html;charset=utf-8',
+                        body: mailData.html
+                      });
+                      plainEntity = mimemessage.factory({
+                        body: mailData.text
+                      });
+                      msg.header('From', mailData.from);
+                      msg.header('To', mailData.to);
+                      msg.header('Subject', mailData.subject);
+                      msg.header('Date', new Date());
+                      msg.body.push(plainEntity);
+                      msg.body.push(htmlEntity);
+                      imap.append(msg.toString());
+                      imap.end()
+                    })
+                  });
+        
+                  imap.connect();
+                  response.status(200).send({
+                    message:mailData
+                  })
+                  return;
+                })
+                console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
+                await client.query('BEGIN')
+                let res = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1, TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),$2,'SISTEMA',null) RETURNING id",[cedula,precio]);
+                let venta = res.rows[0].id
+                console.log("Venta generada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
+                await client.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
+                await client.query('COMMIT')
+                console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
+              }
+            }
     } catch (error) {
       console.log("Error con la cedula: "+cedula)
       console.log(error)
@@ -296,6 +296,8 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
       });
       return;
     }
+
+    return;
 
 }
 
