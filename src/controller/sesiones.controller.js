@@ -264,9 +264,6 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                   });
         
                   imap.connect();
-                  response.status(200).send({
-                    message:mailData
-                  })
                   return;
                 })
                 console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
@@ -283,10 +280,6 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
       await pool.query('ROLLBACK');
       console.log("Error con la cedula: "+cedula)
       console.log(error)
-      response.status(500)
-      .send({
-        message: error
-      });
       return;
     }
 
