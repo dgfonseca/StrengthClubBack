@@ -285,6 +285,7 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
               }
             }
     } catch (error) {
+      await pool.query('ROLLBACK');
       console.log("Error con la cedula: "+cedula)
       console.log(error)
       response.status(500)
