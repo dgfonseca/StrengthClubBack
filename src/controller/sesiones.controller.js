@@ -199,9 +199,6 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                 let paquete = ultimaVenta.rows[0].paquete
                 let precio = ultimaVenta.rows[0].precio
                 
-                const client = await pool.connect();
-    
-                
                 let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
                 let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
                 let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
@@ -278,12 +275,12 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                   return;
                 })
                 console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
-                await client.query('BEGIN')
+                await pool.query('BEGIN')
                 let res = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1, TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),$2,'SISTEMA',null) RETURNING id",[cedula,precio]);
                 let venta = res.rows[0].id
                 console.log("Venta generada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
-                await client.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
-                await client.query('COMMIT')
+                await pool.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
+                await pool.query('COMMIT')
                 console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
               }
             }
