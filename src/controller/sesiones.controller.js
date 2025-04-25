@@ -228,15 +228,10 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                     </body> \
                   </html>'
                 }
-                
                 transporter.sendMail(mailData, (error,info)=>{
                   if(error){
-                    console.log("Error con la cedula: "+cedula)
+                    console.log("Error al enviar correo con la cedula: "+cedula)
                     console.log(error)
-                    response.status(500)
-                    .send({
-                      message: error
-                    }); 
                     return;
                   }
                   
