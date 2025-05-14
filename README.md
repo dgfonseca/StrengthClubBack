@@ -1,3 +1,3 @@
 # StrengthClubBack
 
-Personal Proyect
+Personal Project
