@@ -53,6 +53,9 @@ const pool = new Pool({
     let deudaAnterior;
     let sesion,suplementos,proteinas;
     try {
+      let detalleSesionesAgendadasMes = await pool.query("select fecha  from sesiones s where s.cliente=$1 \
+      and (fecha > date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month)) \
+     and (fecha <= date_trunc('month', current_timestamp at time zone 'America/Bogota')) order by fecha asc",[cedula])
       sesion = await pool.query("select round(precio) as precio from productos where codigo='SES'");
       sesionVirtual = await pool.query("select round(precio) as precio from productos where codigo='SESV'");
       cuenta = await pool.query("select nombre,email ,anticipado, habilitado, round(precio_sesion) as precio_sesion from clientes where cedula=$1",[cedula]);
@@ -154,6 +157,10 @@ const pool = new Pool({
 
       let sesionesHtml;
       if(cuenta.rows[0].habilitado){
+        let sesionesHtml2='';
+        detalleSesionesAgendadasMes.rows.forEach((row, index) => {
+          sesionesHtml2 += `<tr><td>${index + 1}</td><td>${new Date(row.fecha).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</td></tr>`;
+        });
         if(cuenta.rows[0].anticipado){
           let sesionesTotalesTomadasSaldoAnterior = parseFloat(totalSesionesTomadasSaldoAnterior.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadasSaldoAnterior.rows[0].sesiones)
           console.log("Sesiones totales tomadas: "+sesionesTotalesTomadasSaldoAnterior)
@@ -390,6 +397,17 @@ const pool = new Pool({
                 <th style="border:1px solid black">Tipo</th> \
               </tr> \
               '+htmlRow2+'\
+            </table><br><br> \
+            </table><br><br> \
+            <table style="width:100%; border:1px solid black"> \
+              <tr style="font-weight:bold"> \
+                Sesiones Agendadas\
+              </tr>\
+              <tr> \
+                <th style="border:1px solid black">Id</th> \
+                <th style="border:1px solid black">Fecha</th> \
+              </tr> \
+              '+sesionesHtml2+'\
             </table><br><br> \
             <table style="width:100%; border:1px solid black">'+sesionesHtml+'\
               </table> \
