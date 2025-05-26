@@ -998,7 +998,7 @@ const getDetalleContabilidadCliente = async (request,response)=>{
       inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto LIKE '%SES%'",[cedula]);
       let sesionesPagadas, sesionesTomadas,sesionesVirtualesTomadas,deudaSesiones,sesionesRestantes;
       var data = {};
-      let html = this.getCorreo(request)
+      let html = await getCorreo(request)
       if(cuenta.rows[0].anticipado){
         sesionesPagadas = parseFloat(sesionesCompradasProductos.rows[0].sesiones) + parseFloat(sesionesCompradasPaquetes.rows[0].sesiones);
         sesionesTomadas = parseFloat(sesionesAgendadasMes.rows[0].sesiones)+parseFloat(sesionesVirtualesAgendadasMes.rows[0].sesiones);
