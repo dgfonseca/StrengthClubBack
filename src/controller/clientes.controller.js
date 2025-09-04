@@ -41,7 +41,7 @@ const pool = new Pool({
       for (const row of clientes.rows) {            
             request.body.cedula=row.cedula;
             await sendAllFuncEmail(request,response);
-            await pool.query("UPDATE clientes SET enviado=true,fecha_envio=current_timestamp WHERE cedula=$2",row.cedula)
+            await pool.query("UPDATE clientes SET enviado=true,fecha_envio=current_timestamp WHERE cedula=$1",[row.cedula])
       }
       response.status(200)
             .send({
