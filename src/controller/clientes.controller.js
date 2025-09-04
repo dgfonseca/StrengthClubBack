@@ -1430,7 +1430,7 @@ const getContabilidadClientes = (request,response) =>{
   let fechaFin = request.body.fechaFin
   let query=""
   if(fechaInicio&&fechaFin){
-    query = "select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(sum(coalesce(v.valor,0))-coalesce(q2.valor,0) as money) as saldo from clientes c \
+    query = "select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(sum(coalesce(v.valor,0))-coalesce(q2.valor,0) as money) as saldo, c.enviado from clientes c \
     left join ventas v on v.cliente = c.cedula \
     left join \
     (	select c2.cedula, sum(a.valor) as valor \
@@ -1439,7 +1439,7 @@ const getContabilidadClientes = (request,response) =>{
       where to_timestamp( a.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')\
       group by c2.cedula) as q2 on q2.cedula=c.cedula \
       where to_timestamp( v.fecha ,'yyyy-mm-dd HH24:MI:SS') between to_timestamp($1 ,'yyyy-mm-dd') and to_timestamp( $2 ,'yyyy-mm-dd')\
-    group by c.cedula, c.nombre,c.email, q2.valor"
+    group by c.cedula, c.nombre,c.email, q2.valor order by c.nombre asc"
     pool.query(query,[fechaInicio,fechaFin],(error,results)=>{
       if (error) {
         response.status(500)
