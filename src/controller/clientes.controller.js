@@ -1451,14 +1451,14 @@ const getContabilidadClientes = (request,response) =>{
         }
     })
   }else{
-    query = "select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(sum(coalesce(v.valor,0))-coalesce(q2.valor,0) as money) as saldo from clientes c \
+    query = "select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(sum(coalesce(v.valor,0))-coalesce(q2.valor,0) as money) as saldo, c.enviado from clientes c \
     left join ventas v on v.cliente = c.cedula \
     left join \
     (	select c2.cedula, sum(a.valor) as valor \
       from clientes c2 \
       inner join abonos a on c2.cedula=a.cliente \
       group by c2.cedula) as q2 on q2.cedula=c.cedula \
-    group by c.cedula, c.nombre,c.email, q2.valor"
+    group by c.cedula, c.nombre,c.email, q2.valor order by c.nombre asc"
     pool.query(query,(error,results)=>{
       if (error) {
         response.status(500)
