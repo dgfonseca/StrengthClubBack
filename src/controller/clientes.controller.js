@@ -33,7 +33,6 @@ const pool = new Pool({
 
 
   const sendAllEmail = async (request,response)=>{
-    console.log("Validando correo a " +cedula)
     try {
       let clientes = await pool.query("SELECT cedula FROM clientes where enviado = false and habilitado =true and fecha_envio IS null or NOT ( \
         EXTRACT(YEAR FROM fecha_envio) = EXTRACT(YEAR FROM CURRENT_DATE) \
