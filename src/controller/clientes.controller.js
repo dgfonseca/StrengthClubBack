@@ -444,47 +444,47 @@ const pool = new Pool({
           </html>'
         }
         console.log(mailData)
-        // transporter.sendMail(mailData, (error,info)=>{
-        //   if(error){
-        //     console.log("Error con la cedula: "+cedula)
-        //     console.log(error)
-        //     response.status(500)
-        //     .send({
-        //       message: error
-        //     }); 
-        //     return;
-        //   }
+        transporter.sendMail(mailData, (error,info)=>{
+          if(error){
+            console.log("Error con la cedula: "+cedula)
+            console.log(error)
+            response.status(500)
+            .send({
+              message: error
+            }); 
+            return;
+          }
           
-        //   imap.once('ready', function () {
-        //     imap.openBox('INBOX.Sent', false, (err, box) => {
-        //       if (err) {console.log(err);
-        //                 throw err;
-        //       }
-        //       let msg, htmlEntity, plainEntity;
-        //       msg = mimemessage.factory({
-        //         contentType: 'multipart/alternate',
-        //         body: []
-        //       });
-        //       htmlEntity = mimemessage.factory({
-        //         contentType: 'text/html;charset=utf-8',
-        //         body: mailData.html
-        //       });
-        //       plainEntity = mimemessage.factory({
-        //         body: mailData.text
-        //       });
-        //       msg.header('From', mailData.from);
-        //       msg.header('To', mailData.to);
-        //       msg.header('Subject', mailData.subject);
-        //       msg.header('Date', new Date());
-        //       msg.body.push(plainEntity);
-        //       msg.body.push(htmlEntity);
-        //       imap.append(msg.toString());
-        //       imap.end()
-        //     })
-        //   });
+          imap.once('ready', function () {
+            imap.openBox('INBOX.Sent', false, (err, box) => {
+              if (err) {console.log(err);
+                        throw err;
+              }
+              let msg, htmlEntity, plainEntity;
+              msg = mimemessage.factory({
+                contentType: 'multipart/alternate',
+                body: []
+              });
+              htmlEntity = mimemessage.factory({
+                contentType: 'text/html;charset=utf-8',
+                body: mailData.html
+              });
+              plainEntity = mimemessage.factory({
+                body: mailData.text
+              });
+              msg.header('From', mailData.from);
+              msg.header('To', mailData.to);
+              msg.header('Subject', mailData.subject);
+              msg.header('Date', new Date());
+              msg.body.push(plainEntity);
+              msg.body.push(htmlEntity);
+              imap.append(msg.toString());
+              imap.end()
+            })
+          });
 
-        //   imap.connect();
-        // })
+          imap.connect();
+        })
       }else{
           console.log("No se puede notificar un cliente deshabilitado")
       }
