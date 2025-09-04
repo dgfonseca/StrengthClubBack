@@ -1425,10 +1425,12 @@ const getAbonosCliente = async (request,response)=>{
   }
 }
 
-const getContabilidadClientes = (request,response) =>{
+const getContabilidadClientes = async (request,response) =>{
   let fechaInicio = request.body.fechaInicio
   let fechaFin = request.body.fechaFin
   let query=""
+
+  await pool.query("UPDATE clientes SET enviado = false WHERE fecha_envio <  date_trunc('month', CURRENT_DATE)");
   if(fechaInicio&&fechaFin){
     query = "select c.cedula, c.nombre, c.email, cast(sum(coalesce(v.valor,0)) as money) as debito, cast(coalesce(q2.valor,0) as money) as abonos, cast(sum(coalesce(v.valor,0))-coalesce(q2.valor,0) as money) as saldo, c.enviado from clientes c \
     left join ventas v on v.cliente = c.cedula \
