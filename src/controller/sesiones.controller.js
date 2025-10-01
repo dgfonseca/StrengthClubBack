@@ -228,44 +228,7 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                     </body> \
                   </html>'
                 }
-                transporter.sendMail(mailData, (error,info)=>{
-                  if(error){
-                    console.log("Error al enviar correo con la cedula: "+cedula)
-                    console.log(error)
-                    return;
-                  }
-                  
-                  imap.once('ready', function () {
-                    imap.openBox('INBOX.Sent', false, (err, box) => {
-                      if (err) {console.log(err);
-                                throw err;
-                      }
-                      let msg, htmlEntity, plainEntity;
-                      msg = mimemessage.factory({
-                        contentType: 'multipart/alternate',
-                        body: []
-                      });
-                      htmlEntity = mimemessage.factory({
-                        contentType: 'text/html;charset=utf-8',
-                        body: mailData.html
-                      });
-                      plainEntity = mimemessage.factory({
-                        body: mailData.text
-                      });
-                      msg.header('From', mailData.from);
-                      msg.header('To', mailData.to);
-                      msg.header('Subject', mailData.subject);
-                      msg.header('Date', new Date());
-                      msg.body.push(plainEntity);
-                      msg.body.push(htmlEntity);
-                      imap.append(msg.toString());
-                      imap.end()
-                    })
-                  });
-        
-                  imap.connect();
-                  return;
-                })
+                
                 console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
                 await pool.query('BEGIN')
                 let res = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1, TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),$2,'SISTEMA',null) RETURNING id",[cedula,precio]);
@@ -274,11 +237,54 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                 await pool.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
                 await pool.query('COMMIT')
                 console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
+                console.log("Enviando Correo para el cliente::: "+cedula)
+                try {
+                  transporter.sendMail(mailData, (error,info)=>{
+                    if(error){
+                      console.log("Error al enviar correo con la cedula: "+cedula)
+                      return;
+                    }
+                    
+                    imap.once('ready', function () {
+                      imap.openBox('INBOX.Sent', false, (err, box) => {
+                        if (err) {
+                          console.log("Error en INBOX SENT");
+                        }
+                        let msg, htmlEntity, plainEntity;
+                        msg = mimemessage.factory({
+                          contentType: 'multipart/alternate',
+                          body: []
+                        });
+                        htmlEntity = mimemessage.factory({
+                          contentType: 'text/html;charset=utf-8',
+                          body: mailData.html
+                        });
+                        plainEntity = mimemessage.factory({
+                          body: mailData.text
+                        });
+                        msg.header('From', mailData.from);
+                        msg.header('To', mailData.to);
+                        msg.header('Subject', mailData.subject);
+                        msg.header('Date', new Date());
+                        msg.body.push(plainEntity);
+                        msg.body.push(htmlEntity);
+                        imap.append(msg.toString());
+                        imap.end()
+                      })
+                    });
+          
+                    imap.connect();
+                    return;
+                  })
+                } catch (error) {
+                  console.log("Error Generico IMAP")
+                  console.log(error)
+                }
               }
             }
     } catch (error) {
       await pool.query('ROLLBACK');
-      console.log("Error con la cedula: "+cedula)
+      console.log("Rollback error, Error con la cedula: "+cedula)
       console.log(error)
       return;
     }
