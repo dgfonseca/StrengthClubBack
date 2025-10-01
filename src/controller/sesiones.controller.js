@@ -230,12 +230,21 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                 }
                 
                 console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
-                await pool.query('BEGIN')
-                let res = await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1, TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'),$2,'SISTEMA',null) RETURNING id",[cedula,precio]);
-                let venta = res.rows[0].id
-                console.log("Venta generada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
-                await pool.query("INSERT INTO ventas_paquetes(venta,paquete,cantidad) values ($1,$2,$3)",[venta,paquete,"1"])
-                await pool.query('COMMIT')
+               try {
+                  const res = await pool.query(
+                    "SELECT registrar_venta($1, $2, $3) AS id",
+                    [cedula, paquete, precio]
+                  );
+                  console.log("Venta registrada ID:", res.rows[0].id);
+                } catch (err) {
+                  if (err.code === '40001') { // serialization_failure
+                    console.warn("Serialization Conflict");
+                    // retry logic here
+                  } else {
+                    console.log("Error ::: in function")
+                    console.error(err)
+                  }
+                }
                 console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
                 console.log("Enviando Correo para el cliente::: "+cedula)
                 try {
@@ -288,6 +297,7 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
       console.log(error)
       return;
     }
+    console.log("Correo enviado para el cliente::: "+cedula)
 
     return;
 
@@ -425,8 +435,7 @@ const crearSesionDeIcs =  async (request)=>{
               }
             }else{
                 console.log("Enviando correos anticipado para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
-
-                enviarCorreoSesionesVencidas(clienteRes.rows[0])
+                await enviarCorreoSesionesVencidas(clienteRes.rows[0])
             }
             console.log("Finalizó para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
 
