@@ -4,23 +4,7 @@ const mimemessage = require('mimemessage');
 const Imap =require('node-imap');
 
 
-var imap = new Imap({
-  user: process.env.MAIL_ACCOUNT,
-  password: process.env.MAIL_PASSWORD,
-  host: process.env.IMAP_MAIL_HOST,
-  port: process.env.IMAP_MAIL_PORT,
-  tls: true
-})
-const transporter = nodemailer.createTransport({
-  port: process.env.MAIL_PORT,
-  host: process.env.MAIL_HOST,
-  secureConnection: false,
-  
-  auth: {
-    user: process.env.MAIL_ACCOUNT,
-    pass: process.env.MAIL_PASSWORD,
-  }
-});
+
 
 const pool = new Pool({
   user: process.env.PG_USER,
@@ -251,6 +235,23 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                 console.log("Enviando Correo para el cliente::: "+cedula)
                 try {
                 // Send email
+                var imap = new Imap({
+                  user: process.env.MAIL_ACCOUNT,
+                  password: process.env.MAIL_PASSWORD,
+                  host: process.env.IMAP_MAIL_HOST,
+                  port: process.env.IMAP_MAIL_PORT,
+                  tls: true
+                })
+                const transporter = nodemailer.createTransport({
+                  port: process.env.MAIL_PORT,
+                  host: process.env.MAIL_HOST,
+                  secureConnection: false,
+                  
+                  auth: {
+                    user: process.env.MAIL_ACCOUNT,
+                    pass: process.env.MAIL_PASSWORD,
+                  }
+                });
                 let info = await transporter.sendMail(mailData);
                 console.log("Correo enviado con éxito a la cédula:", cedula, " -> ", info.messageId);
 
