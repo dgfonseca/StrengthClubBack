@@ -215,14 +215,17 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                 
                 console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
                try {
+                  await pool.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE");
                   await pool.query("CALL registrar_venta_safe($1, $2, $3, $4)", [
                     cedula,
                     paquete,
                     precio,
                     3 // max retries
                   ]);
+                  await pool.query("COMMIT");
                   console.log("Venta registrada para cliente:", cedula);
                 } catch (err) {
+                  await client.query("ROLLBACK"); // rollback on error
                   if (err.code === '40001') { // serialization_failure
                     console.warn("Serialization Conflict");
                     // retry logic here
