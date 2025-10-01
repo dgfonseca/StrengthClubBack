@@ -245,7 +245,7 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                     console.error(err)
                   }
                 }
-                console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio + " ID venta: "+venta)
+                console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
                 console.log("Enviando Correo para el cliente::: "+cedula)
                 try {
                   transporter.sendMail(mailData, (error,info)=>{
