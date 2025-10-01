@@ -225,7 +225,7 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                   await pool.query("COMMIT");
                   console.log("Venta registrada para cliente:", cedula);
                 } catch (err) {
-                  await client.query("ROLLBACK"); // rollback on error
+                  await pool.query("ROLLBACK"); // rollback on error
                   if (err.code === '40001') { // serialization_failure
                     console.warn("Serialization Conflict");
                     // retry logic here
