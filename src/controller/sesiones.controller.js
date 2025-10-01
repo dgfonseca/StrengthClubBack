@@ -231,7 +231,7 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                 
                 console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
                try {
-                  await client.query("CALL registrar_venta_safe($1, $2, $3, $4)", [
+                  await pool.query("CALL registrar_venta_safe($1, $2, $3, $4)", [
                     cedula,
                     paquete,
                     precio,
