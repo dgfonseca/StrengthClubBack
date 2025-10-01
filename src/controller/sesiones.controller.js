@@ -231,11 +231,13 @@ const enviarCorreoSesionesVencidas = async (cliente) =>{
                 
                 console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
                try {
-                  const res = await pool.query(
-                    "SELECT registrar_venta($1, $2, $3) AS id",
-                    [cedula, paquete, precio]
-                  );
-                  console.log("Venta registrada ID:", res.rows[0].id);
+                  await client.query("CALL registrar_venta_safe($1, $2, $3, $4)", [
+                    cliente,
+                    paquete,
+                    precio,
+                    3 // max retries
+                  ]);
+                  console.log("Venta registrada para cliente:", cedula);
                 } catch (err) {
                   if (err.code === '40001') { // serialization_failure
                     console.warn("Serialization Conflict");
