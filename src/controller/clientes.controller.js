@@ -446,49 +446,74 @@ const pool = new Pool({
             port: process.env.IMAP_MAIL_PORT,
             tls: true
           })
-        transporter.sendMail(mailData, (error,info)=>{
-          if(error){
-            console.log("Error con la cedula: "+cedula)
-            console.log(error)
-            response.status(500)
-            .send({
-              message: error
-            }); 
-            return;
-          }
+        imap.on('error', (err) => {
+        console.error('IMAP error:', err);
+        // Don’t throw — just log and cleanup
+        try { imap.end(); } catch (_) {}
+      });
 
-          
-          
-          imap.once('ready', function () {
-            imap.openBox('INBOX.Sent', false, (err, box) => {
-              if (err) {console.log(err);
-                        throw err;
-              }
-              let msg, htmlEntity, plainEntity;
-              msg = mimemessage.factory({
+      imap.on('end', () => {
+        console.log('IMAP connection closed');
+      });
+
+      transporter.sendMail(mailData, (error, info) => {
+        if (error) {
+          console.log("Error con la cedula: " + cedula);
+          console.log(error);
+          response.status(500).send({
+            message: error
+          }); 
+          return;
+        }
+
+        imap.once('ready', function () {
+          imap.openBox('INBOX.Sent', false, (err, box) => {
+            if (err) {
+              console.error('Error opening mailbox:', err);
+              return;
+            }
+
+            try {
+              let msg = mimemessage.factory({
                 contentType: 'multipart/alternate',
                 body: []
               });
-              htmlEntity = mimemessage.factory({
+
+              let htmlEntity = mimemessage.factory({
                 contentType: 'text/html;charset=utf-8',
                 body: mailData.html
               });
-              plainEntity = mimemessage.factory({
+
+              let plainEntity = mimemessage.factory({
                 body: mailData.text
               });
+
               msg.header('From', mailData.from);
               msg.header('To', mailData.to);
               msg.header('Subject', mailData.subject);
               msg.header('Date', new Date());
               msg.body.push(plainEntity);
               msg.body.push(htmlEntity);
-              imap.append(msg.toString());
-              imap.end()
-            })
-          });
 
-          imap.connect();
-        })
+              // Use callback to know if append succeeded
+              imap.append(msg.toString(), (appendErr) => {
+                if (appendErr) {
+                  console.error('Error appending message:', appendErr);
+                } else {
+                  console.log('Message appended successfully');
+                }
+                // Always close gracefully after operation
+                imap.end();
+              });
+            } catch (e) {
+              console.error('Unexpected error while appending:', e);
+              imap.end();
+            }
+          });
+        });
+
+        imap.connect();
+      });
       }else{
           console.log("No se puede notificar un cliente deshabilitado")
       }
