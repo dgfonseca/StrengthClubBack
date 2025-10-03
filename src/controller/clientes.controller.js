@@ -4,6 +4,7 @@ const mimemessage = require('mimemessage');
 const Imap =require('node-imap');
 
 
+
 const transporter = nodemailer.createTransport({
   port: process.env.MAIL_PORT,
   host: process.env.MAIL_HOST,
@@ -437,6 +438,14 @@ const pool = new Pool({
           </html>'
         }
         console.log(mailData)
+
+        const imap = new Imap({
+            user: process.env.MAIL_ACCOUNT,
+            password: process.env.MAIL_PASSWORD,
+            host: process.env.IMAP_MAIL_HOST,
+            port: process.env.IMAP_MAIL_PORT,
+            tls: true
+          })
         transporter.sendMail(mailData, (error,info)=>{
           if(error){
             console.log("Error con la cedula: "+cedula)
@@ -448,13 +457,7 @@ const pool = new Pool({
             return;
           }
 
-          var imap = new Imap({
-            user: process.env.IMAP_USER,
-            password: process.env.IMAP_PASS,
-            host: process.env.IMAP_HOST,
-            port: 993,
-            tls: true,
-          });
+          
           
           imap.once('ready', function () {
             imap.openBox('INBOX.Sent', false, (err, box) => {
@@ -882,6 +885,15 @@ const pool = new Pool({
             </body> \
           </html>'
         }
+
+        const imap = new Imap({
+            user: process.env.MAIL_ACCOUNT,
+            password: process.env.MAIL_PASSWORD,
+            host: process.env.IMAP_MAIL_HOST,
+            port: process.env.IMAP_MAIL_PORT,
+            tls: true
+          })
+
         transporter.sendMail(mailData, (error,info)=>{
           if(error){
             console.log("Error con la cedula: "+cedula)
@@ -893,13 +905,7 @@ const pool = new Pool({
             return;
           }
 
-          const imap = new Imap({
-            user: process.env.IMAP_USER,
-            password: process.env.IMAP_PASS,
-            host: process.env.IMAP_HOST,
-            port: 993,
-            tls: true,
-          });
+          
           
           imap.once('ready', function () {
             imap.openBox('INBOX.Sent', false, (err, box) => {
