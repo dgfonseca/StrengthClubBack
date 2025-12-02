@@ -461,8 +461,8 @@ const crearSesionDeIcs =  async (request)=>{
                 }
               }
             }else{
-                console.log("Enviando correos anticipado para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
-                await enviarCorreoSesionesVencidas(clienteRes.rows[0])
+                // console.log("Enviando correos anticipado para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
+                // await enviarCorreoSesionesVencidas(clienteRes.rows[0])
             }
             console.log("Finalizó para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
 
@@ -504,7 +504,7 @@ const crearSesion = async (request, response) =>{
             }
             await pool.query("INSERT INTO ventas(cliente,fecha,valor,usuario,sesion) VALUES ($1,$2,$3,$4,$5) RETURNING id",[cliente,fecha,precioSesion,request.tokenData,sesion.rows[0].id]);
           }else{
-            await enviarCorreoSesionesVencidas(clienteRes.rows[0])
+            // await enviarCorreoSesionesVencidas(clienteRes.rows[0])
           }
           response.status(200).send({message:"Sesion Agendada Exitosamente"});
           return;
