@@ -1105,10 +1105,18 @@ const pool = new Pool({
        }
        let sesionesHtml;
       if(cuenta.rows[0].habilitado){
-        let sesionesHtml2='';
-        detalleSesionesAgendadasMes.rows.forEach((row, index) => {
-          sesionesHtml2 += `<tr><td>${index + 1}</td><td>${new Date(row.fecha).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</td></tr>`;
+        let htmlListaEntrenamientos = '';
+        detalleSesionesAgendadasMes.rows.forEach((row) => {
+          const d = new Date(row.fecha);
+          const fechaTxt = d.toLocaleDateString('es-CO', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/Bogota' });
+          const horaTxt = d.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Bogota' });
+          htmlListaEntrenamientos += '<p style="margin:6px 0;font-family:Arial,sans-serif;font-size:14px;">'+fechaTxt+': '+horaTxt+'</p>';
         });
+        if(!htmlListaEntrenamientos){
+          htmlListaEntrenamientos = '<p style="margin:6px 0;font-family:Arial,sans-serif;font-size:14px;color:#555;">No registramos sesiones este mes.</p>';
+        }
+        let htmlResumenFinanciero = '';
+        let htmlSesionesDisponiblesPendientes = '';
         if(cuenta.rows[0].anticipado){
           let sesionesTotalesTomadasSaldoAnterior = parseFloat(totalSesionesTomadasSaldoAnterior.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadasSaldoAnterior.rows[0].sesiones)
           console.log("Sesiones totales tomadas: "+sesionesTotalesTomadasSaldoAnterior)
@@ -1211,6 +1219,22 @@ const pool = new Pool({
             <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
           </tr>' 
           ;
+          const fmtCopMailA = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(n) || 0);
+          const sesionesRealMesMail = parseFloat(sesionesTomadas.rows[0].sesiones) + parseFloat(sesionesVirtualesTomadas.rows[0].sesiones);
+          const valorSesionesMesMail = parseFloat(deudaSesiones.rows[0] ? deudaSesiones.rows[0].valor : 0);
+          const comprasSinSesionMesMail = parseFloat(deudaSinSesiones.rows[0] ? deudaSinSesiones.rows[0].valor : 0);
+          const pagosMesMail = parseFloat(abonoMesActual.rows[0] ? abonoMesActual.rows[0].abonos : 0);
+          htmlResumenFinanciero = '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;font-family:Arial,sans-serif;font-size:14px;margin:16px 0">'+
+            '<tr><th colspan="2" style="border:1px solid #222;padding:10px;text-align:left;background:#f0f0f0">Resumen financiero</th></tr>'+
+            '<tr><th style="border:1px solid #222;padding:8px;text-align:left;font-weight:bold">Concepto</th><th style="border:1px solid #222;padding:8px;text-align:right;font-weight:bold">Valor</th></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px">Saldo Anterior</td><td style="border:1px solid #222;padding:8px;text-align:right">'+saldoAnteror+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px">(+) Compras del mes</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailA(comprasSinSesionMesMail)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px">(+) Sesiones de Entrenamiento Realizadas ('+sesionesRealMesMail+' sesiones)</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailA(valorSesionesMesMail)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px">(-) Pagos realizados</td><td style="border:1px solid #222;padding:8px;text-align:right">- '+fmtCopMailA(pagosMesMail)+'</td></tr>'+
+            '<tr><th style="border:1px solid #222;padding:10px;text-align:left">TOTAL A PAGAR</th><th style="border:1px solid #222;padding:10px;text-align:right">'+textoSaldoTotal+'</th></tr>'+
+            '</table>';
+          htmlSesionesDisponiblesPendientes = '<p style="margin:8px 0;font-family:Arial,sans-serif;font-size:14px;line-height:1.45"><strong>Sesiones disponibles:</strong> '+Math.max(0, sesionesRestantes)+'</p>'+
+            '<p style="margin:8px 0;font-family:Arial,sans-serif;font-size:14px;line-height:1.45"><strong>Sesiones pendientes de pago:</strong> '+(sesionesRestantes < 0 ? (sesionesRestantes * -1) : 0)+'</p>';
         }else{
           deudaSesiones = deudaSesiones.rows[0].valor
           let saldoAnterior = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0);
@@ -1265,30 +1289,51 @@ const pool = new Pool({
                 <th style="border:1px solid black">Saldo por Pagar:</th>\
                 <th style="border:1px solid black">'+textoSaldoTotal+'</th>\
               </tr>';
+          const fmtCopMailB = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(n) || 0);
+          const sesionesRealMesMailB = parseFloat(sesionesTomadas.rows[0].sesiones) + parseFloat(sesionesVirtualesTomadas.rows[0].sesiones);
+          const valorSesionesMesMailB = parseFloat(deudaTotalSesiones);
+          const comprasSinSesionMesMailB = parseFloat(deudaSinSesiones);
+          const pagosMesMailB = parseFloat(abonoMesActual.rows[0] ? abonoMesActual.rows[0].abonos : 0);
+          htmlResumenFinanciero = '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;font-family:Arial,sans-serif;font-size:14px;margin:16px 0">'+
+            '<tr><th colspan="2" style="border:1px solid #222;padding:10px;text-align:left;background:#f0f0f0">Resumen financiero</th></tr>'+
+            '<tr><th style="border:1px solid #222;padding:8px;text-align:left;font-weight:bold">Concepto</th><th style="border:1px solid #222;padding:8px;text-align:right;font-weight:bold">Valor</th></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px">Saldo Anterior</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailB(saldoAnterior)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px">(+) Compras del mes</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailB(comprasSinSesionMesMailB)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px">(+) Sesiones de Entrenamiento Realizadas ('+sesionesRealMesMailB+' sesiones)</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailB(valorSesionesMesMailB)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px">(-) Pagos realizados</td><td style="border:1px solid #222;padding:8px;text-align:right">- '+fmtCopMailB(pagosMesMailB)+'</td></tr>'+
+            '<tr><th style="border:1px solid #222;padding:10px;text-align:left">TOTAL A PAGAR</th><th style="border:1px solid #222;padding:10px;text-align:right">'+textoSaldoTotal+'</th></tr>'+
+            '</table>';
+          htmlSesionesDisponiblesPendientes = '<p style="margin:8px 0;font-family:Arial,sans-serif;font-size:14px;line-height:1.45"><strong>Sesiones disponibles:</strong> —</p>'+
+            '<p style="margin:8px 0;font-family:Arial,sans-serif;font-size:14px;line-height:1.45"><strong>Sesiones pendientes de pago:</strong> —</p>';
         }
+        let totalDetalleCompras = 0
         let htmlRowSuplemento = ""
         let htmlRowProteina = ""
         let htmlRow2= ""
         suplementos.rows.forEach(suplemento=>{
-          htmlRowSuplemento+='<tr><td style="border:1px solid black">'+suplemento.nombre+'</td>'
-          htmlRowSuplemento+='<td style="border:1px solid black">'+suplemento.cantidad+'</td>'
-          htmlRowSuplemento+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
+          totalDetalleCompras += Number(suplemento.precio) || 0
+          htmlRowSuplemento+='<tr><td style="border:1px solid #222;padding:8px">'+suplemento.nombre+'</td>'
+          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px">'+suplemento.cantidad+'</td>'
+          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;text-align:right">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
         })
         proteinas.rows.forEach(proteina=>{
-          htmlRowProteina+='<tr><td style="border:1px solid black">'+proteina.nombre+'</td>'
-          htmlRowProteina+='<td style="border:1px solid black">'+proteina.cantidad+'</td>'
-          htmlRowProteina+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
+          totalDetalleCompras += Number(proteina.precio) || 0
+          htmlRowProteina+='<tr><td style="border:1px solid #222;padding:8px">'+proteina.nombre+'</td>'
+          htmlRowProteina+='<td style="border:1px solid #222;padding:8px">'+proteina.cantidad+'</td>'
+          htmlRowProteina+='<td style="border:1px solid #222;padding:8px;text-align:right">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
         })
+        let htmlFilaTotalCompras = '<tr style="font-weight:bold"><td style="border:1px solid #222;padding:8px" colspan="2">TOTAL</td><td style="border:1px solid #222;padding:8px;text-align:right">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalDetalleCompras)+'</td></tr>'
         abonos.rows.forEach(abono =>{
-          htmlRow2+='<tr><td style="border:1px solid black">'+cuenta.rows[0].nombre+'</td>'
-          htmlRow2+='<td style="border:1px solid black">'+abono.fecha+'</td>'
-          htmlRow2+='<td style="border:1px solid black">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abono.valor)+'</td>'
-          htmlRow2+='<td style="border:1px solid black">'+abono.tipo+'</td></tr>'
+          htmlRow2+='<tr><td style="border:1px solid #222;padding:8px">'+abono.fecha+'</td>'
+          htmlRow2+='<td style="border:1px solid #222;padding:8px">'+abono.tipo+'</td>'
+          htmlRow2+='<td style="border:1px solid #222;padding:8px;text-align:right">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(abono.valor)+'</td></tr>'
         })
   
         let titulo;
+        let mesNombreCorreo;
         if(fechaInicio && fechaFin){
           titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+ '------' + cuenta.rows[0].nombre+'</h2>'
+          mesNombreCorreo = fechaInicio+' – '+fechaFin;
         }else{
 
           const date = new Date();
@@ -1296,69 +1341,35 @@ const pool = new Pool({
           const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
           const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
           titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'-----'+cuenta.rows[0].nombre+'</h2>'
+          mesNombreCorreo = firstDayPrevMonth.toLocaleDateString('es-CO', { month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
         }
         let mailData = {
-          html: '<!doctype html> \
-          <html ⚡4email> \
-            <head> \
-              <meta charset="utf-8"> \
-              <script async src="https://cdn.ampproject.org/v0.js"></script> \
-              <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
-            </head> \
-            <body>' 
-            + titulo + 
-            '<table style="width:100%; border:1px solid black"> \
-            <tr style="font-weight:bold"> \
-            Compras\
-            </tr> \
-            <tr style="font-weight:bold"> \
-            Proteinas\
-            </tr> \
-              <tr> \
-                <th style="border:1px solid black">Producto</th> \
-                <th style="border:1px solid black">Cantidad</th> \
-                <th style="border:1px solid black">Valor</th> \
-              </tr> \
-             '+htmlRowProteina+' \
-            <tr style="font-weight:bold"> \
-            Suplementos\
-            </tr> \
-              <tr> \
-                <th style="border:1px solid black">Producto</th> \
-                <th style="border:1px solid black">Cantidad</th> \
-                <th style="border:1px solid black">Valor</th> \
-              </tr> \
-             '+htmlRowSuplemento+' \
-            </table><br><br> \
-            <table style="width:100%; border:1px solid black"> \
-              <tr style="font-weight:bold"> \
-                Abonos\
-              </tr>\
-              <tr> \
-                <th style="border:1px solid black">Nombre</th> \
-                <th style="border:1px solid black">Fecha</th> \
-                <th style="border:1px solid black">Valor</th> \
-                <th style="border:1px solid black">Tipo</th> \
-              </tr> \
-              '+htmlRow2+'\
-            </table><br><br> \
-            <table style="width:100%; border:1px solid black"> \
-              <tr style="font-weight:bold"> \
-                Sesiones Agendadas\
-              </tr>\
-              <tr> \
-                <th style="border:1px solid black">Id</th> \
-                <th style="border:1px solid black">Fecha</th> \
-              </tr> \
-              '+sesionesHtml2+'\
-            </table><br><br> \
-            <table style="width:100%; border:1px solid black">'+sesionesHtml+'\
-              </table> \
-              <p>* Sesiones Vendidas: Las sesiones vendidas son aquellas que se han registrado en la plataforma como ventas de paquetes de sesiones o sesiones individuales. Sin embargo, estas ventas registradas no necesariamente indican que las sesiones hayan sido pagadas.</p> \
-              <p>* Saldo Total: Diferencia entre el total de compras registradas en el sistema y todos los abonos/pagos registrados. Puede darse el caso de que el cliente agende más sesiones de las acordadas, las cuales se reflejarán por separado en este campo.</p> \
-              <p>* Saldo Anterior Sesiones: Indica el saldo de sesiones acumulado hasta el mes anterior. Un número positivo representa la cantidad de sesiones disponibles para agendar, provenientes de paquetes adquiridos previamente. Si el saldo es negativo, se reflejará la cantidad de sesiones adeudadas junto con el texto correspondiente que indica la deuda.</p> \
-            </body> \
-          </html>'
+          html: '<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;padding:16px;font-family:Arial,sans-serif;background:#fafafa;color:#222">' 
+            + titulo
+            + '<p style="font-size:15px;line-height:1.55;margin:12px 0">Hola '+cuenta.rows[0].nombre+',<br>Aquí tienes el resumen detallado de tus entrenamientos y consumos en Strength Club durante '+mesNombreCorreo+'.</p>'
+            + '<h3 style="margin:20px 0 8px;font-size:16px">Resumen financiero</h3>'
+            + htmlResumenFinanciero
+            + '<h3 style="margin:24px 0 8px;font-size:16px">🏋️ Entrenamientos del mes</h3>'
+            + '<p style="margin:0 0 8px;font-size:14px;line-height:1.5">Para tu control, estas son las sesiones que registramos este mes:</p>'
+            + htmlListaEntrenamientos
+            + htmlSesionesDisponiblesPendientes
+            + '<h3 style="margin:24px 0 8px;font-size:16px">🛒 Detalle de compras</h3>'
+            + '<h4 style="margin:12px 0 6px;font-size:15px">Proteínas (paquetes)</h4>'
+            + '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;margin-bottom:12px;font-size:14px"><tbody><tr><th style="border:1px solid #222;padding:8px;text-align:left">Producto</th><th style="border:1px solid #222;padding:8px;text-align:left">Cantidad</th><th style="border:1px solid #222;padding:8px;text-align:right">Total</th></tr>'
+            + (htmlRowProteina || '<tr><td colspan="3" style="border:1px solid #222;padding:8px;color:#666">Sin registros</td></tr>')
+            + '</tbody></table>'
+            + '<h4 style="margin:12px 0 6px;font-size:15px">Suplementos</h4>'
+            + '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;margin-bottom:8px;font-size:14px"><tbody><tr><th style="border:1px solid #222;padding:8px;text-align:left">Producto</th><th style="border:1px solid #222;padding:8px;text-align:left">Cantidad</th><th style="border:1px solid #222;padding:8px;text-align:right">Total</th></tr>'
+            + (htmlRowSuplemento || '<tr><td colspan="3" style="border:1px solid #222;padding:8px;color:#666">Sin registros</td></tr>')
+            + '</tbody></table>'
+            + '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;margin-bottom:20px;font-size:14px"><tbody>'+htmlFilaTotalCompras+'</tbody></table>'
+            + '<h3 style="margin:24px 0 8px;font-size:16px">Pagos registrados</h3>'
+            + '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;margin-bottom:20px;font-size:14px"><tbody><tr><th style="border:1px solid #222;padding:8px;text-align:left">Fecha</th><th style="border:1px solid #222;padding:8px;text-align:left">Concepto</th><th style="border:1px solid #222;padding:8px;text-align:right">Valor</th></tr>'
+            + (htmlRow2 || '<tr><td colspan="3" style="border:1px solid #222;padding:8px;color:#666">Sin pagos en el periodo</td></tr>')
+            + '</tbody></table>'
+            + '<h3 style="margin:24px 0 8px;font-size:16px">ℹ️ Información adicional</h3>'
+            + '<p style="font-size:13px;line-height:1.5;color:#444;margin:0 0 16px">Nota: <strong>TOTAL A PAGAR</strong> incluye tus suplementos y las sesiones efectivamente agendadas. Si encuentras alguna discrepancia en los horarios de tus sesiones, por favor avísanos para revisarlo con tu coach.</p>'
+            + '</body></html>'
         }
         return mailData;
       }else{
