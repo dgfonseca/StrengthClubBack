@@ -1335,9 +1335,9 @@ const pool = new Pool({
         let htmlRow2= ""
         suplementos.rows.forEach(suplemento=>{
           totalDetalleCompras += Number(suplemento.precio) || 0
-          htmlRowSuplemento+='<tr><td style="border:1px solid #222;padding:8px;color:red">'+suplemento.nombre+'</td>'
-          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;color:red">'+suplemento.cantidad+'</td>'
-          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
+          htmlRowSuplemento+='<tr><td style="border:1px solid #222;padding:8px">'+suplemento.nombre+'</td>'
+          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px">'+suplemento.cantidad+'</td>'
+          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;text-align:right;color:#996600">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
         })
         if(cuenta.rows[0].anticipado){
           ventasSesionesMes.rows.forEach(proteina=>{
