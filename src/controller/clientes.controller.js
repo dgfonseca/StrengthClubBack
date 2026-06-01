@@ -488,7 +488,7 @@ const pool = new Pool({
                 body: mailData.text
               });
 
-              msg.header('From', mailData.from);
+              msg.header('From', "Strength Club");
               msg.header('To', mailData.to);
               msg.header('Subject', mailData.subject);
               msg.header('Date', new Date());
@@ -949,7 +949,7 @@ const pool = new Pool({
               plainEntity = mimemessage.factory({
                 body: mailData.text
               });
-              msg.header('From', mailData.from);
+              msg.header('From', "Strength Club");
               msg.header('To', mailData.to);
               msg.header('Subject', mailData.subject);
               msg.header('Date', new Date());
@@ -1340,7 +1340,7 @@ const pool = new Pool({
 
           const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
           const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
-          titulo='<h2>Estado de Cuenta Strength Club: Desde '+firstDayPrevMonth.toDateString()+'-----'+'Hasta '+lastDayPrevMonth.toDateString()+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: Desde '+firstDayPrevMonth.toDateString()+'Hasta '+lastDayPrevMonth.toDateString()+'</h2>'
           mesNombreCorreo = firstDayPrevMonth.toLocaleDateString('es-CO', { month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
         }
         let mailData = {
