@@ -461,8 +461,8 @@ const crearSesionDeIcs =  async (request)=>{
                 }
               }
             }else{
-                // console.log("Enviando correos anticipado para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
-                // await enviarCorreoSesionesVencidas(clienteRes.rows[0])
+                console.log("Enviando correos anticipado para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
+                await enviarCorreoSesionesVencidas(clienteRes.rows[0])
             }
             console.log("Finalizó para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
 
