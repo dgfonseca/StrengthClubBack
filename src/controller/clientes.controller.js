@@ -1322,7 +1322,7 @@ const pool = new Pool({
           htmlRowProteina+='<td style="border:1px solid #222;padding:8px;color:red">'+proteina.cantidad+'</td>'
           htmlRowProteina+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
         })
-        let htmlFilaTotalCompras = '<tr style="font-weight:bold"><td style="border:1px solid #222;padding:8px" colspan="2">TOTAL</td><td style="border:1px solid #222;padding:8px;text-align:right">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalDetalleCompras)+'</td></tr>'
+        let htmlFilaTotalCompras = '<tr style="font-weight:bold"><td style="border:1px solid #222;padding:8px" colspan="2">TOTAL</td><td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalDetalleCompras)+'</td></tr>'
         abonos.rows.forEach(abono =>{
           htmlRow2+='<tr><td style="border:1px solid #222;padding:8px;color:green">'+abono.fecha+'</td>'
           htmlRow2+='<td style="border:1px solid #222;padding:8px;color:green">'+abono.tipo+'</td>'
