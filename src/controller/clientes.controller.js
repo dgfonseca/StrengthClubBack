@@ -1061,6 +1061,24 @@ const pool = new Pool({
       abonos = await pool.query("select *, round(valor) as valor from abonos where cliente=$1 \
        and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota'))\
        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month)",[cedula])
+      let ventasSesionesMes = await pool.query("select q.nombre, count(*) as cantidad, coalesce(round(sum(q.valor)),0) as precio from ( \
+        select distinct v.id, round(v.valor) as valor, pr.nombre \
+        from ventas v \
+        inner join ventas_productos vp on v.id = vp.venta \
+        inner join productos pr on pr.codigo = vp.producto \
+        where vp.producto like '%SES%' and v.cliente=$1 \
+        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
+        and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month) \
+        union \
+        select distinct v.id, round(v.valor) as valor, pa.nombre \
+        from ventas v \
+        inner join ventas_paquetes vp on v.id = vp.venta \
+        inner join paquetes pa on pa.codigo = vp.paquete \
+        inner join productos_paquete pp on pp.codigo_paquete = vp.paquete \
+        where pp.codigo_producto like '%SES%' and v.cliente=$1 \
+        and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
+        and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month) \
+      ) q group by q.nombre",[cedula])
       proteinas = await pool.query("select q.codigo_paquete as nombre, count(distinct v.id)*vp.cantidad as cantidad,count(distinct v.id)*vp.cantidad*q.precio as precio from ventas v inner join ventas_paquetes vp on v.id = vp.venta \
       inner JOIN ( \
       	SELECT hp.codigo_paquete, hp.precio,TO_TIMESTAMP(hp.fechaInicio,'YYYY-MM-DD HH24:MI') as fechaInicio, coalesce(TO_TIMESTAMP(hp.fechafin,'YYYY-MM-DD HH24:MI'),current_timestamp at time zone 'America/Bogota') as fechaFin \
@@ -1321,12 +1339,14 @@ const pool = new Pool({
           htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;color:red">'+suplemento.cantidad+'</td>'
           htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
         })
-        proteinas.rows.forEach(proteina=>{
-          totalDetalleCompras += Number(proteina.precio) || 0
-          htmlRowProteina+='<tr><td style="border:1px solid #222;padding:8px;color:red">'+proteina.nombre+'</td>'
-          htmlRowProteina+='<td style="border:1px solid #222;padding:8px;color:red">'+proteina.cantidad+'</td>'
-          htmlRowProteina+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
-        })
+        if(cuenta.rows[0].anticipado){
+          ventasSesionesMes.rows.forEach(proteina=>{
+            totalDetalleCompras += Number(proteina.precio) || 0
+            htmlRowProteina+='<tr><td style="border:1px solid #222;padding:8px;color:red">'+proteina.nombre+'</td>'
+            htmlRowProteina+='<td style="border:1px solid #222;padding:8px;color:red">'+proteina.cantidad+'</td>'
+            htmlRowProteina+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
+          })
+        }
         let htmlFilaTotalCompras = '<tr style="font-weight:bold"><td style="border:1px solid #222;padding:8px" colspan="2">TOTAL</td><td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalDetalleCompras)+'</td></tr>'
         abonos.rows.forEach(abono =>{
           htmlRow2+='<tr><td style="border:1px solid #222;padding:8px;color:green">'+abono.fecha+'</td>'
