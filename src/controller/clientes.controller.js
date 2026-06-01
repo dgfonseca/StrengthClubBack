@@ -1298,9 +1298,9 @@ const pool = new Pool({
             '<tr><th colspan="2" style="border:1px solid #222;padding:10px;text-align:left;background:#f0f0f0">Resumen financiero</th></tr>'+
             '<tr><th style="border:1px solid #222;padding:8px;text-align:left;font-weight:bold">Concepto</th><th style="border:1px solid #222;padding:8px;text-align:right;font-weight:bold">Valor</th></tr>'+
             '<tr><td style="border:1px solid #222;padding:8px">Saldo Anterior</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailB(saldoAnterior)+'</td></tr>'+
-            '<tr><td style="border:1px solid #222;padding:8px">(+) Compras del mes</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailB(comprasSinSesionMesMailB)+'</td></tr>'+
-            '<tr><td style="border:1px solid #222;padding:8px">(+) Sesiones de Entrenamiento Realizadas ('+sesionesRealMesMailB+' sesiones)</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailB(valorSesionesMesMailB)+'</td></tr>'+
-            '<tr><td style="border:1px solid #222;padding:8px">(-) Pagos realizados</td><td style="border:1px solid #222;padding:8px;text-align:right">- '+fmtCopMailB(pagosMesMailB)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px;color:red">(+) Compras del mes</td><td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+fmtCopMailB(comprasSinSesionMesMailB)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px;color:#996600">(+) Sesiones de Entrenamiento Realizadas ('+sesionesRealMesMailB+' sesiones)</td><td style="border:1px solid #222;padding:8px;text-align:right;color:#996600">'+fmtCopMailB(valorSesionesMesMailB)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px;color:green">(-) Pagos realizados</td><td style="border:1px solid #222;padding:8px;text-align:right;color:green">- '+fmtCopMailB(pagosMesMailB)+'</td></tr>'+
             '<tr><th style="border:1px solid #222;padding:10px;text-align:left">TOTAL A PAGAR</th><th style="border:1px solid #222;padding:10px;text-align:right">'+textoSaldoTotal+'</th></tr>'+
             '</table>';
           htmlSesionesDisponiblesPendientes = '<p style="margin:8px 0;font-family:Arial,sans-serif;font-size:14px;line-height:1.45"><strong>Sesiones disponibles:</strong> —</p>'+
