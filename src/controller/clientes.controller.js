@@ -1109,7 +1109,7 @@ const pool = new Pool({
         and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month)",[cedula])
       let deudaSinSesiones = await pool.query("select  coalesce(round(sum(valor)),0) as valor from ventas where cliente=$1 \
         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
-        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month) and sesion is null",[cedula])
+        and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month)",[cedula])
       let deudaSesiones = await pool.query("select  coalesce(round(sum(valor)),0) as valor from ventas where cliente=$1 \
         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
         and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month) and sesion is not null",[cedula])
@@ -1245,8 +1245,8 @@ const pool = new Pool({
           const fmtCopMailA = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(n) || 0);
           const sesionesRealMesMail = parseFloat(sesionesTomadas.rows[0].sesiones) + parseFloat(sesionesVirtualesTomadas.rows[0].sesiones);
           const valorSesionesMesMail = parseFloat(deudaSesionesAnticipado.rows[0] ? deudaSesionesAnticipado.rows[0].valor : 0);
-          const comprasSinSesionMesMail = parseFloat(deudaSinSesiones.rows[0] ? deudaSinSesiones.rows[0].valor : 0);
-          const pagosMesMail = parseFloat(abonoMesActual.rows[0] ? abonoMesActual.rows[0].abonos : 0);
+          const comprasSinSesionMesMail = Math.abs(parseFloat(deudaMesActual.rows[0] ? deudaMesActual.rows[0].valor : 0) - valorSesionesMesMail);
+          const pagosMesMail = Math.abs(parseFloat(abonoMesActual.rows[0] ? abonoMesActual.rows[0].abonos : 0));
           htmlResumenFinanciero = '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;font-family:Arial,sans-serif;font-size:14px;margin:16px 0">'+
             '<tr><th colspan="2" style="border:1px solid #222;padding:10px;text-align:left;background:#f0f0f0">Resumen financiero</th></tr>'+
             '<tr><th style="border:1px solid #222;padding:8px;text-align:left;font-weight:bold">Concepto</th><th style="border:1px solid #222;padding:8px;text-align:right;font-weight:bold">Valor</th></tr>'+
