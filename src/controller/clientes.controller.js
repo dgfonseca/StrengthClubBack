@@ -1332,7 +1332,7 @@ const pool = new Pool({
         let titulo;
         let mesNombreCorreo;
         if(fechaInicio && fechaFin){
-          titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+ '------' + cuenta.rows[0].nombre+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: Desde '+fechaInicio+' hasta '+fechaFin+ '</h2>'
           mesNombreCorreo = fechaInicio+' – '+fechaFin;
         }else{
 
@@ -1340,7 +1340,7 @@ const pool = new Pool({
 
           const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
           const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
-          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'-----'+cuenta.rows[0].nombre+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: Desde '+firstDayPrevMonth.toDateString()+'-----'+'Hasta '+lastDayPrevMonth.toDateString()+'</h2>'
           mesNombreCorreo = firstDayPrevMonth.toLocaleDateString('es-CO', { month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
         }
         let mailData = {
