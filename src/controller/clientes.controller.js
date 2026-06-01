@@ -1081,6 +1081,11 @@ const pool = new Pool({
       where (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
       and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month) and vp.producto not like '%SES%' and v.cliente=$1 group by q.producto,q.nombre,q.precio,vp.cantidad",[cedula])
       let deudaMesActual;
+      let deudaSesionesAnticipado = await pool.query("select coalesce(round(sum(v.valor)),0) as valor from ventas v where v.cliente=$1 \
+          and (to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
+          and to_timestamp(v.fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month) \
+          and (exists (select 1 from ventas_productos vp where vp.venta = v.id and vp.producto like '%SES%') \
+            or exists (select 1 from ventas_paquetes vp inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where vp.venta = v.id and pp.codigo_producto like '%SES%'))",[cedula])
       deudaMesActual = await pool.query("select  coalesce(round(sum(valor)),0) as valor from ventas where cliente=$1 \
         and (to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') < date_trunc('month', current_timestamp at time zone 'America/Bogota')) \
         and to_timestamp(fecha,'yyyy-mm-dd HH24:MI:SS') >= date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month)",[cedula])
@@ -1221,7 +1226,7 @@ const pool = new Pool({
           ;
           const fmtCopMailA = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(n) || 0);
           const sesionesRealMesMail = parseFloat(sesionesTomadas.rows[0].sesiones) + parseFloat(sesionesVirtualesTomadas.rows[0].sesiones);
-          const valorSesionesMesMail = parseFloat(deudaSesiones.rows[0] ? deudaSesiones.rows[0].valor : 0);
+          const valorSesionesMesMail = parseFloat(deudaSesionesAnticipado.rows[0] ? deudaSesionesAnticipado.rows[0].valor : 0);
           const comprasSinSesionMesMail = parseFloat(deudaSinSesiones.rows[0] ? deudaSinSesiones.rows[0].valor : 0);
           const pagosMesMail = parseFloat(abonoMesActual.rows[0] ? abonoMesActual.rows[0].abonos : 0);
           htmlResumenFinanciero = '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;font-family:Arial,sans-serif;font-size:14px;margin:16px 0">'+
