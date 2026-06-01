@@ -1270,14 +1270,6 @@ const pool = new Pool({
           }else if(deudaTotal<0){
             textoSaldoTotal="Saldo a favor de "+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal*-1)
           }
-          else{
-            if(deudaTotalSesiones<0){
-              let deudaText= deudaTotalSesiones*-1;
-              textoSaldoTotal="Debe " + deudaText + " Sesiones";
-            }else{
-              textoSaldoTotal="Saldo al día"
-            }
-          }
           sesionesHtml='<tr style="font-weight:bold"> \
           Sesiones \
           </tr> \
