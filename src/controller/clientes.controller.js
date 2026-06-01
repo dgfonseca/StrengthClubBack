@@ -1354,7 +1354,7 @@ const pool = new Pool({
             + htmlListaEntrenamientos
             + htmlSesionesDisponiblesPendientes
             + '<h3 style="margin:24px 0 8px;font-size:16px">🛒 Detalle de compras</h3>'
-            + '<h4 style="margin:12px 0 6px;font-size:15px">Proteínas (paquetes)</h4>'
+            + '<h4 style="margin:12px 0 6px;font-size:15px">Paquetes</h4>'
             + '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;margin-bottom:12px;font-size:14px"><tbody><tr><th style="border:1px solid #222;padding:8px;text-align:left">Producto</th><th style="border:1px solid #222;padding:8px;text-align:left">Cantidad</th><th style="border:1px solid #222;padding:8px;text-align:right">Total</th></tr>'
             + (htmlRowProteina || '<tr><td colspan="3" style="border:1px solid #222;padding:8px;color:#666">Sin registros</td></tr>')
             + '</tbody></table>'
