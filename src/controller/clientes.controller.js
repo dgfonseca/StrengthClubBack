@@ -1337,14 +1337,14 @@ const pool = new Pool({
           totalDetalleCompras += Number(suplemento.precio) || 0
           htmlRowSuplemento+='<tr><td style="border:1px solid #222;padding:8px">'+suplemento.nombre+'</td>'
           htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px">'+suplemento.cantidad+'</td>'
-          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;text-align:right;color:#996600">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
+          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
         })
         if(cuenta.rows[0].anticipado){
           ventasSesionesMes.rows.forEach(proteina=>{
             totalDetalleCompras += Number(proteina.precio) || 0
-            htmlRowProteina+='<tr><td style="border:1px solid #222;padding:8px;color:red">'+proteina.nombre+'</td>'
-            htmlRowProteina+='<td style="border:1px solid #222;padding:8px;color:red">'+proteina.cantidad+'</td>'
-            htmlRowProteina+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
+            htmlRowProteina+='<tr><td style="border:1px solid #222;padding:8px;color:#996600">'+proteina.nombre+'</td>'
+            htmlRowProteina+='<td style="border:1px solid #222;padding:8px;color:#996600">'+proteina.cantidad+'</td>'
+            htmlRowProteina+='<td style="border:1px solid #222;padding:8px;text-align:right;color:#996600">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
           })
         }
         let htmlFilaTotalCompras = '<tr style="font-weight:bold"><td style="border:1px solid #222;padding:8px" colspan="2">TOTAL</td><td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalDetalleCompras)+'</td></tr>'
