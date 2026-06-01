@@ -360,14 +360,14 @@ const pool = new Pool({
   
         let titulo;
         if(fechaInicio && fechaFin){
-          titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+ '------' + cuenta.rows[0].nombre+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: Desde '+fechaInicio+' hasta '+fechaFin+'</h2>'
         }else{
 
           const date = new Date();
 
           const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
           const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
-          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'-----'+cuenta.rows[0].nombre+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: Desde '+firstDayPrevMonth.toDateString()+' hasta '+lastDayPrevMonth.toDateString()+'</h2>'
         }
         let mailData = {
           from: process.env.MAIL_ACCOUNT,
@@ -833,14 +833,14 @@ const pool = new Pool({
   
         let titulo;
         if(fechaInicio && fechaFin){
-          titulo='<h2>Estado de Cuenta Strength Club: '+fechaInicio+'-----'+fechaFin+ '------' + cuenta.rows[0].nombre+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: Desde '+fechaInicio+' hasta '+fechaFin+'</h2>'
         }else{
 
           const date = new Date();
 
           const firstDayPrevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
           const lastDayPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0);
-          titulo='<h2>Estado de Cuenta Strength Club: '+firstDayPrevMonth.toDateString()+'-----'+lastDayPrevMonth.toDateString()+'-----'+cuenta.rows[0].nombre+'</h2>'
+          titulo='<h2>Estado de Cuenta Strength Club: Desde '+firstDayPrevMonth.toDateString()+' hasta '+lastDayPrevMonth.toDateString()+'</h2>'
         }
         let mailData = {
           from: process.env.MAIL_ACCOUNT,
@@ -986,7 +986,7 @@ const pool = new Pool({
 
   const getCorreo = async (request,response)=>{
     let cedula = request.body.cedula;
-    console.log("Enviando correo a " +cedula)
+    console.log("Visualizando correo a " +cedula)
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
     let cuenta;let ventas;
@@ -1228,9 +1228,9 @@ const pool = new Pool({
             '<tr><th colspan="2" style="border:1px solid #222;padding:10px;text-align:left;background:#f0f0f0">Resumen financiero</th></tr>'+
             '<tr><th style="border:1px solid #222;padding:8px;text-align:left;font-weight:bold">Concepto</th><th style="border:1px solid #222;padding:8px;text-align:right;font-weight:bold">Valor</th></tr>'+
             '<tr><td style="border:1px solid #222;padding:8px">Saldo Anterior</td><td style="border:1px solid #222;padding:8px;text-align:right">'+saldoAnteror+'</td></tr>'+
-            '<tr><td style="border:1px solid #222;padding:8px">(+) Compras del mes</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailA(comprasSinSesionMesMail)+'</td></tr>'+
-            '<tr><td style="border:1px solid #222;padding:8px">(+) Sesiones de Entrenamiento Realizadas ('+sesionesRealMesMail+' sesiones)</td><td style="border:1px solid #222;padding:8px;text-align:right">'+fmtCopMailA(valorSesionesMesMail)+'</td></tr>'+
-            '<tr><td style="border:1px solid #222;padding:8px">(-) Pagos realizados</td><td style="border:1px solid #222;padding:8px;text-align:right">- '+fmtCopMailA(pagosMesMail)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px;color:red">(+) Suplementos y otros</td><td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+fmtCopMailA(comprasSinSesionMesMail)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px;color:#996600">(+) Sesiones de Entrenamiento Realizadas ('+sesionesRealMesMail+' sesiones)</td><td style="border:1px solid #222;padding:8px;text-align:right;color:#996600">'+fmtCopMailA(valorSesionesMesMail)+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px;color:green">(-) Pagos realizados</td><td style="border:1px solid #222;padding:8px;text-align:right;color:green">- '+fmtCopMailA(pagosMesMail)+'</td></tr>'+
             '<tr><th style="border:1px solid #222;padding:10px;text-align:left">TOTAL A PAGAR</th><th style="border:1px solid #222;padding:10px;text-align:right">'+textoSaldoTotal+'</th></tr>'+
             '</table>';
           htmlSesionesDisponiblesPendientes = '<p style="margin:8px 0;font-family:Arial,sans-serif;font-size:14px;line-height:1.45"><strong>Sesiones disponibles:</strong> '+Math.max(0, sesionesRestantes)+'</p>'+
@@ -1312,15 +1312,15 @@ const pool = new Pool({
         let htmlRow2= ""
         suplementos.rows.forEach(suplemento=>{
           totalDetalleCompras += Number(suplemento.precio) || 0
-          htmlRowSuplemento+='<tr><td style="border:1px solid #222;padding:8px">'+suplemento.nombre+'</td>'
-          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px">'+suplemento.cantidad+'</td>'
-          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;text-align:right">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
+          htmlRowSuplemento+='<tr><td style="border:1px solid #222;padding:8px;color:red">'+suplemento.nombre+'</td>'
+          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;color:red">'+suplemento.cantidad+'</td>'
+          htmlRowSuplemento+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(suplemento.precio)+'</td></tr>'
         })
         proteinas.rows.forEach(proteina=>{
           totalDetalleCompras += Number(proteina.precio) || 0
-          htmlRowProteina+='<tr><td style="border:1px solid #222;padding:8px">'+proteina.nombre+'</td>'
-          htmlRowProteina+='<td style="border:1px solid #222;padding:8px">'+proteina.cantidad+'</td>'
-          htmlRowProteina+='<td style="border:1px solid #222;padding:8px;text-align:right">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
+          htmlRowProteina+='<tr><td style="border:1px solid #222;padding:8px;color:red">'+proteina.nombre+'</td>'
+          htmlRowProteina+='<td style="border:1px solid #222;padding:8px;color:red">'+proteina.cantidad+'</td>'
+          htmlRowProteina+='<td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(proteina.precio)+'</td></tr>'
         })
         let htmlFilaTotalCompras = '<tr style="font-weight:bold"><td style="border:1px solid #222;padding:8px" colspan="2">TOTAL</td><td style="border:1px solid #222;padding:8px;text-align:right">'+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalDetalleCompras)+'</td></tr>'
         abonos.rows.forEach(abono =>{
@@ -1346,7 +1346,7 @@ const pool = new Pool({
         let mailData = {
           html: '<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;padding:16px;font-family:Arial,sans-serif;background:#fafafa;color:#222">' 
             + titulo
-            + '<p style="font-size:15px;line-height:1.55;margin:12px 0">Hola '+cuenta.rows[0].nombre+',<br>Aquí tienes el resumen detallado de tus entrenamientos y consumos en Strength Club durante '+mesNombreCorreo+'.</p>'
+            + '<p style="font-size:15px;line-height:1.55;margin:12px 0">Hola '+cuenta.rows[0].nombre.split(' ')[0]+',<br>Aquí tienes el resumen detallado de tus entrenamientos y consumos en Strength Club durante el mes de '+mesNombreCorreo+'.</p>'
             + '<h3 style="margin:20px 0 8px;font-size:16px">Resumen financiero</h3>'
             + htmlResumenFinanciero
             + '<h3 style="margin:24px 0 8px;font-size:16px">🏋️ Entrenamientos del mes</h3>'
