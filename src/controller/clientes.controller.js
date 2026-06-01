@@ -488,7 +488,7 @@ const pool = new Pool({
                 body: mailData.text
               });
 
-              msg.header('From', "Strength Club");
+              msg.header('From', mailData.from);
               msg.header('To', mailData.to);
               msg.header('Subject', mailData.subject);
               msg.header('Date', new Date());
@@ -949,7 +949,7 @@ const pool = new Pool({
               plainEntity = mimemessage.factory({
                 body: mailData.text
               });
-              msg.header('From', "Strength Club");
+              msg.header('From', mailData.from);
               msg.header('To', mailData.to);
               msg.header('Subject', mailData.subject);
               msg.header('Date', new Date());
@@ -1228,8 +1228,8 @@ const pool = new Pool({
             '<tr><th colspan="2" style="border:1px solid #222;padding:10px;text-align:left;background:#f0f0f0">Resumen financiero</th></tr>'+
             '<tr><th style="border:1px solid #222;padding:8px;text-align:left;font-weight:bold">Concepto</th><th style="border:1px solid #222;padding:8px;text-align:right;font-weight:bold">Valor</th></tr>'+
             '<tr><td style="border:1px solid #222;padding:8px">Saldo Anterior</td><td style="border:1px solid #222;padding:8px;text-align:right">'+saldoAnteror+'</td></tr>'+
+            '<tr><td style="border:1px solid #222;padding:8px;color:#996600">(+) Paquetes de sesiones</td><td style="border:1px solid #222;padding:8px;text-align:right;color:#996600">'+fmtCopMailA(valorSesionesMesMail)+'</td></tr>'+
             '<tr><td style="border:1px solid #222;padding:8px;color:red">(+) Suplementos y otros</td><td style="border:1px solid #222;padding:8px;text-align:right;color:red">'+fmtCopMailA(comprasSinSesionMesMail)+'</td></tr>'+
-            '<tr><td style="border:1px solid #222;padding:8px;color:#996600">(+) Sesiones de Entrenamiento Realizadas ('+sesionesRealMesMail+' sesiones)</td><td style="border:1px solid #222;padding:8px;text-align:right;color:#996600">'+fmtCopMailA(valorSesionesMesMail)+'</td></tr>'+
             '<tr><td style="border:1px solid #222;padding:8px;color:green">(-) Pagos realizados</td><td style="border:1px solid #222;padding:8px;text-align:right;color:green">- '+fmtCopMailA(pagosMesMail)+'</td></tr>'+
             '<tr><th style="border:1px solid #222;padding:10px;text-align:left">TOTAL A PAGAR</th><th style="border:1px solid #222;padding:10px;text-align:right">'+textoSaldoTotal+'</th></tr>'+
             '</table>';
