@@ -150,186 +150,223 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
   }
 }
 
-const enviarCorreoSesionesVencidas = async (cliente) =>{
-    let cedula = cliente.cedula;
-    let sesionesVentasProductos;
-    let sesionesVentasPaquetes;
-    try {
-      
-      let totalSesionesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false",[cedula])
-      
-      let totalSesionesVirtualesTomadas = await pool.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true",[cedula])
-      
-      sesionesVentasProductos = await pool.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
-        inner join ventas_productos vp on vp.venta = v.id \
-        where vp.producto='SES' and v.cliente=$1",[cedula])
-        sesionesVentasPaquetes = await pool.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
-          inner join ventas_paquetes vp on vp.venta = v.id \
-          inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'",[cedula])
-          
-          ultimaVenta = await pool.query("SELECT TO_TIMESTAMP(ve.fecha,'yyyy-mm-dd HH24:MI:SS'), vepa.paquete, vepa.cantidad, pa.precio FROM VENTAS ve \
-            INNER JOIN VENTAS_PAQUETES vepa ON ve.id=vepa.venta \
-            INNER JOIN PAQUETES pa ON pa.codigo=vepa.paquete \
-            INNER JOIN PRODUCTOS_PAQUETE pp ON pp.codigo_paquete = pa.codigo \
-            WHERE pp.codigo_producto LIKE '%SES%' and ve.cliente=$1 \
-            order by ve.fecha desc \
-            fetch first 1 rows only",[cedula])
+const enviarCorreoSesionesVencidas = async (cliente) => {
+  let cedula = cliente.cedula;
+  let sesionesVentasProductos;
+  let sesionesVentasPaquetes;
+  
+  const dbClient = await pool.connect();
+  let enviarCorreo = false;
+  let paquete, precio;
 
-            if(ultimaVenta.rows.length === 0){
-              console.log("No tiene ventas")
-            }
-            else{
+  try {
+    await dbClient.query("BEGIN");
 
-                let paquete = ultimaVenta.rows[0].paquete
-                let precio = ultimaVenta.rows[0].precio
-                
-                let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
-                let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
-                let sesionesRestantes = (sesionesPagadas-sesionesTomadas2)
-                
-                if(sesionesRestantes<=0){
-                
-                let mailData = {
-                  from: process.env.MAIL_ACCOUNT,
-                  to: cliente.email,
-                  subject: "Notificacion de Estado de Cuentas",
-                  text : "Estado de Cuentas",
-                  html: '<!doctype html> \
-                  <html ⚡4email> \
-                    <head> \
-                      <meta charset="utf-8"> \
-                      <script async src="https://cdn.ampproject.org/v0.js"></script> \
-                      <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
-                    </head> \
-                    <body> \
-                      <div class="container"> \
-                        <h2 class="header">Notificación de Consumo de Sesiones Strength Club</h2> \
-                        <p class="content">Estimado/a <strong>'+cliente.nombre+'</strong>,</p> \
-                        <p class="content">Te informamos que has consumido la totalidad de las sesiones de su paquete adquirido. Para tu comidad, el sistema te ha asignado un nuevo paquete de sesiones igual al último que compraste.</p> \
-                        <p class="content">Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos.</p> \
-                        <p class="footer">Atentamente,<br>Equipo de Atención al Cliente</p> \
-                      </div> \
-                    </body> \
-                  </html>'
-                }
-                
-                console.log("Generando nueva venta para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
-               try {
-                  await pool.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE");
-                  await pool.query("CALL registrar_venta_safe($1, $2, $3, $4)", [
-                    cedula,
-                    paquete,
-                    precio,
-                    3 // max retries
-                  ]);
-                  await pool.query("COMMIT");
-                  console.log("Venta registrada para cliente:", cedula);
-                } catch (err) {
-                  await pool.query("ROLLBACK"); // rollback on error
-                  if (err.code === '40001') { // serialization_failure
-                    console.warn("Serialization Conflict");
-                    // retry logic here
-                  } else {
-                    console.log("Error ::: in function")
-                    console.error(err)
-                  }
-                }
-                console.log("Venta finalizada para el cliente "+cedula+" Contenido: "+paquete + " Precio: "+precio)
-                console.log("Enviando Correo para el cliente::: "+cedula)
-                try {
-                // Send email
-                var imap = new Imap({
-                  user: process.env.MAIL_ACCOUNT,
-                  password: process.env.MAIL_PASSWORD,
-                  host: process.env.IMAP_MAIL_HOST,
-                  port: process.env.IMAP_MAIL_PORT,
-                  tls: true
-                })
-                const transporter = nodemailer.createTransport({
-                  port: process.env.MAIL_PORT,
-                  host: process.env.MAIL_HOST,
-                  secureConnection: false,
-                  
-                  auth: {
-                    user: process.env.MAIL_ACCOUNT,
-                    pass: process.env.MAIL_PASSWORD,
-                  }
-                });
-                let info = await transporter.sendMail(mailData);
-                console.log("Correo enviado con éxito a la cédula:", cedula, " -> ", info.messageId);
+    // 1. EL BLOQUEO Y LECTURA DE FECHA: Obtenemos cuándo fue la última vez que se le envió un correo
+    // NOTA: Debes crear la columna 'fecha_ultimo_correo' en tu tabla 'clientes'
+    let clienteQuery = await dbClient.query(
+      "SELECT fecha_ultimo_correo FROM clientes WHERE cedula = $1 FOR UPDATE", 
+      [cedula]
+    );
 
-                // Prepare IMAP flow
-                imap.once('ready', function () {
-                  imap.openBox('INBOX.Sent', false, (err, box) => {
-                    if (err) {
-                      console.error("Error abriendo INBOX.Sent:", err.message);
-                      return;
-                    }
-
-                    try {
-                      let msg = mimemessage.factory({
-                        contentType: 'multipart/alternate',
-                        body: []
-                      });
-
-                      let htmlEntity = mimemessage.factory({
-                        contentType: 'text/html;charset=utf-8',
-                        body: mailData.html
-                      });
-
-                      let plainEntity = mimemessage.factory({
-                        body: mailData.text
-                      });
-
-                      msg.header('From', mailData.from);
-                      msg.header('To', mailData.to);
-                      msg.header('Subject', mailData.subject);
-                      msg.header('Date', new Date());
-
-                      msg.body.push(plainEntity);
-                      msg.body.push(htmlEntity);
-
-                      imap.append(msg.toString(), (err) => {
-                        if (err) {
-                          console.error("Error guardando en INBOX.Sent:", err.message);
-                        } else {
-                          console.log("Correo guardado en Sent correctamente");
-                        }
-                        imap.end();
-                      });
-                    } catch (imapBuildErr) {
-                      console.error("Error construyendo el mensaje IMAP:", imapBuildErr.message);
-                      imap.end();
-                    }
-                  });
-                });
-
-                imap.once('error', (err) => {
-                  console.error("Error en IMAP:", err.message);
-                });
-
-                imap.once('end', () => {
-                  console.log("Conexión IMAP finalizada");
-                });
-
-                imap.connect();
-
-              } catch (error) {
-                console.error("Error general al enviar correo/IMAP:", error.message);
-              }
-
-              }
-            }
-    } catch (error) {
-      console.log(error)
+    // Si el cliente no existe, salimos
+    if (clienteQuery.rows.length === 0) {
+      await dbClient.query("ROLLBACK");
+      dbClient.release();
       return;
     }
-    console.log("Correo enviado para el cliente::: "+cedula)
 
-    return;
+    let fechaUltimoCorreo = clienteQuery.rows[0].fecha_ultimo_correo;
+    let yaSeEnvioHoy = false;
 
-}
+    // Validamos si la fecha del último correo es el día de hoy
+    if (fechaUltimoCorreo) {
+      // Formateamos ambas fechas a YYYY-MM-DD para comparar solo el día (hora de Bogotá -05:00)
+      let fechaUltima = new Date(fechaUltimoCorreo).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
+      let fechaHoy = new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
+      
+      if (fechaUltima === fechaHoy) {
+        yaSeEnvioHoy = true;
+      }
+    }
+    
+    let totalSesionesTomadas = await dbClient.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=false", [cedula]);
+    let totalSesionesVirtualesTomadas = await dbClient.query("select count(*) as sesiones from sesiones s where s.cliente=$1 and virtual=true", [cedula]);
+    
+    sesionesVentasProductos = await dbClient.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_productos vp on vp.venta = v.id \
+      where vp.producto='SES' and v.cliente=$1", [cedula]);
+      
+    sesionesVentasPaquetes = await dbClient.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
+      inner join ventas_paquetes vp on vp.venta = v.id \
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'", [cedula]);
+        
+    let ultimaVenta = await dbClient.query("SELECT TO_TIMESTAMP(ve.fecha,'yyyy-mm-dd HH24:MI:SS'), vepa.paquete, vepa.cantidad, pa.precio FROM VENTAS ve \
+      INNER JOIN VENTAS_PAQUETES vepa ON ve.id=vepa.venta \
+      INNER JOIN PAQUETES pa ON pa.codigo=vepa.paquete \
+      INNER JOIN PRODUCTOS_PAQUETE pp ON pp.codigo_paquete = pa.codigo \
+      WHERE pp.codigo_producto LIKE '%SES%' and ve.cliente=$1 \
+      order by ve.fecha desc \
+      fetch first 1 rows only", [cedula]);
 
+    if (ultimaVenta.rows.length === 0) {
+      console.log("No tiene ventas");
+      await dbClient.query("COMMIT"); 
+    } else {
+      paquete = ultimaVenta.rows[0].paquete;
+      precio = ultimaVenta.rows[0].precio;
+      
+      let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones) + parseFloat(sesionesVentasPaquetes.rows[0].sesiones));
+      let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones) + parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones));
+      let sesionesRestantes = (sesionesPagadas - sesionesTomadas2);
+      
+      if (sesionesRestantes <= 0) {
+        console.log("Generando nueva venta para el cliente " + cedula);
+        
+        await dbClient.query("CALL registrar_venta_safe($1, $2, $3, $4)", [
+          cedula, paquete, precio, 3
+        ]);
+
+        // 2. APLICAR LA REGLA DEL CORREO
+        if (!yaSeEnvioHoy) {
+          // Actualizamos la fecha en la base de datos dentro de la transacción
+          await dbClient.query("UPDATE clientes SET fecha_ultimo_correo = NOW() WHERE cedula = $1", [cedula]);
+          enviarCorreo = true; 
+          console.log("Venta registrada y se programó el correo para hoy.");
+        } else {
+          console.log("Venta registrada, pero NO se enviará correo porque ya se envió uno hoy.");
+        }
+
+      } else {
+        console.log("El cliente " + cedula + " ya tiene sesiones disponibles. Se evita duplicado.");
+      }
+
+      await dbClient.query("COMMIT");
+    }
+
+  } catch (err) {
+    try { await dbClient.query("ROLLBACK"); } catch(e) { console.error("Error en ROLLBACK:", e); }
+    console.log("Error ::: in function");
+    console.error(err);
+    enviarCorreo = false; 
+  } finally {
+    dbClient.release();
+  }
+
+  // 3. ENVÍO DEL CORREO (Se ejecuta solo si enviarCorreo es true)
+  if (enviarCorreo) {
+    console.log("Enviando Correo para el cliente::: " + cedula);
+
+    let mailData = {
+      from: process.env.MAIL_ACCOUNT,
+      to: cliente.email,
+      subject: "Notificacion de Estado de Cuentas",
+      text: "Estado de Cuentas",
+      html: '<!doctype html> \
+      <html ⚡4email> \
+        <head> \
+          <meta charset="utf-8"> \
+          <script async src="https://cdn.ampproject.org/v0.js"></script> \
+          <script async custom-element="amp-anim" src="https://cdn.ampproject.org/v0/amp-anim-0.1.js"></script> \
+        </head> \
+        <body> \
+          <div class="container"> \
+            <h2 class="header">Notificación de Consumo de Sesiones Strength Club</h2> \
+            <p class="content">Estimado/a <strong>' + cliente.nombre + '</strong>,</p> \
+            <p class="content">Te informamos que has consumido la totalidad de las sesiones de su paquete adquirido. Para tu comidad, el sistema te ha asignado un nuevo paquete de sesiones igual al último que compraste.</p> \
+            <p class="content">Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos.</p> \
+            <p class="footer">Atentamente,<br>Equipo de Atención al Cliente</p> \
+          </div> \
+        </body> \
+      </html>'
+    };
+
+    try {
+      var imap = new Imap({
+        user: process.env.MAIL_ACCOUNT,
+        password: process.env.MAIL_PASSWORD,
+        host: process.env.IMAP_MAIL_HOST,
+        port: process.env.IMAP_MAIL_PORT,
+        tls: true
+      });
+
+      const transporter = nodemailer.createTransport({
+        port: process.env.MAIL_PORT,
+        host: process.env.MAIL_HOST,
+        secureConnection: false,
+        auth: {
+          user: process.env.MAIL_ACCOUNT,
+          pass: process.env.MAIL_PASSWORD,
+        }
+      });
+
+      let info = await transporter.sendMail(mailData);
+      console.log("Correo enviado con éxito a la cédula:", cedula, " -> ", info.messageId);
+
+      // Preparar flujo IMAP
+      imap.once('ready', function () {
+        imap.openBox('INBOX.Sent', false, (err, box) => {
+          if (err) {
+            console.error("Error abriendo INBOX.Sent:", err.message);
+            return;
+          }
+
+          try {
+            let msg = mimemessage.factory({
+              contentType: 'multipart/alternate',
+              body: []
+            });
+
+            let htmlEntity = mimemessage.factory({
+              contentType: 'text/html;charset=utf-8',
+              body: mailData.html
+            });
+
+            let plainEntity = mimemessage.factory({
+              body: mailData.text
+            });
+
+            msg.header('From', mailData.from);
+            msg.header('To', mailData.to);
+            msg.header('Subject', mailData.subject);
+            msg.header('Date', new Date());
+
+            msg.body.push(plainEntity);
+            msg.body.push(htmlEntity);
+
+            imap.append(msg.toString(), (err) => {
+              if (err) {
+                console.error("Error guardando en INBOX.Sent:", err.message);
+              } else {
+                console.log("Correo guardado en Sent correctamente");
+              }
+              imap.end();
+            });
+          } catch (imapBuildErr) {
+            console.error("Error construyendo el mensaje IMAP:", imapBuildErr.message);
+            imap.end();
+          }
+        });
+      });
+
+      imap.once('error', (err) => {
+        console.error("Error en IMAP:", err.message);
+      });
+
+      imap.once('end', () => {
+        console.log("Conexión IMAP finalizada");
+      });
+
+      imap.connect();
+    } catch (error) {
+      console.error("Error general al enviar correo/IMAP:", error.message);
+    }
+  } else {
+     console.log("Proceso finalizado. No correspondía enviar correo para " + cedula);
+  }
+
+  return;
+};
 
 const cargaSesionesDeIcs = async (request, response)=>{
 
