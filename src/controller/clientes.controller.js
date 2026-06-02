@@ -518,6 +518,9 @@ const clientesLog = (level, phase, message, meta = {}) => {
               textoSaldoTotal="Saldo al día"
             }
           }
+          if(sesionesRestantes<0){
+            textoSaldoTotal = (textoSaldoTotal ?? saldoTotal ?? 'Saldo al día') + ", Pendiente de pago: "+(sesionesRestantes*-1)+" Sesiones"
+          }
           sesionesHtml='<tr style="font-weight:bold"> \
                 Sesiones \
             </tr> \
@@ -557,6 +560,12 @@ const clientesLog = (level, phase, message, meta = {}) => {
           const valorSesionesMesMail = parseFloat(deudaSesionesAnticipado.rows[0] ? deudaSesionesAnticipado.rows[0].valor : 0);
           const comprasSinSesionMesMail = Math.abs(parseFloat(deudaMesActual.rows[0] ? deudaMesActual.rows[0].valor : 0) - valorSesionesMesMail);
           const pagosMesMail = Math.abs(parseFloat(abonoMesActual.rows[0] ? abonoMesActual.rows[0].abonos : 0));
+          if(textoSaldoTotal == null){
+            if(saldoTotalPre > 0) textoSaldoTotal = saldoTotal;
+            else if(saldoTotalPre < 0) textoSaldoTotal = "Saldo a favor de "+fmtCopMailA(Math.abs(saldoTotalPre));
+            else if(validarSesiones < 0) textoSaldoTotal = "Debes adquirir un nuevo paquete de sesiones";
+            else textoSaldoTotal = "Saldo al día";
+          }
           htmlResumenFinanciero = '<table style="width:100%;max-width:600px;border-collapse:collapse;border:1px solid #222;font-family:Arial,sans-serif;font-size:14px;margin:16px 0">'+
             '<tr><th colspan="2" style="border:1px solid #222;padding:10px;text-align:left;background:#f0f0f0">Resumen financiero</th></tr>'+
             '<tr><th style="border:1px solid #222;padding:8px;text-align:left;font-weight:bold">Concepto</th><th style="border:1px solid #222;padding:8px;text-align:right;font-weight:bold">Valor</th></tr>'+
@@ -579,6 +588,13 @@ const clientesLog = (level, phase, message, meta = {}) => {
             textoSaldoTotal=new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal)
           }else if(deudaTotal<0){
             textoSaldoTotal="Saldo a favor de "+new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(deudaTotal*-1)
+          }else{
+            if(deudaTotalSesiones<0){
+              let deudaText= deudaTotalSesiones*-1;
+              textoSaldoTotal="Debe " + deudaText + " Sesiones";
+            }else{
+              textoSaldoTotal="Saldo al día"
+            }
           }
           sesionesHtml='<tr style="font-weight:bold"> \
           Sesiones \
