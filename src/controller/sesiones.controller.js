@@ -186,6 +186,7 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
       let fechaUltima = new Date(fechaUltimoCorreo).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
       let fechaHoy = new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
       
+      console.log("fechaUltima: "+fechaUltima, "fechaHoy: "+fechaHoy);
       if (fechaUltima === fechaHoy) {
         yaSeEnvioHoy = true;
       }
