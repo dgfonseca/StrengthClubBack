@@ -151,6 +151,7 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
 }
 
 const enviarCorreoSesionesVencidas = async (cliente) => {
+  console.log("Inicia proceso de envio de correo para persona anticipada en la carga del ics: "+cliente.nombre);
   let cedula = cliente.cedula;
   let sesionesVentasProductos;
   let sesionesVentasPaquetes;
