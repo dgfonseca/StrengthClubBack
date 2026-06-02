@@ -232,7 +232,7 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
         // 2. APLICAR LA REGLA DEL CORREO
         if (!yaSeEnvioHoy) {
           // Actualizamos la fecha en la base de datos dentro de la transacción
-          await dbClient.query("UPDATE clientes SET fecha_ultimo_correo = NOW() WHERE cedula = $1", [cedula]);
+          await dbClient.query("UPDATE clientes SET fecha_ultimo_correo = (current_timestamp at time zone 'America/Bogota') WHERE cedula = $1", [cedula]);
           enviarCorreo = true; 
           console.log("Venta registrada y se programó el correo para hoy.");
         } else {
