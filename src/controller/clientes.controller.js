@@ -715,9 +715,6 @@ const pool = new Pool({
             }
           }
           console.log("sesiones restantes"+sesionesRestantes)
-          if(sesionesRestantes<0){
-            textoSaldoTotal+= ", Pendiente de pago: "+(sesionesRestantes*-1)+" Sesiones"
-          }
           console.log("Saldo Anteror 3:"+saldoAnteror)
           sesionesHtml='<tr style="font-weight:bold"> \
                 Sesiones \
@@ -1201,9 +1198,6 @@ const pool = new Pool({
             }
           }
           console.log("sesiones restantes"+sesionesRestantes)
-          if(sesionesRestantes<0){
-            textoSaldoTotal+= ", Pendiente de pago: "+(sesionesRestantes*-1)+" Sesiones"
-          }
           console.log("Saldo Anteror 3:"+saldoAnteror)
           sesionesHtml='<tr style="font-weight:bold"> \
                 Sesiones \
