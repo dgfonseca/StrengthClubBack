@@ -25,6 +25,22 @@ const pool = new Pool({
   ssl: false
   });
 
+const LOG_MODULE = 'clientes.controller';
+
+const clientesLog = (level, phase, message, meta = {}) => {
+  const entry = {
+    ts: new Date().toISOString(),
+    module: LOG_MODULE,
+    level,
+    phase,
+    message,
+    ...(Object.keys(meta).length ? { meta } : {}),
+  };
+  const line = JSON.stringify(entry);
+  if (level === 'error') console.error(line);
+  else if (level === 'warn') console.warn(line);
+  else console.log(line);
+};
 
   const sendAllEmail = async (request,response)=>{
     try {
@@ -32,17 +48,22 @@ const pool = new Pool({
         EXTRACT(YEAR FROM fecha_envio) = EXTRACT(YEAR FROM CURRENT_DATE) \
         AND EXTRACT(MONTH FROM fecha_envio) = EXTRACT(MONTH FROM CURRENT_DATE)) order by nombre asc");
 
+      clientesLog('info', 'sendAllEmail', 'Monthly statement batch started', { total: clientes.rows.length });
+
       for (const row of clientes.rows) {            
             request.body.cedula=row.cedula;
             await sendAllFuncEmail(request,response);
             await pool.query("UPDATE clientes SET enviado=true,fecha_envio=current_timestamp WHERE cedula=$1",[row.cedula])
       }
+      clientesLog('info', 'sendAllEmail', 'Monthly statement batch finished', { sent: clientes.rows.length });
       response.status(200)
             .send({
               message: "Correo enviados exitosamente"
             });
     } catch (error) {
-        console.log(error)
+        clientesLog('error', 'sendAllEmail', 'Monthly statement batch failed', {
+          error: error?.message || String(error),
+        });
         response.status(500)
         .send({
           message: error
@@ -57,14 +78,19 @@ const pool = new Pool({
 
   const sendAllFuncEmail = async (request,response)=>{
     let cedula = request.body.cedula;
-    console.log("Enviando correo a " +cedula)
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
     try {
       const correo = await getCorreo(request);
       if(!correo.html){
-          console.log("No se puede notificar un cliente deshabilitado")
+          clientesLog('warn', 'sendAllFuncEmail', 'Client disabled or statement unavailable, skipping', { cedula });
       }else{
+        clientesLog('info', 'sendAllFuncEmail', 'Sending account statement email', {
+          cedula,
+          email: correo.email,
+          fechaInicio,
+          fechaFin,
+        });
         let mailData = {
           from: process.env.MAIL_ACCOUNT,
           to: correo.email,
@@ -72,7 +98,6 @@ const pool = new Pool({
           text : "Estado de Cuentas",
           html: correo.html
         }
-        console.log(mailData)
 
         const imap = new Imap({
             user: process.env.MAIL_ACCOUNT,
@@ -82,28 +107,37 @@ const pool = new Pool({
             tls: true
           })
         imap.on('error', (err) => {
-        console.error('IMAP error:', err);
+        clientesLog('warn', 'sendAllFuncEmail', 'IMAP connection error', {
+          cedula,
+          error: err?.message || String(err),
+        });
         try { imap.end(); } catch (_) {}
-      });
-
-      imap.on('end', () => {
-        console.log('IMAP connection closed');
       });
 
       transporter.sendMail(mailData, (error, info) => {
         if (error) {
-          console.log("Error con la cedula: " + cedula);
-          console.log(error);
+          clientesLog('error', 'sendAllFuncEmail', 'Failed to send account statement email', {
+            cedula,
+            error: error?.message || String(error),
+          });
           response.status(500).send({
             message: error
           }); 
           return;
         }
 
+        clientesLog('info', 'sendAllFuncEmail', 'Account statement email sent', {
+          cedula,
+          messageId: info?.messageId,
+        });
+
         imap.once('ready', function () {
           imap.openBox('INBOX.Sent', false, (err, box) => {
             if (err) {
-              console.error('Error opening mailbox:', err);
+              clientesLog('warn', 'sendAllFuncEmail', 'Failed to open IMAP Sent folder', {
+                cedula,
+                error: err.message,
+              });
               return;
             }
 
@@ -131,14 +165,18 @@ const pool = new Pool({
 
               imap.append(msg.toString(), (appendErr) => {
                 if (appendErr) {
-                  console.error('Error appending message:', appendErr);
-                } else {
-                  console.log('Message appended successfully');
+                  clientesLog('warn', 'sendAllFuncEmail', 'Failed to append email to IMAP Sent folder', {
+                    cedula,
+                    error: appendErr?.message || String(appendErr),
+                  });
                 }
                 imap.end();
               });
             } catch (e) {
-              console.error('Unexpected error while appending:', e);
+              clientesLog('warn', 'sendAllFuncEmail', 'Failed to build IMAP message', {
+                cedula,
+                error: e?.message || String(e),
+              });
               imap.end();
             }
           });
@@ -148,8 +186,10 @@ const pool = new Pool({
       });
       }
     } catch (error) {
-      console.log("Error con la cedula: "+cedula)
-      console.log(error)
+      clientesLog('error', 'sendAllFuncEmail', 'Unexpected error sending account statement', {
+        cedula,
+        error: error?.message || String(error),
+      });
       response.status(500)
       .send({
         message: error
@@ -161,12 +201,12 @@ const pool = new Pool({
 
   const sendEmail = async (request,response)=>{
     let cedula = request.body.cedula;
-    console.log("Enviando correo a " +cedula)
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
     try {
       const correo = await getCorreo(request);
       if(!correo.html){
+        clientesLog('warn', 'sendEmail', 'Client disabled or statement unavailable', { cedula });
         response.status(405)
         .send({
           message: "No se puede notificar un cliente deshabilitado"
@@ -188,10 +228,19 @@ const pool = new Pool({
             tls: true
           })
 
+        clientesLog('info', 'sendEmail', 'Sending account statement email', {
+          cedula,
+          email: correo.email,
+          fechaInicio,
+          fechaFin,
+        });
+
         transporter.sendMail(mailData, (error,info)=>{
           if(error){
-            console.log("Error con la cedula: "+cedula)
-            console.log(error)
+            clientesLog('error', 'sendEmail', 'Failed to send account statement email', {
+              cedula,
+              error: error?.message || String(error),
+            });
             response.status(500)
             .send({
               message: error
@@ -199,10 +248,19 @@ const pool = new Pool({
             return;
           }
 
+          clientesLog('info', 'sendEmail', 'Account statement email sent', {
+            cedula,
+            messageId: info?.messageId,
+          });
+
           imap.once('ready', function () {
             imap.openBox('INBOX.Sent', false, (err, box) => {
-              if (err) {console.log(err);
-                        throw err;
+              if (err) {
+                clientesLog('warn', 'sendEmail', 'Failed to open IMAP Sent folder', {
+                  cedula,
+                  error: err.message,
+                });
+                throw err;
               }
               let msg, htmlEntity, plainEntity;
               msg = mimemessage.factory({
@@ -235,8 +293,10 @@ const pool = new Pool({
         })
       }
     } catch (error) {
-      console.log("Error con la cedula: "+cedula)
-      console.log(error)
+      clientesLog('error', 'sendEmail', 'Unexpected error sending account statement', {
+        cedula,
+        error: error?.message || String(error),
+      });
       response.status(500)
       .send({
         message: error
@@ -248,7 +308,6 @@ const pool = new Pool({
 
   const getCorreo = async (request,response)=>{
     let cedula = request.body.cedula;
-    console.log("Visualizando correo a " +cedula)
     let fechaInicio = request.body.fechaInicio;
     let fechaFin = request.body.fechaFin;
     let cuenta;let ventas;
@@ -264,6 +323,7 @@ const pool = new Pool({
     let deudaAnterior;
     let sesion,suplementos,proteinas;
     try {
+      clientesLog('info', 'getCorreo', 'Building account statement', { cedula, fechaInicio, fechaFin });
       let detalleSesionesAgendadasMes = await pool.query("select fecha  from sesiones s where s.cliente=$1 \
       and (fecha > date_trunc('month', current_timestamp at time zone 'America/Bogota' - interval '1' month)) \
      and (fecha <= date_trunc('month', current_timestamp at time zone 'America/Bogota')) order by fecha asc",[cedula])
@@ -404,11 +464,8 @@ const pool = new Pool({
         let htmlSesionesDisponiblesPendientes = '';
         if(cuenta.rows[0].anticipado){
           let sesionesTotalesTomadasSaldoAnterior = parseFloat(totalSesionesTomadasSaldoAnterior.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadasSaldoAnterior.rows[0].sesiones)
-          console.log("Sesiones totales tomadas: "+sesionesTotalesTomadasSaldoAnterior)
           let sesionesPagadasSaldoAnterior = (parseFloat(sesionesVentasProductosSaldoAnterior.rows[0].sesiones)+parseFloat(sesionesVentasPaquetesSaldoAnterior.rows[0].sesiones))
-          console.log("Sesiones totales pagadas: "+sesionesTotalesTomadasSaldoAnterior)
           let saldoAnteriorSesiones = sesionesPagadasSaldoAnterior-sesionesTotalesTomadasSaldoAnterior
-          console.log("Saldo Anteiror Sesiones: "+sesionesTotalesTomadasSaldoAnterior)
           let sesionesPagadas = (parseFloat(sesionesVentasProductos.rows[0].sesiones)+parseFloat(sesionesVentasPaquetes.rows[0].sesiones))
           let sesionesPagadasMes = (parseFloat(sesionesVentasProductosMes.rows[0].sesiones)+parseFloat(sesionesVentasPaquetesMes.rows[0].sesiones))
           let sesionesTomadas2 = (parseFloat(totalSesionesTomadas.rows[0].sesiones)+parseFloat(totalSesionesVirtualesTomadas.rows[0].sesiones))
@@ -417,7 +474,6 @@ const pool = new Pool({
           let saldoTotal = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoTotalPre)
           let saldoAnteriorMasCompras = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0) + parseFloat(deudaMesActual.rows[0]?deudaMesActual.rows[0].valor:0)
           let saldoAnteror = parseFloat(deudaAnterior.rows[0]?deudaAnterior.rows[0].debito:0)-parseFloat(abonosAnteriorValue.rows[0]?abonosAnteriorValue.rows[0].abonos:0)
-          console.log("Saldo Anteror 1:"+saldoAnteror)
           let debito = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteriorMasCompras)
           let textoSaldoTotal,textoSesionesRestantes,textoSesionesRestantesAnterior;
           let validarSesiones=sesionesRestantes;
@@ -429,17 +485,14 @@ const pool = new Pool({
           }
           if(saldoAnteror < 0){
             saldoAnteror = "Saldo a favor de "+ new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror*-1)
-            console.log("Saldo Anteror 2:"+saldoAnteror)
           }else{
             saldoAnteror = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(saldoAnteror)
-            console.log("Saldo Anteror 2.1:"+saldoAnteror)
           }
           if(sesionesRestantes<0){
             textoSesionesRestantes = "Pendiente de pago: "+(sesionesRestantes*-1)+" Sesiones"
           }else{
             textoSesionesRestantes = sesionesRestantes;
           }
-          console.log("texto1: "+textoSesionesRestantes)
           if(saldoTotalPre>0){
             textoSaldoTotal=saldoTotal
             if(sesionesRestantes<0){
@@ -465,8 +518,6 @@ const pool = new Pool({
               textoSaldoTotal="Saldo al día"
             }
           }
-          console.log("sesiones restantes"+sesionesRestantes)
-          console.log("Saldo Anteror 3:"+saldoAnteror)
           sesionesHtml='<tr style="font-weight:bold"> \
                 Sesiones \
             </tr> \
@@ -619,6 +670,12 @@ const pool = new Pool({
           titulo='<h2>Estado de Cuenta Strength Club: Desde '+firstDayPrevMonth.toDateString()+' hasta '+lastDayPrevMonth.toDateString()+'</h2>'
           mesNombreCorreo = firstDayPrevMonth.toLocaleDateString('es-CO', { month: 'long', year: 'numeric', timeZone: 'America/Bogota' });
         }
+        clientesLog('info', 'getCorreo', 'Account statement built successfully', {
+          cedula,
+          anticipado: cuenta.rows[0].anticipado,
+          email: cuenta.rows[0].email,
+          sesionesAgendadasMes: detalleSesionesAgendadasMes.rows.length,
+        });
         return {
           html: '<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;padding:16px;font-family:Arial,sans-serif;background:#fafafa;color:#222">' 
             + titulo
@@ -649,10 +706,15 @@ const pool = new Pool({
           email: cuenta.rows[0].email
         };
       }else{
+        clientesLog('warn', 'getCorreo', 'Client disabled, statement not generated', { cedula });
         return { html:null }
       }
     } catch (error) {
-      console.log("Error mostrando el correo con la cedula: "+cedula)
+      clientesLog('error', 'getCorreo', 'Failed to build account statement', {
+        cedula,
+        error: error?.message || String(error),
+        stack: error?.stack,
+      });
       return { html:null }
     }
   }
@@ -691,9 +753,20 @@ const deleteAbono = async(request,response) =>{
   let id = request.body.id
   let query = "DELETE FROM abonos where id=$1"
   let logInfo = await pool.query("select * from abonos where id=$1",[id]);
-  console.log("Se borra el abono del cliente "+logInfo.rows[0].cliente + " con valor de "+logInfo.rows[0].valor +" con fecha "+ logInfo.rows[0].fecha)
+  if (logInfo.rows[0]) {
+    clientesLog('info', 'deleteAbono', 'Payment deleted', {
+      abonoId: id,
+      cliente: logInfo.rows[0].cliente,
+      valor: logInfo.rows[0].valor,
+      fecha: logInfo.rows[0].fecha,
+    });
+  }
   pool.query(query,[id],(error,results)=>{
     if (error) {
+      clientesLog('error', 'deleteAbono', 'Failed to delete payment', {
+        abonoId: id,
+        error: error?.message || String(error),
+      });
       response.status(500)
           .send({
             message: error
@@ -715,7 +788,11 @@ const postAbono = (request, response)=>{
   if(fecha!==null && fecha!==undefined && fecha !==""){
     pool.query("INSERT INTO abonos(cliente,valor,fecha,usuario,tipo) VALUES ($1,$2,$3,$4,$5)",[cliente,abono,fecha,usuario,tipo],(error,results)=>{
       if (error) {
-        console.log(error)
+        clientesLog('error', 'postAbono', 'Failed to create payment with custom date', {
+          cliente,
+          fecha,
+          error: error?.message || String(error),
+        });
         response.status(500)
             .send({
               message: error
@@ -728,7 +805,10 @@ const postAbono = (request, response)=>{
   }else{
     pool.query("INSERT INTO abonos(cliente,valor,fecha,usuario,tipo) VALUES ($1,$2,to_char(current_timestamp at time zone 'America/Bogota','YYYY-MM-DD HH24:MI'),$3,$4)",[cliente,abono,usuario,tipo],(error,results)=>{
       if (error) {
-        console.log(error)
+        clientesLog('error', 'postAbono', 'Failed to create payment with current timestamp', {
+          cliente,
+          error: error?.message || String(error),
+        });
         response.status(500)
             .send({
               message: error
@@ -747,6 +827,10 @@ const getAbonosCliente = async (request,response)=>{
     response.status(200).send({abonos:abonos.rows});
     return;
   } catch (error) {
+    clientesLog('error', 'getAbonosCliente', 'Failed to fetch client payments', {
+      cliente,
+      error: error?.message || String(error),
+    });
     response.status(500).send({abonos:error});
     return;
   }
@@ -855,7 +939,10 @@ const getDetalleContabilidadCliente = async (request,response)=>{
             });
       return;
   } catch (error) {
-    console.log(error)
+    clientesLog('error', 'getDetalleContabilidadCliente', 'Failed to fetch client accounting detail', {
+      cedula,
+      error: error?.message || String(error),
+    });
     response.status(500)
             .send({
               data: error
@@ -874,7 +961,10 @@ const crearCliente = (request, response) =>{
     if(nombre && email && direccion && telefono && cedula && nacimiento){
         pool.query("INSERT INTO clientes(cedula,nombre,email,telefono,direccion,fecha_nacimiento,anticipado) VALUES($1,$2,$3,$4,$5,$6,$7)", [cedula, nombre, email,telefono,direccion,nacimiento,anticipado], (error, results)=>{
             if (error) {
-              console.log(error)
+              clientesLog('error', 'crearCliente', 'Failed to create client', {
+                cedula,
+                error: error?.message || String(error),
+              });
               response.status(500)
                   .send({
                     message: error

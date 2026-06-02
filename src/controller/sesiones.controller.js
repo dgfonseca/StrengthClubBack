@@ -16,6 +16,22 @@ const pool = new Pool({
 
   });
 
+const LOG_MODULE = 'sesiones.controller';
+
+const sesionesLog = (level, phase, message, meta = {}) => {
+  const entry = {
+    ts: new Date().toISOString(),
+    module: LOG_MODULE,
+    level,
+    phase,
+    message,
+    ...(Object.keys(meta).length ? { meta } : {}),
+  };
+  const line = JSON.stringify(entry);
+  if (level === 'error') console.error(line);
+  else if (level === 'warn') console.warn(line);
+  else console.log(line);
+};
 
 const desagendarSesion = (request, response)=>{
     let id = request.body.id;
@@ -84,7 +100,12 @@ const borrarSesionesEntrenador = async (request,response)=>{
       });
       return;
     }catch(exception){
-      console.log(exception)
+      sesionesLog('error', 'borrarSesionesEntrenador', 'Failed to delete sessions by date range', {
+        entrenador: entrenador.replaceAll('%', ''),
+        fechaInicio,
+        fechaFin,
+        error: exception?.message || String(exception),
+      });
       response.status(500)
       .send({
       message: "No se pudieron borrar las sesiones del entrenador "+entrenador.replaceAll("%",''),
@@ -101,6 +122,10 @@ const borrarSesionesEntrenador = async (request,response)=>{
       });
       return;
     }catch(exception){
+      sesionesLog('error', 'borrarSesionesEntrenador', 'Failed to delete sessions for current week', {
+        entrenador: entrenador.replaceAll('%', ''),
+        error: exception?.message || String(exception),
+      });
       response.status(500)
       .send({
       message: "No se pudieron borrar las sesiones del entrenador "+entrenador.replaceAll("%",''),
@@ -124,7 +149,12 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
       });
       return;
     }catch(exception){
-      console.log(exception)
+      sesionesLog('error', 'borrarVentasSesionesEntrenador', 'Failed to delete session sales by date range', {
+        entrenador: entrenador.replaceAll('%', ''),
+        fechaInicio,
+        fechaFin,
+        error: exception?.message || String(exception),
+      });
       response.status(500)
       .send({
       message: "No se pudieron borrar las ventas de sesiones del entrenador "+entrenador.replaceAll("%",''),
@@ -141,6 +171,10 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
       });
       return;
     }catch(exception){
+      sesionesLog('error', 'borrarVentasSesionesEntrenador', 'Failed to delete session sales for current week', {
+        entrenador: entrenador.replaceAll('%', ''),
+        error: exception?.message || String(exception),
+      });
       response.status(500)
       .send({
       message: "No se pudieron borrar las ventas de sesiones del entrenador "+entrenador.replaceAll("%",''),
@@ -151,7 +185,6 @@ const borrarVentasSesionesEntrenador = async (request,response)=>{
 }
 
 const enviarCorreoSesionesVencidas = async (cliente) => {
-  console.log("Inicia proceso de envio de correo para persona anticipada en la carga del ics: "+cliente.nombre);
   let cedula = cliente.cedula;
   let sesionesVentasProductos;
   let sesionesVentasPaquetes;
@@ -172,6 +205,7 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
 
     // Si el cliente no existe, salimos
     if (clienteQuery.rows.length === 0) {
+      sesionesLog('warn', 'enviarCorreoSesionesVencidas', 'Client not found, skipping', { cedula });
       await dbClient.query("ROLLBACK");
       dbClient.release();
       return;
@@ -186,7 +220,6 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
       let fechaUltima = new Date(fechaUltimoCorreo).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
       let fechaHoy = new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
       
-      console.log("fechaUltima: "+fechaUltima, "fechaHoy: "+fechaHoy);
       if (fechaUltima === fechaHoy) {
         yaSeEnvioHoy = true;
       }
@@ -197,11 +230,11 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
     
     sesionesVentasProductos = await dbClient.query("select coalesce(sum(vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_productos vp on vp.venta = v.id \
-      where vp.producto='SES' and v.cliente=$1", [cedula]);
+      where vp.producto like '%SES%' and v.cliente=$1", [cedula]);
       
     sesionesVentasPaquetes = await dbClient.query("select coalesce(sum(pp.cantidad*vp.cantidad),0) as sesiones from ventas v \
       inner join ventas_paquetes vp on vp.venta = v.id \
-      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto ='SES'", [cedula]);
+      inner join productos_paquete pp on pp.codigo_paquete = vp.paquete where v.cliente=$1 and pp.codigo_producto like '%SES%'", [cedula]);
         
     let ultimaVenta = await dbClient.query("SELECT TO_TIMESTAMP(ve.fecha,'yyyy-mm-dd HH24:MI:SS'), vepa.paquete, vepa.cantidad, pa.precio FROM VENTAS ve \
       INNER JOIN VENTAS_PAQUETES vepa ON ve.id=vepa.venta \
@@ -212,7 +245,7 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
       fetch first 1 rows only", [cedula]);
 
     if (ultimaVenta.rows.length === 0) {
-      console.log("No tiene ventas");
+      sesionesLog('info', 'enviarCorreoSesionesVencidas', 'No session package sales found, skipping auto-renewal', { cedula });
       await dbClient.query("COMMIT"); 
     } else {
       paquete = ultimaVenta.rows[0].paquete;
@@ -223,33 +256,50 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
       let sesionesRestantes = (sesionesPagadas - sesionesTomadas2);
       
       if (sesionesRestantes <= 0) {
-        console.log("Generando nueva venta para el cliente " + cedula);
-        
+        sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Calling registrar_venta_safe for insert a new sale', { cedula,paquete,precio});
         await dbClient.query("CALL registrar_venta_safe($1, $2, $3, $4)", [
           cedula, paquete, precio, 3
         ]);
 
         // 2. APLICAR LA REGLA DEL CORREO
         if (!yaSeEnvioHoy) {
-          // Actualizamos la fecha en la base de datos dentro de la transacción
           await dbClient.query("UPDATE clientes SET fecha_ultimo_correo = (current_timestamp at time zone 'America/Bogota') WHERE cedula = $1", [cedula]);
-          enviarCorreo = true; 
-          console.log("Venta registrada y se programó el correo para hoy.");
+          enviarCorreo = true;
+          sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Auto-renewal sale registered, email queued', {
+            cedula,
+            paquete,
+            sesionesPagadas,
+            sesionesTomadas: sesionesTomadas2,
+          });
         } else {
-          console.log("Venta registrada, pero NO se enviará correo porque ya se envió uno hoy.");
+          sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Auto-renewal sale registered, email skipped (already sent today)', {
+            cedula,
+            paquete,
+          });
         }
 
       } else {
-        console.log("El cliente " + cedula + " ya tiene sesiones disponibles. Se evita duplicado.");
+        sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Client still has remaining sessions, no auto-renewal', {
+          cedula,
+          sesionesRestantes,
+        });
       }
 
       await dbClient.query("COMMIT");
     }
 
   } catch (err) {
-    try { await dbClient.query("ROLLBACK"); } catch(e) { console.error("Error en ROLLBACK:", e); }
-    console.log("Error ::: in function");
-    console.error(err);
+    try { await dbClient.query("ROLLBACK"); } catch (rollbackErr) {
+      sesionesLog('error', 'enviarCorreoSesionesVencidas', 'Rollback failed', {
+        cedula,
+        error: rollbackErr?.message || String(rollbackErr),
+      });
+    }
+    sesionesLog('error', 'enviarCorreoSesionesVencidas', 'Transaction failed', {
+      cedula,
+      error: err?.message || String(err),
+      stack: err?.stack,
+    });
     enviarCorreo = false; 
   } finally {
     dbClient.release();
@@ -257,7 +307,10 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
 
   // 3. ENVÍO DEL CORREO (Se ejecuta solo si enviarCorreo es true)
   if (enviarCorreo) {
-    console.log("Enviando Correo para el cliente::: " + cedula);
+    sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Sending session renewal notification email', {
+      cedula,
+      email: cliente.email,
+    });
 
     let mailData = {
       from: process.env.MAIL_ACCOUNT,
@@ -303,13 +356,19 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
       });
 
       let info = await transporter.sendMail(mailData);
-      console.log("Correo enviado con éxito a la cédula:", cedula, " -> ", info.messageId);
+      sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Email sent successfully', {
+        cedula,
+        messageId: info.messageId,
+      });
 
       // Preparar flujo IMAP
       imap.once('ready', function () {
         imap.openBox('INBOX.Sent', false, (err, box) => {
           if (err) {
-            console.error("Error abriendo INBOX.Sent:", err.message);
+            sesionesLog('warn', 'enviarCorreoSesionesVencidas', 'Failed to open IMAP Sent folder', {
+              cedula,
+              error: err.message,
+            });
             return;
           }
 
@@ -338,33 +397,37 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
 
             imap.append(msg.toString(), (err) => {
               if (err) {
-                console.error("Error guardando en INBOX.Sent:", err.message);
-              } else {
-                console.log("Correo guardado en Sent correctamente");
+                sesionesLog('warn', 'enviarCorreoSesionesVencidas', 'Failed to append email to IMAP Sent folder', {
+                  cedula,
+                  error: err.message,
+                });
               }
               imap.end();
             });
           } catch (imapBuildErr) {
-            console.error("Error construyendo el mensaje IMAP:", imapBuildErr.message);
+            sesionesLog('warn', 'enviarCorreoSesionesVencidas', 'Failed to build IMAP message', {
+              cedula,
+              error: imapBuildErr.message,
+            });
             imap.end();
           }
         });
       });
 
       imap.once('error', (err) => {
-        console.error("Error en IMAP:", err.message);
-      });
-
-      imap.once('end', () => {
-        console.log("Conexión IMAP finalizada");
+        sesionesLog('warn', 'enviarCorreoSesionesVencidas', 'IMAP connection error', {
+          cedula,
+          error: err.message,
+        });
       });
 
       imap.connect();
     } catch (error) {
-      console.error("Error general al enviar correo/IMAP:", error.message);
+      sesionesLog('error', 'enviarCorreoSesionesVencidas', 'Failed to send email', {
+        cedula,
+        error: error?.message || String(error),
+      });
     }
-  } else {
-     console.log("Proceso finalizado. No correspondía enviar correo para " + cedula);
   }
 
   return;
@@ -375,6 +438,8 @@ const cargaSesionesDeIcs = async (request, response)=>{
   let elementos = request.body.sesiones;
   let errorElements = []
   let successElements = []
+
+  sesionesLog('info', 'cargaSesionesDeIcs', 'ICS batch import started', { total: elementos?.length ?? 0 });
 
   try{
     await Promise.all(elementos.map(async (element)=>{
@@ -388,19 +453,30 @@ const cargaSesionesDeIcs = async (request, response)=>{
           errorElements.push(response.descripcion)
         }
       } catch (error) {
-        console.log("ERROR processing ics data: ",error,element)
+        sesionesLog('error', 'cargaSesionesDeIcs', 'Failed to process ICS session item', {
+          cliente: element?.cliente,
+          entrenador: element?.entrenador,
+          fecha: element?.fecha,
+          error: error?.message || String(error),
+        });
         errorElements.push({descripcion:"Error insertando el cliente "+element.cliente+" el dia: "+element.fecha+" con el entrenador:"+element.entrenador,
           success:false
         })
       }
     }))
+    sesionesLog('info', 'cargaSesionesDeIcs', 'ICS batch import finished', {
+      successCount: successElements.length,
+      errorCount: errorElements.length,
+    });
     response.status(200).send({
       successClients:successElements,
       errorClients:errorElements
     })
     return
   }catch(error){
-    console.log("ERROR processing ics data: ",error)
+    sesionesLog('error', 'cargaSesionesDeIcs', 'ICS batch import failed', {
+      error: error?.message || String(error),
+    });
     response.status(500)
         .send({
           message: error
@@ -429,7 +505,6 @@ const crearSesionDeIcs =  async (request)=>{
   let cliente = "%"+request.cliente+"%";
   let fecha = formatDateToCustom(request.fecha);
   let asistio = request.asistio;
-  console.log("Generando Sesiones para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
   let virtual=false;
   try{
     cliente=cliente.replaceAll('\n',"")
@@ -478,8 +553,6 @@ const crearSesionDeIcs =  async (request)=>{
             let resV = await pool.query("SELECT precio FROM productos WHERE codigo='SESV'")
             let sesionId = await pool.query("INSERT INTO SESIONES(entrenador,cliente,fecha,asistio,virtual) VALUES($1,$2,TO_TIMESTAMP($3,'YYYY-MM-DD HH24:MI'),$4,$5) RETURNING ID",[entrenador2,cliente2,fecha,asistio,virtual==null?false:virtual])
             if(!esAnticipado){
-              console.log("Insertando Vencido para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
-
               message+=" Y venta registrada exitosamente"
               if(precioSesion!==null && precioSesion!==undefined){
                 if(virtual){
@@ -500,10 +573,21 @@ const crearSesionDeIcs =  async (request)=>{
                 }
               }
             }else{
-                console.log("Enviando correos anticipado para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
+                sesionesLog('info', 'crearSesionDeIcs', 'Prepaid client session created, checking auto-renewal', {
+                  cedula: cliente2,
+                  fecha,
+                  entrenadorCedula: entrenador2,
+                });
                 await enviarCorreoSesionesVencidas(clienteRes.rows[0])
             }
-            console.log("Finalizó para: "+cliente+" Con Entrenador: "+entrenador +" El día: "+fecha)
+            sesionesLog('info', 'crearSesionDeIcs', 'Session created from ICS', {
+              cedula: cliente2,
+              fecha,
+              entrenadorCedula: entrenador2,
+              anticipado: esAnticipado,
+              virtual: virtual == null ? false : virtual,
+              ventaRegistrada: !esAnticipado,
+            });
 
             return{descripcion:message,success:true};
           }
@@ -511,7 +595,13 @@ const crearSesionDeIcs =  async (request)=>{
       }
     }
   }catch (e){
-    console.log("ERROR: "+e.stack)
+    sesionesLog('error', 'crearSesionDeIcs', 'Unexpected error creating session from ICS', {
+      cliente: request?.cliente,
+      entrenador: request?.entrenador,
+      fecha: request?.fecha,
+      error: e?.message || String(e),
+      stack: e?.stack,
+    });
     return{descripcion: e,success:false};
   }
 }
@@ -549,7 +639,12 @@ const crearSesion = async (request, response) =>{
           return;
         }
       }catch(error){
-        console.log(error)
+        sesionesLog('error', 'crearSesion', 'Failed to create session', {
+          entrenador,
+          cliente,
+          fecha,
+          error: error?.message || String(error),
+        });
         response.status(500)
                     .send({
                       message: error
@@ -564,17 +659,18 @@ const crearSesion = async (request, response) =>{
 const getSesiones = async (request,response) =>{
   let res;
   try {
-    console.log("Inicia Sesion")
     res = await pool.query("SELECT ses.asistio,ses.id,ses.entrenador,ses.cliente,TO_CHAR(ses.fecha, 'YYYY-MM-DD HH24:MI') AS fecha,ent.color AS color,ent.nombre AS nombreEntrenador,cli.nombre AS nombreCliente,TO_CHAR(ses.fecha + INTERVAL '75 minutes', 'YYYY-MM-DD HH24:MI') AS fechaFin,ses.virtual \
 FROM sesiones AS ses \
 INNER JOIN entrenadores AS ent ON ses.entrenador = ent.cedula \
 INNER JOIN clientes AS cli ON ses.cliente = cli.cedula \
 WHERE ses.fecha >= (current_date - INTERVAL '2 month') \
 AND ses.fecha <= date_trunc('month', current_timestamp AT TIME ZONE 'America/Bogota')")
-    console.log("Finaliza Sesion")
 
           response.status(200).send({sesiones:res.rows});
   } catch (error) {
+    sesionesLog('error', 'getSesiones', 'Failed to fetch sessions', {
+      error: error?.message || String(error),
+    });
     response.status(500)
             .send({
               message: error
