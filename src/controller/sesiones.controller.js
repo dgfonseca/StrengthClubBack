@@ -194,6 +194,7 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
   let paquete, precio;
 
   try {
+    sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Starting prepaid session balance check', { cedula });
     await dbClient.query("BEGIN");
 
     // 1. EL BLOQUEO Y LECTURA DE FECHA: Obtenemos cuándo fue la última vez que se le envió un correo
@@ -256,7 +257,7 @@ const enviarCorreoSesionesVencidas = async (cliente) => {
       let sesionesRestantes = (sesionesPagadas - sesionesTomadas2);
       
       if (sesionesRestantes <= 0) {
-        sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Calling registrar_venta_safe for insert a new sale', { cedula,paquete,precio});
+        sesionesLog('info', 'enviarCorreoSesionesVencidas', 'Calling registrar_venta_safe for insert a new sale', { cedula, paquete, precio });
         await dbClient.query("CALL registrar_venta_safe($1, $2, $3, $4)", [
           cedula, paquete, precio, 3
         ]);
@@ -467,6 +468,7 @@ const cargaSesionesDeIcs = async (request, response)=>{
     sesionesLog('info', 'cargaSesionesDeIcs', 'ICS batch import finished', {
       successCount: successElements.length,
       errorCount: errorElements.length,
+      entrenador:element?.entrenador
     });
     response.status(200).send({
       successClients:successElements,
