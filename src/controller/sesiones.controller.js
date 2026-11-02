@@ -468,7 +468,7 @@ const cargaSesionesDeIcs = async (request, response)=>{
     sesionesLog('info', 'cargaSesionesDeIcs', 'ICS batch import finished', {
       successCount: successElements.length,
       errorCount: errorElements.length,
-      entrenador:element?.entrenador
+      entrenador:request.body?.entrenador
     });
     response.status(200).send({
       successClients:successElements,
