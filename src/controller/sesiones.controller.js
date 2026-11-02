@@ -476,6 +476,7 @@ const cargaSesionesDeIcs = async (request, response)=>{
     })
     return
   }catch(error){
+    console.log(error);
     sesionesLog('error', 'cargaSesionesDeIcs', 'ICS batch import failed', {
       error: error?.message || String(error),
     });
