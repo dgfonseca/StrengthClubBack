@@ -440,7 +440,7 @@ const cargaSesionesDeIcs = async (request, response)=>{
   let errorElements = []
   let successElements = []
 
-  sesionesLog('info', 'cargaSesionesDeIcs', 'ICS batch import started', { total: elementos?.length ?? 0 });
+  sesionesLog('info', 'cargaSesionesDeIcs', 'ICS batch import started', { total: elementos?.length ?? 0, entrenador:request.body.sesiones[0].entrenador });
 
   try{
     await Promise.all(elementos.map(async (element)=>{
@@ -468,7 +468,12 @@ const cargaSesionesDeIcs = async (request, response)=>{
     sesionesLog('info', 'cargaSesionesDeIcs', 'ICS batch import finished', {
       successCount: successElements.length,
       errorCount: errorElements.length,
-      entrenador:request.body?.entrenador
+      entrenador:request.body.sesiones[0].entrenador
+    });
+
+    sesionesLog('info', 'cargaSesionesDeIcs', 'Errores de entrenadores', {
+      error: errorElements
+
     });
     response.status(200).send({
       successClients:successElements,
