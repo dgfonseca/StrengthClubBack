@@ -472,7 +472,8 @@ const cargaSesionesDeIcs = async (request, response)=>{
     });
 
     sesionesLog('info', 'cargaSesionesDeIcs', 'Errores de entrenadores', {
-      error: errorElements
+      error: errorElements,
+      entrenador:request.body.sesiones[0].entrenador
 
     });
     response.status(200).send({
